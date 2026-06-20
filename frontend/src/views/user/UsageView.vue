@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout class="usage-page-layout">
       <template #actions>
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- Total Requests -->
@@ -174,15 +174,14 @@
           </button>
         </div>
 
-        <!-- 用量明细表 -->
-        <!-- flex 链让 DataTable 根 .table-wrapper(flex:1)拿到有界高度以启用内部滚动。
-             虚拟化器测高 race 导致的概率空白,已在 DataTable 内用「就绪门控 + initialRect 兜底」根治。 -->
-        <div v-show="activeTab === 'usage'" class="flex min-h-0 flex-1 flex-col">
+        <!-- 用量明细表：这里关闭内部纵向滚动，让表格自然撑高，由页面滚动显示完整明细。 -->
+        <div v-show="activeTab === 'usage'" class="usage-table-pane">
           <DataTable
           :columns="columns"
           :data="usageLogs"
           :loading="loading"
           :server-side-sort="true"
+          :virtualized="false"
           :estimate-row-height="88"
           :overscan="12"
           default-sort-key="created_at"
@@ -1121,3 +1120,38 @@ onMounted(() => {
   loadUsageStats()
 })
 </script>
+
+<style scoped>
+.usage-page-layout {
+  height: auto !important;
+}
+
+.usage-page-layout :deep(.layout-section-scrollable) {
+  display: block;
+  flex: none;
+  min-height: 0;
+}
+
+.usage-page-layout :deep(.table-scroll-container) {
+  display: block;
+  height: auto;
+  overflow: visible;
+}
+
+.usage-table-pane {
+  min-height: 0;
+}
+
+.usage-table-pane :deep(.table-wrapper) {
+  display: block;
+  flex: none !important;
+  min-height: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-gutter: auto !important;
+}
+
+.usage-table-pane :deep(.table-wrapper::-webkit-scrollbar:horizontal) {
+  height: 12px !important;
+}
+</style>

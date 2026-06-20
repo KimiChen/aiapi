@@ -150,7 +150,7 @@
         </tr>
 
         <!-- Data rows (virtual scroll) -->
-        <template v-else>
+        <template v-else-if="useVirtualRows">
           <tr v-if="virtualPaddingTop > 0" aria-hidden="true">
             <td :colspan="columns.length"
                 :style="{ height: virtualPaddingTop + 'px', padding: 0, border: 'none' }">
@@ -187,6 +187,37 @@
           <tr v-if="virtualPaddingBottom > 0" aria-hidden="true">
             <td :colspan="columns.length"
                 :style="{ height: virtualPaddingBottom + 'px', padding: 0, border: 'none' }">
+            </td>
+          </tr>
+        </template>
+
+        <!-- Data rows (natural height, no internal vertical scrolling) -->
+        <template v-else>
+          <tr
+            v-for="(row, index) in sortedData"
+            :key="resolveRowKey(row, index)"
+            :data-row-id="resolveRowKey(row, index)"
+            :data-index="index"
+            class="hover:bg-gray-50 dark:hover:bg-dark-800"
+          >
+            <td
+              v-for="(column, colIndex) in columns"
+              :key="column.key"
+              :class="[
+                'whitespace-nowrap py-4 text-sm text-gray-900 dark:text-gray-100',
+                getAdaptivePaddingClass(),
+                getStickyColumnClass(column, colIndex),
+                column.class
+              ]"
+            >
+              <slot :name="`cell-${column.key}`"
+                    :row="row"
+                    :value="row[column.key]"
+                    :expanded="actionsExpanded">
+                {{ column.formatter
+                   ? column.formatter(row[column.key], row)
+                   : row[column.key] }}
+              </slot>
             </td>
           </tr>
         </template>
@@ -378,6 +409,8 @@ interface Props {
    * will emit 'sort' events instead of performing client-side sorting.
    */
   serverSideSort?: boolean
+  /** Render all desktop rows and let the page scroll instead of virtualizing inside the table */
+  virtualized?: boolean
   /** Estimated row height in px for the virtualizer (default 56) */
   estimateRowHeight?: number
   /** Number of rows to render beyond the visible area (default 5) */
@@ -390,7 +423,8 @@ const props = withDefaults(defineProps<Props>(), {
   stickyActionsColumn: true,
   expandableActions: true,
   defaultSortOrder: 'asc',
-  serverSideSort: false
+  serverSideSort: false,
+  virtualized: true
 })
 
 const sortKey = ref<string>('')
@@ -593,9 +627,11 @@ const sortedData = computed(() => {
     .map(item => item.row)
 })
 
+const useVirtualRows = computed(() => props.virtualized && isDesktopViewport.value)
+
 // --- Virtual scrolling ---
 const rowVirtualizer = useVirtualizer(computed(() => ({
-  count: isDesktopViewport.value ? (sortedData.value?.length ?? 0) : 0,
+  count: useVirtualRows.value ? (sortedData.value?.length ?? 0) : 0,
   getScrollElement: () => tableWrapperRef.value,
   estimateSize: () => props.estimateRowHeight ?? 56,
   overscan: props.overscan ?? 5,

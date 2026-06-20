@@ -310,7 +310,7 @@
                 </button>
               </div>
             </div>
-            <div v-if="dailyUsageRows.length > 0" class="usage-detail-scrollbar overflow-x-auto">
+            <div v-if="dailyUsageRows.length > 0" class="overflow-x-auto">
               <table class="w-full">
                 <thead>
                   <tr class="border-b border-gray-200 bg-gray-50 dark:border-dark-700 dark:bg-dark-950">
@@ -991,49 +991,6 @@ onUnmounted(() => {
 }
 .pulse-dot {
   animation: pulse-dot-kv 2s ease-in-out infinite;
-}
-
-/* Usage detail scrollbar */
-.usage-detail-scrollbar {
-  scrollbar-width: auto;
-  scrollbar-color: rgba(107, 114, 128, 0.75) rgba(0, 0, 0, 0.03);
-}
-
-.usage-detail-scrollbar::-webkit-scrollbar {
-  height: 12px;
-}
-
-.usage-detail-scrollbar::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0.03);
-  border-radius: 6px;
-  margin: 0 4px;
-}
-
-.usage-detail-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(107, 114, 128, 0.75);
-  border: 2px solid transparent;
-  border-radius: 6px;
-  background-clip: padding-box;
-}
-
-.usage-detail-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(75, 85, 99, 0.9);
-}
-
-:global(.dark) .usage-detail-scrollbar {
-  scrollbar-color: rgba(156, 163, 175, 0.75) rgba(255, 255, 255, 0.05);
-}
-
-:global(.dark) .usage-detail-scrollbar::-webkit-scrollbar-track {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-:global(.dark) .usage-detail-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.75);
-}
-
-:global(.dark) .usage-detail-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(209, 213, 219, 0.9);
 }
 
 /* Tabular nums */
