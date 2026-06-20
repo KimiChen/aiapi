@@ -559,9 +559,23 @@
   }
 
   .sidebar-link-active {
-    @apply bg-primary-50 dark:bg-primary-900/20;
-    @apply text-primary-600 dark:text-primary-400;
-    @apply hover:bg-primary-100 dark:hover:bg-primary-900/30;
+    background-color: #f3f3fd;
+    color: #6469eb;
+  }
+
+  .sidebar-link-active:hover {
+    background-color: #e8e8ff;
+    color: #6469eb;
+  }
+
+  .dark .sidebar-link-active {
+    background-color: rgb(79 70 229 / 0.18);
+    color: #a5b4fc;
+  }
+
+  .dark .sidebar-link-active:hover {
+    background-color: rgb(79 70 229 / 0.28);
+    color: #c7d2fe;
   }
 
   .sidebar-section {
