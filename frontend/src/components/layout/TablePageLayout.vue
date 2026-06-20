@@ -1,5 +1,11 @@
 <template>
-  <div class="table-page-layout" :class="{ 'mobile-mode': isMobile }">
+  <div
+    class="table-page-layout"
+    :class="{
+      'mobile-mode': isMobile,
+      'natural-table-height': props.naturalTableHeight,
+    }"
+  >
     <!-- 固定区域：操作按钮 -->
     <div v-if="$slots.actions" class="layout-section-fixed">
       <slot name="actions" />
@@ -26,6 +32,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+
+const props = withDefaults(defineProps<{
+  naturalTableHeight?: boolean
+}>(), {
+  naturalTableHeight: false
+})
 
 const isMobile = ref(false)
 
@@ -67,6 +79,39 @@ onUnmounted(() => {
   @apply flex-1 overflow-x-auto overflow-y-auto;
   /* 确保横向滚动条显示在最底部 */
   scrollbar-gutter: stable;
+}
+
+/* 自然高度模式：表格撑开当前页所有行，纵向滚动交给整个页面 */
+.table-page-layout.natural-table-height {
+  height: auto;
+}
+
+.table-page-layout.natural-table-height .layout-section-scrollable {
+  display: block;
+  flex: none;
+  min-height: 0;
+}
+
+.table-page-layout.natural-table-height .table-scroll-container {
+  display: block;
+  height: auto;
+  overflow: visible;
+}
+
+.table-page-layout.natural-table-height .table-scroll-container :deep(.table-wrapper) {
+  display: block;
+  flex: none !important;
+  min-height: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-gutter: auto !important;
+}
+
+.table-page-layout.natural-table-height .table-scroll-container :deep(.admin-natural-table-wrapper) {
+  display: block;
+  flex: none;
+  min-height: 0;
+  overflow: visible;
 }
 
 .table-scroll-container :deep(table) {

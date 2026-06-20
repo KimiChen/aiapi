@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <MonitorFiltersBar
           v-model:search="searchQuery"
@@ -15,7 +15,7 @@
       </template>
 
       <template #table>
-        <DataTable :columns="columns" :data="monitors" :loading="loading">
+        <DataTable :columns="columns" :data="monitors" :loading="loading" :virtualized="false">
           <template #cell-name="{ row, value }">
             <div class="flex items-center gap-1.5">
               <span class="font-medium text-gray-900 dark:text-white">{{ value }}</span>

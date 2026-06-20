@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <!-- Top Toolbar: Left (search + filters) / Right (actions) -->
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -174,6 +174,7 @@
           :data="subscriptions"
           :loading="loading"
           :server-side-sort="true"
+          :virtualized="false"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"

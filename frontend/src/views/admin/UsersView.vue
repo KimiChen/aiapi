@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <!-- Single Row: Search, Filters, and Actions -->
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
@@ -259,6 +259,7 @@
           :loading="loading"
           :actions-count="7"
           :server-side-sort="true"
+          :virtualized="false"
           default-sort-key="created_at"
           default-sort-order="desc"
           :sort-storage-key="USER_SORT_STORAGE_KEY"

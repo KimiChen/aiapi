@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-3">
@@ -54,6 +54,7 @@
           :data="apiKeys"
           :loading="loading"
           :server-side-sort="true"
+          :virtualized="false"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"

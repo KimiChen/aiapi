@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
@@ -88,12 +88,13 @@
       </template>
 
       <template #table>
-        <div ref="proxyTableRef" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div ref="proxyTableRef" class="admin-natural-table-wrapper">
         <DataTable
           :columns="columns"
           :data="proxies"
           :loading="loading"
           :server-side-sort="true"
+          :virtualized="false"
           default-sort-key="id"
           default-sort-order="desc"
           @sort="handleSort"
