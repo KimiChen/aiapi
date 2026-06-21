@@ -25,6 +25,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/proxyurl"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/proxyutil"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/tlsfingerprint"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/trafficstats"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 	"github.com/Wei-Shaw/sub2api/internal/util/urlvalidator"
 )
@@ -175,6 +176,7 @@ func (s *httpUpstreamService) Do(req *http.Request, proxyURL string, accountID i
 		return nil, err
 	}
 
+	recordUpstreamRequestTraffic(req)
 	// 执行请求
 	resp, err := entry.client.Do(req)
 	if err != nil {
@@ -186,6 +188,7 @@ func (s *httpUpstreamService) Do(req *http.Request, proxyURL string, accountID i
 	}
 	s.recordOpenAIHTTP2Success(profile, entry.protocolMode, entry.proxyKey)
 
+	recordUpstreamResponseTraffic(resp)
 	// 如果上游返回了压缩内容，解压后再交给业务层
 	decompressResponseBody(resp)
 
@@ -232,6 +235,7 @@ func (s *httpUpstreamService) DoWithTLS(req *http.Request, proxyURL string, acco
 		return nil, err
 	}
 
+	recordUpstreamRequestTraffic(req)
 	resp, err := entry.client.Do(req)
 	if err != nil {
 		atomic.AddInt64(&entry.inFlight, -1)
@@ -240,6 +244,7 @@ func (s *httpUpstreamService) DoWithTLS(req *http.Request, proxyURL string, acco
 		return nil, err
 	}
 
+	recordUpstreamResponseTraffic(resp)
 	decompressResponseBody(resp)
 
 	resp.Body = wrapTrackedBody(resp.Body, func() {
@@ -248,6 +253,34 @@ func (s *httpUpstreamService) DoWithTLS(req *http.Request, proxyURL string, acco
 	})
 
 	return resp, nil
+}
+
+func recordUpstreamRequestTraffic(req *http.Request) {
+	if req == nil {
+		return
+	}
+	counter, ok := trafficstats.FromContext(req.Context())
+	if !ok {
+		return
+	}
+	counter.RecordUpstreamRequest(req)
+	if req.Body != nil {
+		req.Body = &trafficstats.CountingReadCloser{ReadCloser: req.Body, Add: counter.AddUpstreamRequestBody}
+	}
+}
+
+func recordUpstreamResponseTraffic(resp *http.Response) {
+	if resp == nil || resp.Request == nil {
+		return
+	}
+	counter, ok := trafficstats.FromContext(resp.Request.Context())
+	if !ok {
+		return
+	}
+	counter.RecordUpstreamResponse(resp)
+	if resp.Body != nil {
+		resp.Body = &trafficstats.CountingReadCloser{ReadCloser: resp.Body, Add: counter.AddUpstreamResponseBody}
+	}
 }
 
 // acquireClientWithTLS 获取或创建带 TLS 指纹的客户端

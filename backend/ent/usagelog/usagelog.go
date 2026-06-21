@@ -84,6 +84,10 @@ const (
 	FieldRequestBytes = "request_bytes"
 	// FieldResponseBytes holds the string denoting the response_bytes field in the database.
 	FieldResponseBytes = "response_bytes"
+	// FieldUpstreamRequestBytes holds the string denoting the upstream_request_bytes field in the database.
+	FieldUpstreamRequestBytes = "upstream_request_bytes"
+	// FieldUpstreamResponseBytes holds the string denoting the upstream_response_bytes field in the database.
+	FieldUpstreamResponseBytes = "upstream_response_bytes"
 	// FieldTrafficSource holds the string denoting the traffic_source field in the database.
 	FieldTrafficSource = "traffic_source"
 	// FieldTrafficEstimated holds the string denoting the traffic_estimated field in the database.
@@ -191,6 +195,8 @@ var Columns = []string{
 	FieldIPAddress,
 	FieldRequestBytes,
 	FieldResponseBytes,
+	FieldUpstreamRequestBytes,
+	FieldUpstreamResponseBytes,
 	FieldTrafficSource,
 	FieldTrafficEstimated,
 	FieldImageCount,
@@ -266,6 +272,10 @@ var (
 	DefaultRequestBytes int64
 	// DefaultResponseBytes holds the default value on creation for the "response_bytes" field.
 	DefaultResponseBytes int64
+	// DefaultUpstreamRequestBytes holds the default value on creation for the "upstream_request_bytes" field.
+	DefaultUpstreamRequestBytes int64
+	// DefaultUpstreamResponseBytes holds the default value on creation for the "upstream_response_bytes" field.
+	DefaultUpstreamResponseBytes int64
 	// TrafficSourceValidator is a validator for the "traffic_source" field. It is called by the builders before save.
 	TrafficSourceValidator func(string) error
 	// DefaultTrafficEstimated holds the default value on creation for the "traffic_estimated" field.
@@ -467,6 +477,16 @@ func ByRequestBytes(opts ...sql.OrderTermOption) OrderOption {
 // ByResponseBytes orders the results by the response_bytes field.
 func ByResponseBytes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldResponseBytes, opts...).ToFunc()
+}
+
+// ByUpstreamRequestBytes orders the results by the upstream_request_bytes field.
+func ByUpstreamRequestBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpstreamRequestBytes, opts...).ToFunc()
+}
+
+// ByUpstreamResponseBytes orders the results by the upstream_response_bytes field.
+func ByUpstreamResponseBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpstreamResponseBytes, opts...).ToFunc()
 }
 
 // ByTrafficSource orders the results by the traffic_source field.

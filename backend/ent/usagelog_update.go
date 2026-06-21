@@ -740,6 +740,48 @@ func (_u *UsageLogUpdate) AddResponseBytes(v int64) *UsageLogUpdate {
 	return _u
 }
 
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (_u *UsageLogUpdate) SetUpstreamRequestBytes(v int64) *UsageLogUpdate {
+	_u.mutation.ResetUpstreamRequestBytes()
+	_u.mutation.SetUpstreamRequestBytes(v)
+	return _u
+}
+
+// SetNillableUpstreamRequestBytes sets the "upstream_request_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableUpstreamRequestBytes(v *int64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetUpstreamRequestBytes(*v)
+	}
+	return _u
+}
+
+// AddUpstreamRequestBytes adds value to the "upstream_request_bytes" field.
+func (_u *UsageLogUpdate) AddUpstreamRequestBytes(v int64) *UsageLogUpdate {
+	_u.mutation.AddUpstreamRequestBytes(v)
+	return _u
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (_u *UsageLogUpdate) SetUpstreamResponseBytes(v int64) *UsageLogUpdate {
+	_u.mutation.ResetUpstreamResponseBytes()
+	_u.mutation.SetUpstreamResponseBytes(v)
+	return _u
+}
+
+// SetNillableUpstreamResponseBytes sets the "upstream_response_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableUpstreamResponseBytes(v *int64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetUpstreamResponseBytes(*v)
+	}
+	return _u
+}
+
+// AddUpstreamResponseBytes adds value to the "upstream_response_bytes" field.
+func (_u *UsageLogUpdate) AddUpstreamResponseBytes(v int64) *UsageLogUpdate {
+	_u.mutation.AddUpstreamResponseBytes(v)
+	return _u
+}
+
 // SetTrafficSource sets the "traffic_source" field.
 func (_u *UsageLogUpdate) SetTrafficSource(v string) *UsageLogUpdate {
 	_u.mutation.SetTrafficSource(v)
@@ -1266,6 +1308,18 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedResponseBytes(); ok {
 		_spec.AddField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UpstreamRequestBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUpstreamRequestBytes(); ok {
+		_spec.AddField(usagelog.FieldUpstreamRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UpstreamResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUpstreamResponseBytes(); ok {
+		_spec.AddField(usagelog.FieldUpstreamResponseBytes, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.TrafficSource(); ok {
 		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)
@@ -2188,6 +2242,48 @@ func (_u *UsageLogUpdateOne) AddResponseBytes(v int64) *UsageLogUpdateOne {
 	return _u
 }
 
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (_u *UsageLogUpdateOne) SetUpstreamRequestBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.ResetUpstreamRequestBytes()
+	_u.mutation.SetUpstreamRequestBytes(v)
+	return _u
+}
+
+// SetNillableUpstreamRequestBytes sets the "upstream_request_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableUpstreamRequestBytes(v *int64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetUpstreamRequestBytes(*v)
+	}
+	return _u
+}
+
+// AddUpstreamRequestBytes adds value to the "upstream_request_bytes" field.
+func (_u *UsageLogUpdateOne) AddUpstreamRequestBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.AddUpstreamRequestBytes(v)
+	return _u
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (_u *UsageLogUpdateOne) SetUpstreamResponseBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.ResetUpstreamResponseBytes()
+	_u.mutation.SetUpstreamResponseBytes(v)
+	return _u
+}
+
+// SetNillableUpstreamResponseBytes sets the "upstream_response_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableUpstreamResponseBytes(v *int64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetUpstreamResponseBytes(*v)
+	}
+	return _u
+}
+
+// AddUpstreamResponseBytes adds value to the "upstream_response_bytes" field.
+func (_u *UsageLogUpdateOne) AddUpstreamResponseBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.AddUpstreamResponseBytes(v)
+	return _u
+}
+
 // SetTrafficSource sets the "traffic_source" field.
 func (_u *UsageLogUpdateOne) SetTrafficSource(v string) *UsageLogUpdateOne {
 	_u.mutation.SetTrafficSource(v)
@@ -2744,6 +2840,18 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if value, ok := _u.mutation.AddedResponseBytes(); ok {
 		_spec.AddField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UpstreamRequestBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUpstreamRequestBytes(); ok {
+		_spec.AddField(usagelog.FieldUpstreamRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.UpstreamResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedUpstreamResponseBytes(); ok {
+		_spec.AddField(usagelog.FieldUpstreamResponseBytes, field.TypeInt64, value)
 	}
 	if value, ok := _u.mutation.TrafficSource(); ok {
 		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)

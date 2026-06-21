@@ -608,6 +608,8 @@ func usageLogFromServiceUser(l *service.UsageLog) UsageLog {
 		RateMultiplier:        l.RateMultiplier,
 		RequestBytes:          l.RequestBytes,
 		ResponseBytes:         l.ResponseBytes,
+		UpstreamRequestBytes:  l.UpstreamRequestBytes,
+		UpstreamResponseBytes: l.UpstreamResponseBytes,
 		BillingType:           l.BillingType,
 		RequestType:           requestType.String(),
 		Stream:                stream,

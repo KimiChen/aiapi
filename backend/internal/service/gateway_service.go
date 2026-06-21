@@ -9301,6 +9301,8 @@ func applyUsageLogTrafficStats(ctx context.Context, usageLog *UsageLog) {
 	}
 	usageLog.RequestBytes = snapshot.RequestBytes
 	usageLog.ResponseBytes = snapshot.ResponseBytes
+	usageLog.UpstreamRequestBytes = snapshot.UpstreamRequestBytes
+	usageLog.UpstreamResponseBytes = snapshot.UpstreamResponseBytes
 	usageLog.TrafficEstimated = snapshot.Estimated
 	if source := strings.TrimSpace(snapshot.Source); source != "" {
 		usageLog.TrafficSource = &source

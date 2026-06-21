@@ -1238,6 +1238,8 @@ export interface UsageLog {
   rate_multiplier: number
   request_bytes?: number
   response_bytes?: number
+  upstream_request_bytes?: number
+  upstream_response_bytes?: number
   billing_type: number
 
   request_type?: UsageRequestType
@@ -1404,6 +1406,8 @@ export interface DashboardStats {
   total_account_cost: number // 累计账号成本
   total_request_bytes: number
   total_response_bytes: number
+  total_upstream_request_bytes: number
+  total_upstream_response_bytes: number
   total_traffic_bytes: number
 
   // 今日 Token 使用统计
@@ -1418,6 +1422,8 @@ export interface DashboardStats {
   today_account_cost: number // 今日账号成本
   today_request_bytes: number
   today_response_bytes: number
+  today_upstream_request_bytes: number
+  today_upstream_response_bytes: number
   today_traffic_bytes: number
 
   // 系统运行统计
@@ -1458,6 +1464,8 @@ export interface TrendDataPoint {
   actual_cost: number // 实际扣除
   request_bytes: number
   response_bytes: number
+  upstream_request_bytes: number
+  upstream_response_bytes: number
   traffic_bytes: number
 }
 

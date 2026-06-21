@@ -477,6 +477,34 @@ func (_c *UsageLogCreate) SetNillableResponseBytes(v *int64) *UsageLogCreate {
 	return _c
 }
 
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (_c *UsageLogCreate) SetUpstreamRequestBytes(v int64) *UsageLogCreate {
+	_c.mutation.SetUpstreamRequestBytes(v)
+	return _c
+}
+
+// SetNillableUpstreamRequestBytes sets the "upstream_request_bytes" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableUpstreamRequestBytes(v *int64) *UsageLogCreate {
+	if v != nil {
+		_c.SetUpstreamRequestBytes(*v)
+	}
+	return _c
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (_c *UsageLogCreate) SetUpstreamResponseBytes(v int64) *UsageLogCreate {
+	_c.mutation.SetUpstreamResponseBytes(v)
+	return _c
+}
+
+// SetNillableUpstreamResponseBytes sets the "upstream_response_bytes" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableUpstreamResponseBytes(v *int64) *UsageLogCreate {
+	if v != nil {
+		_c.SetUpstreamResponseBytes(*v)
+	}
+	return _c
+}
+
 // SetTrafficSource sets the "traffic_source" field.
 func (_c *UsageLogCreate) SetTrafficSource(v string) *UsageLogCreate {
 	_c.mutation.SetTrafficSource(v)
@@ -737,6 +765,14 @@ func (_c *UsageLogCreate) defaults() {
 		v := usagelog.DefaultResponseBytes
 		_c.mutation.SetResponseBytes(v)
 	}
+	if _, ok := _c.mutation.UpstreamRequestBytes(); !ok {
+		v := usagelog.DefaultUpstreamRequestBytes
+		_c.mutation.SetUpstreamRequestBytes(v)
+	}
+	if _, ok := _c.mutation.UpstreamResponseBytes(); !ok {
+		v := usagelog.DefaultUpstreamResponseBytes
+		_c.mutation.SetUpstreamResponseBytes(v)
+	}
 	if _, ok := _c.mutation.TrafficEstimated(); !ok {
 		v := usagelog.DefaultTrafficEstimated
 		_c.mutation.SetTrafficEstimated(v)
@@ -867,6 +903,12 @@ func (_c *UsageLogCreate) check() error {
 	}
 	if _, ok := _c.mutation.ResponseBytes(); !ok {
 		return &ValidationError{Name: "response_bytes", err: errors.New(`ent: missing required field "UsageLog.response_bytes"`)}
+	}
+	if _, ok := _c.mutation.UpstreamRequestBytes(); !ok {
+		return &ValidationError{Name: "upstream_request_bytes", err: errors.New(`ent: missing required field "UsageLog.upstream_request_bytes"`)}
+	}
+	if _, ok := _c.mutation.UpstreamResponseBytes(); !ok {
+		return &ValidationError{Name: "upstream_response_bytes", err: errors.New(`ent: missing required field "UsageLog.upstream_response_bytes"`)}
 	}
 	if v, ok := _c.mutation.TrafficSource(); ok {
 		if err := usagelog.TrafficSourceValidator(v); err != nil {
@@ -1060,6 +1102,14 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ResponseBytes(); ok {
 		_spec.SetField(usagelog.FieldResponseBytes, field.TypeInt64, value)
 		_node.ResponseBytes = value
+	}
+	if value, ok := _c.mutation.UpstreamRequestBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamRequestBytes, field.TypeInt64, value)
+		_node.UpstreamRequestBytes = value
+	}
+	if value, ok := _c.mutation.UpstreamResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldUpstreamResponseBytes, field.TypeInt64, value)
+		_node.UpstreamResponseBytes = value
 	}
 	if value, ok := _c.mutation.TrafficSource(); ok {
 		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)
@@ -1853,6 +1903,42 @@ func (u *UsageLogUpsert) UpdateResponseBytes() *UsageLogUpsert {
 // AddResponseBytes adds v to the "response_bytes" field.
 func (u *UsageLogUpsert) AddResponseBytes(v int64) *UsageLogUpsert {
 	u.Add(usagelog.FieldResponseBytes, v)
+	return u
+}
+
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (u *UsageLogUpsert) SetUpstreamRequestBytes(v int64) *UsageLogUpsert {
+	u.Set(usagelog.FieldUpstreamRequestBytes, v)
+	return u
+}
+
+// UpdateUpstreamRequestBytes sets the "upstream_request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateUpstreamRequestBytes() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldUpstreamRequestBytes)
+	return u
+}
+
+// AddUpstreamRequestBytes adds v to the "upstream_request_bytes" field.
+func (u *UsageLogUpsert) AddUpstreamRequestBytes(v int64) *UsageLogUpsert {
+	u.Add(usagelog.FieldUpstreamRequestBytes, v)
+	return u
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (u *UsageLogUpsert) SetUpstreamResponseBytes(v int64) *UsageLogUpsert {
+	u.Set(usagelog.FieldUpstreamResponseBytes, v)
+	return u
+}
+
+// UpdateUpstreamResponseBytes sets the "upstream_response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateUpstreamResponseBytes() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldUpstreamResponseBytes)
+	return u
+}
+
+// AddUpstreamResponseBytes adds v to the "upstream_response_bytes" field.
+func (u *UsageLogUpsert) AddUpstreamResponseBytes(v int64) *UsageLogUpsert {
+	u.Add(usagelog.FieldUpstreamResponseBytes, v)
 	return u
 }
 
@@ -2769,6 +2855,48 @@ func (u *UsageLogUpsertOne) AddResponseBytes(v int64) *UsageLogUpsertOne {
 func (u *UsageLogUpsertOne) UpdateResponseBytes() *UsageLogUpsertOne {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.UpdateResponseBytes()
+	})
+}
+
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (u *UsageLogUpsertOne) SetUpstreamRequestBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUpstreamRequestBytes(v)
+	})
+}
+
+// AddUpstreamRequestBytes adds v to the "upstream_request_bytes" field.
+func (u *UsageLogUpsertOne) AddUpstreamRequestBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddUpstreamRequestBytes(v)
+	})
+}
+
+// UpdateUpstreamRequestBytes sets the "upstream_request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateUpstreamRequestBytes() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUpstreamRequestBytes()
+	})
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (u *UsageLogUpsertOne) SetUpstreamResponseBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUpstreamResponseBytes(v)
+	})
+}
+
+// AddUpstreamResponseBytes adds v to the "upstream_response_bytes" field.
+func (u *UsageLogUpsertOne) AddUpstreamResponseBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddUpstreamResponseBytes(v)
+	})
+}
+
+// UpdateUpstreamResponseBytes sets the "upstream_response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateUpstreamResponseBytes() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUpstreamResponseBytes()
 	})
 }
 
@@ -3876,6 +4004,48 @@ func (u *UsageLogUpsertBulk) AddResponseBytes(v int64) *UsageLogUpsertBulk {
 func (u *UsageLogUpsertBulk) UpdateResponseBytes() *UsageLogUpsertBulk {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.UpdateResponseBytes()
+	})
+}
+
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (u *UsageLogUpsertBulk) SetUpstreamRequestBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUpstreamRequestBytes(v)
+	})
+}
+
+// AddUpstreamRequestBytes adds v to the "upstream_request_bytes" field.
+func (u *UsageLogUpsertBulk) AddUpstreamRequestBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddUpstreamRequestBytes(v)
+	})
+}
+
+// UpdateUpstreamRequestBytes sets the "upstream_request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateUpstreamRequestBytes() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUpstreamRequestBytes()
+	})
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (u *UsageLogUpsertBulk) SetUpstreamResponseBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUpstreamResponseBytes(v)
+	})
+}
+
+// AddUpstreamResponseBytes adds v to the "upstream_response_bytes" field.
+func (u *UsageLogUpsertBulk) AddUpstreamResponseBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddUpstreamResponseBytes(v)
+	})
+}
+
+// UpdateUpstreamResponseBytes sets the "upstream_response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateUpstreamResponseBytes() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUpstreamResponseBytes()
 	})
 }
 

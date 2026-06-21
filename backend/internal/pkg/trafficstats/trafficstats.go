@@ -4,6 +4,7 @@ package trafficstats
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -33,14 +34,19 @@ type Config struct {
 
 // Snapshot is the final traffic estimate stored on a usage log.
 type Snapshot struct {
-	RequestBytes   int64
-	ResponseBytes  int64
-	Source         string
-	Estimated      bool
-	RequestBase    int64
-	ResponseBase   int64
-	TLSEstimated   bool
-	PacketOverhead bool
+	RequestBytes          int64
+	ResponseBytes         int64
+	UpstreamRequestBytes  int64
+	UpstreamResponseBytes int64
+	Source                string
+	Estimated             bool
+	RequestBase           int64
+	ResponseBase          int64
+	UpstreamRequestBase   int64
+	UpstreamResponseBase  int64
+	TLSEstimated          bool
+	UpstreamTLSEstimated  bool
+	PacketOverhead        bool
 }
 
 // Counter tracks one HTTP request.
@@ -54,6 +60,14 @@ type Counter struct {
 	responseHeaderBytes      atomic.Int64
 	responseBodyBytes        atomic.Int64
 	responseFinalized        atomic.Bool
+
+	upstreamTLS                       atomic.Bool
+	upstreamRequestHeaderBytes        atomic.Int64
+	upstreamRequestBodyDeclaredBytes  atomic.Int64
+	upstreamRequestBodyBytes          atomic.Int64
+	upstreamResponseHeaderBytes       atomic.Int64
+	upstreamResponseBodyDeclaredBytes atomic.Int64
+	upstreamResponseBodyBytes         atomic.Int64
 }
 
 // NormalizeConfig fills safe defaults.
@@ -126,6 +140,61 @@ func (c *Counter) AddResponseBody(n int64) {
 	c.responseBodyBytes.Add(n)
 }
 
+// RecordUpstreamRequest records request line/header bytes and declared body size for one upstream request.
+func (c *Counter) RecordUpstreamRequest(req *http.Request) {
+	if c == nil || req == nil {
+		return
+	}
+	if requestURLUsesTLS(req) {
+		c.upstreamTLS.Store(true)
+	}
+	c.upstreamRequestHeaderBytes.Add(estimateRequestHeadBytes(req))
+	if req.ContentLength > 0 {
+		c.upstreamRequestBodyDeclaredBytes.Add(req.ContentLength)
+	}
+}
+
+// AddUpstreamRequestBody records upstream request body bytes read by net/http.
+func (c *Counter) AddUpstreamRequestBody(n int64) {
+	if c == nil || n <= 0 {
+		return
+	}
+	c.upstreamRequestBodyBytes.Add(n)
+}
+
+// RecordUpstreamResponse records upstream response status line, headers, and declared body size.
+func (c *Counter) RecordUpstreamResponse(resp *http.Response) {
+	if c == nil || resp == nil {
+		return
+	}
+	c.upstreamResponseHeaderBytes.Add(estimateResponseHeadBytes(resp.StatusCode, resp.Header, resp.Proto))
+	if resp.ContentLength > 0 {
+		c.upstreamResponseBodyDeclaredBytes.Add(resp.ContentLength)
+	}
+}
+
+// AddUpstreamResponseBody records upstream response body bytes read from the wire.
+func (c *Counter) AddUpstreamResponseBody(n int64) {
+	if c == nil || n <= 0 {
+		return
+	}
+	c.upstreamResponseBodyBytes.Add(n)
+}
+
+// CountingReadCloser wraps a body and calls add with every positive read size.
+type CountingReadCloser struct {
+	io.ReadCloser
+	Add func(int64)
+}
+
+func (r *CountingReadCloser) Read(p []byte) (int, error) {
+	n, err := r.ReadCloser.Read(p)
+	if n > 0 && r.Add != nil {
+		r.Add(int64(n))
+	}
+	return n, err
+}
+
 // FinalizeResponse records response status line and headers once.
 func (c *Counter) FinalizeResponse(status int, header http.Header, proto string) {
 	if c == nil || !c.responseFinalized.CompareAndSwap(false, true) {
@@ -144,15 +213,23 @@ func (c *Counter) Snapshot() Snapshot {
 	}
 	requestBase := c.requestHeaderBytes + maxInt64(c.requestBodyDeclaredBytes, c.requestBodyBytes.Load())
 	responseBase := c.responseHeaderBytes.Load() + c.responseBodyBytes.Load()
+	upstreamRequestBase := c.upstreamRequestHeaderBytes.Load() + maxInt64(c.upstreamRequestBodyDeclaredBytes.Load(), c.upstreamRequestBodyBytes.Load())
+	upstreamResponseBase := c.upstreamResponseHeaderBytes.Load() + maxInt64(c.upstreamResponseBodyDeclaredBytes.Load(), c.upstreamResponseBodyBytes.Load())
+	upstreamTLS := c.upstreamTLS.Load()
 	return Snapshot{
-		RequestBytes:   estimateWireBytes(requestBase, c.cfg, c.tls),
-		ResponseBytes:  estimateWireBytes(responseBase, c.cfg, c.tls),
-		Source:         c.cfg.Source,
-		Estimated:      true,
-		RequestBase:    requestBase,
-		ResponseBase:   responseBase,
-		TLSEstimated:   c.tls && c.cfg.TLSRecordPayloadBytes > 0 && c.cfg.TLSRecordOverhead > 0,
-		PacketOverhead: c.cfg.TCPIPHeaderBytes > 0 && c.cfg.TCPPayloadBytes > 0,
+		RequestBytes:          estimateWireBytes(requestBase, c.cfg, c.tls),
+		ResponseBytes:         estimateWireBytes(responseBase, c.cfg, c.tls),
+		UpstreamRequestBytes:  estimateWireBytes(upstreamRequestBase, c.cfg, upstreamTLS),
+		UpstreamResponseBytes: estimateWireBytes(upstreamResponseBase, c.cfg, upstreamTLS),
+		Source:                c.cfg.Source,
+		Estimated:             true,
+		RequestBase:           requestBase,
+		ResponseBase:          responseBase,
+		UpstreamRequestBase:   upstreamRequestBase,
+		UpstreamResponseBase:  upstreamResponseBase,
+		TLSEstimated:          c.tls && c.cfg.TLSRecordPayloadBytes > 0 && c.cfg.TLSRecordOverhead > 0,
+		UpstreamTLSEstimated:  upstreamTLS && c.cfg.TLSRecordPayloadBytes > 0 && c.cfg.TLSRecordOverhead > 0,
+		PacketOverhead:        c.cfg.TCPIPHeaderBytes > 0 && c.cfg.TCPPayloadBytes > 0,
 	}
 }
 
@@ -163,7 +240,7 @@ func SnapshotFromContext(ctx context.Context) (Snapshot, bool) {
 		return Snapshot{}, false
 	}
 	snapshot := counter.Snapshot()
-	return snapshot, snapshot.RequestBytes > 0 || snapshot.ResponseBytes > 0
+	return snapshot, snapshot.RequestBytes > 0 || snapshot.ResponseBytes > 0 || snapshot.UpstreamRequestBytes > 0 || snapshot.UpstreamResponseBytes > 0
 }
 
 func requestUsesTLS(r *http.Request) bool {
@@ -179,6 +256,13 @@ func requestUsesTLS(r *http.Request) bool {
 	return strings.EqualFold(strings.TrimSpace(r.Header.Get("X-Forwarded-Ssl")), "on")
 }
 
+func requestURLUsesTLS(r *http.Request) bool {
+	if r == nil || r.URL == nil {
+		return false
+	}
+	return strings.EqualFold(strings.TrimSpace(r.URL.Scheme), "https")
+}
+
 func estimateRequestHeadBytes(r *http.Request) int64 {
 	if r == nil {
 		return 0
@@ -192,7 +276,11 @@ func estimateRequestHeadBytes(r *http.Request) int64 {
 		requestURI = r.URL.RequestURI()
 	}
 	total := int64(len(r.Method) + 1 + len(requestURI) + 1 + len(proto) + 2)
-	if host := strings.TrimSpace(r.Host); host != "" {
+	host := strings.TrimSpace(r.Host)
+	if host == "" && r.URL != nil {
+		host = strings.TrimSpace(r.URL.Host)
+	}
+	if host != "" {
 		total += headerLineBytes("Host", host)
 	}
 	total += headerBytes(r.Header)

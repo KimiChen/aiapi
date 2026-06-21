@@ -452,15 +452,17 @@ type UsageLog struct {
 	CacheCreation5mTokens int `json:"cache_creation_5m_tokens"`
 	CacheCreation1hTokens int `json:"cache_creation_1h_tokens"`
 
-	InputCost         float64 `json:"input_cost"`
-	OutputCost        float64 `json:"output_cost"`
-	CacheCreationCost float64 `json:"cache_creation_cost"`
-	CacheReadCost     float64 `json:"cache_read_cost"`
-	TotalCost         float64 `json:"total_cost"`
-	ActualCost        float64 `json:"actual_cost"`
-	RateMultiplier    float64 `json:"rate_multiplier"`
-	RequestBytes      int64   `json:"request_bytes"`
-	ResponseBytes     int64   `json:"response_bytes"`
+	InputCost             float64 `json:"input_cost"`
+	OutputCost            float64 `json:"output_cost"`
+	CacheCreationCost     float64 `json:"cache_creation_cost"`
+	CacheReadCost         float64 `json:"cache_read_cost"`
+	TotalCost             float64 `json:"total_cost"`
+	ActualCost            float64 `json:"actual_cost"`
+	RateMultiplier        float64 `json:"rate_multiplier"`
+	RequestBytes          int64   `json:"request_bytes"`
+	ResponseBytes         int64   `json:"response_bytes"`
+	UpstreamRequestBytes  int64   `json:"upstream_request_bytes"`
+	UpstreamResponseBytes int64   `json:"upstream_response_bytes"`
 
 	BillingType  int8   `json:"billing_type"`
 	RequestType  string `json:"request_type"`

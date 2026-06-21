@@ -130,6 +130,10 @@ func (UsageLog) Fields() []ent.Field {
 			Default(0),
 		field.Int64("response_bytes").
 			Default(0),
+		field.Int64("upstream_request_bytes").
+			Default(0),
+		field.Int64("upstream_response_bytes").
+			Default(0),
 		field.String("traffic_source").
 			MaxLen(32).
 			Optional().

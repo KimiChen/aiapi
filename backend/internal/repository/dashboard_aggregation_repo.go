@@ -334,6 +334,8 @@ func (r *dashboardAggregationRepository) upsertHourlyAggregates(ctx context.Cont
 				COALESCE(SUM(COALESCE(account_stats_cost, total_cost) * COALESCE(account_rate_multiplier, 1)), 0) AS account_cost,
 				COALESCE(SUM(request_bytes), 0) AS request_bytes,
 				COALESCE(SUM(response_bytes), 0) AS response_bytes,
+				COALESCE(SUM(upstream_request_bytes), 0) AS upstream_request_bytes,
+				COALESCE(SUM(upstream_response_bytes), 0) AS upstream_response_bytes,
 				COALESCE(SUM(COALESCE(duration_ms, 0)), 0) AS total_duration_ms
 			FROM usage_logs
 			WHERE created_at >= $1 AND created_at < $2
@@ -357,6 +359,8 @@ func (r *dashboardAggregationRepository) upsertHourlyAggregates(ctx context.Cont
 			account_cost,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			total_duration_ms,
 			active_users,
 			computed_at
@@ -373,6 +377,8 @@ func (r *dashboardAggregationRepository) upsertHourlyAggregates(ctx context.Cont
 			hourly.account_cost,
 			hourly.request_bytes,
 			hourly.response_bytes,
+			hourly.upstream_request_bytes,
+			hourly.upstream_response_bytes,
 			hourly.total_duration_ms,
 			COALESCE(user_counts.active_users, 0) AS active_users,
 			NOW()
@@ -390,6 +396,8 @@ func (r *dashboardAggregationRepository) upsertHourlyAggregates(ctx context.Cont
 			account_cost = EXCLUDED.account_cost,
 			request_bytes = EXCLUDED.request_bytes,
 			response_bytes = EXCLUDED.response_bytes,
+			upstream_request_bytes = EXCLUDED.upstream_request_bytes,
+			upstream_response_bytes = EXCLUDED.upstream_response_bytes,
 			total_duration_ms = EXCLUDED.total_duration_ms,
 			active_users = EXCLUDED.active_users,
 			computed_at = EXCLUDED.computed_at
@@ -414,6 +422,8 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 				COALESCE(SUM(account_cost), 0) AS account_cost,
 				COALESCE(SUM(request_bytes), 0) AS request_bytes,
 				COALESCE(SUM(response_bytes), 0) AS response_bytes,
+				COALESCE(SUM(upstream_request_bytes), 0) AS upstream_request_bytes,
+				COALESCE(SUM(upstream_response_bytes), 0) AS upstream_response_bytes,
 				COALESCE(SUM(total_duration_ms), 0) AS total_duration_ms
 			FROM usage_dashboard_hourly
 			WHERE bucket_start >= $1 AND bucket_start < $2
@@ -437,6 +447,8 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 			account_cost,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			total_duration_ms,
 			active_users,
 			computed_at
@@ -453,6 +465,8 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 			daily.account_cost,
 			daily.request_bytes,
 			daily.response_bytes,
+			daily.upstream_request_bytes,
+			daily.upstream_response_bytes,
 			daily.total_duration_ms,
 			COALESCE(user_counts.active_users, 0) AS active_users,
 			NOW()
@@ -470,6 +484,8 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 			account_cost = EXCLUDED.account_cost,
 			request_bytes = EXCLUDED.request_bytes,
 			response_bytes = EXCLUDED.response_bytes,
+			upstream_request_bytes = EXCLUDED.upstream_request_bytes,
+			upstream_response_bytes = EXCLUDED.upstream_response_bytes,
 			total_duration_ms = EXCLUDED.total_duration_ms,
 			active_users = EXCLUDED.active_users,
 			computed_at = EXCLUDED.computed_at

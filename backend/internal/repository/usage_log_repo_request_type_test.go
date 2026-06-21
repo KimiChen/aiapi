@@ -76,6 +76,8 @@ func TestUsageLogRepositoryCreateSyncRequestTypeAndLegacyFields(t *testing.T) {
 			sqlmock.AnyArg(), // ip_address
 			log.RequestBytes,
 			log.ResponseBytes,
+			log.UpstreamRequestBytes,
+			log.UpstreamResponseBytes,
 			sqlmock.AnyArg(), // traffic_source
 			log.TrafficEstimated,
 			log.ImageCount,
@@ -163,6 +165,8 @@ func TestUsageLogRepositoryCreate_PersistsServiceTier(t *testing.T) {
 			sqlmock.AnyArg(),
 			log.RequestBytes,
 			log.ResponseBytes,
+			log.UpstreamRequestBytes,
+			log.UpstreamResponseBytes,
 			sqlmock.AnyArg(), // traffic_source
 			log.TrafficEstimated,
 			log.ImageCount,
@@ -267,11 +271,11 @@ func TestPrepareUsageLogInsert_PersistsImageSizeMetadata(t *testing.T) {
 		CreatedAt:          time.Date(2025, 1, 6, 12, 0, 0, 0, time.UTC),
 	})
 
-	require.Equal(t, sql.NullString{String: imageSize, Valid: true}, prepared.args[38])
-	require.Equal(t, sql.NullString{String: inputSize, Valid: true}, prepared.args[39])
-	require.Equal(t, sql.NullString{String: outputSize, Valid: true}, prepared.args[40])
-	require.Equal(t, sql.NullString{String: source, Valid: true}, prepared.args[41])
-	breakdownJSON, ok := prepared.args[42].(string)
+	require.Equal(t, sql.NullString{String: imageSize, Valid: true}, prepared.args[40])
+	require.Equal(t, sql.NullString{String: inputSize, Valid: true}, prepared.args[41])
+	require.Equal(t, sql.NullString{String: outputSize, Valid: true}, prepared.args[42])
+	require.Equal(t, sql.NullString{String: source, Valid: true}, prepared.args[43])
+	breakdownJSON, ok := prepared.args[44].(string)
 	require.True(t, ok)
 	require.JSONEq(t, `{"1K":1,"4K":1}`, breakdownJSON)
 }
@@ -634,6 +638,8 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},
 			int64(123),
 			int64(456),
+			int64(789),
+			int64(987),
 			sql.NullString{Valid: true, String: "app_estimate"},
 			true,
 			2,
@@ -667,6 +673,8 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 		require.Equal(t, map[string]int{"4K": 2}, log.ImageSizeBreakdown)
 		require.Equal(t, int64(123), log.RequestBytes)
 		require.Equal(t, int64(456), log.ResponseBytes)
+		require.Equal(t, int64(789), log.UpstreamRequestBytes)
+		require.Equal(t, int64(987), log.UpstreamResponseBytes)
 		require.NotNil(t, log.TrafficSource)
 		require.Equal(t, "app_estimate", *log.TrafficSource)
 		require.True(t, log.TrafficEstimated)
@@ -709,6 +717,8 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullInt64{},
 			sql.NullString{},
 			sql.NullString{},
+			int64(0),
+			int64(0),
 			int64(0),
 			int64(0),
 			sql.NullString{},
@@ -767,6 +777,8 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},
 			int64(0),
 			int64(0),
+			int64(0),
+			int64(0),
 			sql.NullString{},
 			false,
 			0,
@@ -821,6 +833,8 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullInt64{},
 			sql.NullString{},
 			sql.NullString{},
+			int64(0),
+			int64(0),
 			int64(0),
 			int64(0),
 			sql.NullString{},

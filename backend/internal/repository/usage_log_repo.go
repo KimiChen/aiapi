@@ -30,7 +30,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const usageLogSelectColumns = "id, user_id, api_key_id, account_id, request_id, model, requested_model, upstream_model, group_id, subscription_id, input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens, image_output_tokens, image_output_cost, input_cost, output_cost, cache_creation_cost, cache_read_cost, total_cost, actual_cost, rate_multiplier, account_rate_multiplier, billing_type, request_type, stream, openai_ws_mode, duration_ms, first_token_ms, user_agent, ip_address, request_bytes, response_bytes, traffic_source, traffic_estimated, image_count, image_size, image_input_size, image_output_size, image_size_source, image_size_breakdown, service_tier, reasoning_effort, inbound_endpoint, upstream_endpoint, cache_ttl_overridden, channel_id, model_mapping_chain, billing_tier, billing_mode, account_stats_cost, created_at"
+const usageLogSelectColumns = "id, user_id, api_key_id, account_id, request_id, model, requested_model, upstream_model, group_id, subscription_id, input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens, image_output_tokens, image_output_cost, input_cost, output_cost, cache_creation_cost, cache_read_cost, total_cost, actual_cost, rate_multiplier, account_rate_multiplier, billing_type, request_type, stream, openai_ws_mode, duration_ms, first_token_ms, user_agent, ip_address, request_bytes, response_bytes, upstream_request_bytes, upstream_response_bytes, traffic_source, traffic_estimated, image_count, image_size, image_input_size, image_output_size, image_size_source, image_size_breakdown, service_tier, reasoning_effort, inbound_endpoint, upstream_endpoint, cache_ttl_overridden, channel_id, model_mapping_chain, billing_tier, billing_mode, account_stats_cost, created_at"
 
 // usageLogInsertArgTypes must stay in the same order as:
 //  1. prepareUsageLogInsert().args
@@ -75,6 +75,8 @@ var usageLogInsertArgTypes = [...]string{
 	"text",        // ip_address
 	"bigint",      // request_bytes
 	"bigint",      // response_bytes
+	"bigint",      // upstream_request_bytes
+	"bigint",      // upstream_response_bytes
 	"text",        // traffic_source
 	"boolean",     // traffic_estimated
 	"integer",     // image_count
@@ -396,6 +398,8 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -421,7 +425,7 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			$10, $11, $12, $13,
 			$14, $15, $16, $17,
 			$18, $19, $20, $21, $22, $23,
-			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54
+			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 		RETURNING id, created_at
@@ -842,6 +846,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -863,7 +869,7 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			created_at
 		) AS (VALUES `)
 
-	args := make([]any, 0, len(keys)*54)
+	args := make([]any, 0, len(keys)*(len(usageLogInsertArgTypes)+1))
 	argPos := 1
 	for idx, key := range keys {
 		if idx > 0 {
@@ -927,6 +933,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				ip_address,
 				request_bytes,
 				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
 				traffic_source,
 				traffic_estimated,
 				image_count,
@@ -983,6 +991,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				ip_address,
 				request_bytes,
 				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
 				traffic_source,
 				traffic_estimated,
 				image_count,
@@ -1079,6 +1089,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -1100,7 +1112,7 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			created_at
 		) AS (VALUES `)
 
-	args := make([]any, 0, len(preparedList)*54)
+	args := make([]any, 0, len(preparedList)*len(usageLogInsertArgTypes))
 	argPos := 1
 	for idx, prepared := range preparedList {
 		if idx > 0 {
@@ -1161,6 +1173,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -1217,6 +1231,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -1281,6 +1297,8 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			ip_address,
 			request_bytes,
 			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
 			traffic_source,
 			traffic_estimated,
 			image_count,
@@ -1306,7 +1324,7 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			$10, $11, $12, $13,
 			$14, $15, $16, $17,
 			$18, $19, $20, $21, $22, $23,
-			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54
+			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 	`, prepared.args...)
@@ -1397,6 +1415,8 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 			ipAddress,
 			log.RequestBytes,
 			log.ResponseBytes,
+			log.UpstreamRequestBytes,
+			log.UpstreamResponseBytes,
 			nullString(log.TrafficSource),
 			log.TrafficEstimated,
 			log.ImageCount,
@@ -1649,8 +1669,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 			COALESCE(SUM(total_cost), 0) as total_cost,
 			COALESCE(SUM(actual_cost), 0) as total_actual_cost,
 			COALESCE(SUM(account_cost), 0) as total_account_cost,
-			COALESCE(SUM(request_bytes), 0) as total_request_bytes,
-			COALESCE(SUM(response_bytes), 0) as total_response_bytes,
+			COALESCE(SUM(request_bytes + upstream_response_bytes), 0) as total_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes), 0) as total_response_bytes,
+			COALESCE(SUM(upstream_request_bytes), 0) as total_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes), 0) as total_upstream_response_bytes,
 			COALESCE(SUM(total_duration_ms), 0) as total_duration_ms
 		FROM usage_dashboard_daily
 	`
@@ -1670,6 +1692,8 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 		&stats.TotalAccountCost,
 		&stats.TotalRequestBytes,
 		&stats.TotalResponseBytes,
+		&stats.TotalUpstreamRequestBytes,
+		&stats.TotalUpstreamResponseBytes,
 		&totalDurationMs,
 	); err != nil {
 		return err
@@ -1690,8 +1714,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 			total_cost as today_cost,
 			actual_cost as today_actual_cost,
 			account_cost as today_account_cost,
-			request_bytes as today_request_bytes,
-			response_bytes as today_response_bytes,
+			(request_bytes + upstream_response_bytes) as today_request_bytes,
+			(response_bytes + upstream_request_bytes) as today_response_bytes,
+			upstream_request_bytes as today_upstream_request_bytes,
+			upstream_response_bytes as today_upstream_response_bytes,
 			active_users as active_users
 		FROM usage_dashboard_daily
 		WHERE bucket_date = $1::date
@@ -1711,6 +1737,8 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 		&stats.TodayAccountCost,
 		&stats.TodayRequestBytes,
 		&stats.TodayResponseBytes,
+		&stats.TodayUpstreamRequestBytes,
+		&stats.TodayUpstreamResponseBytes,
 		&stats.ActiveUsers,
 	); err != nil {
 		if err != sql.ErrNoRows {
@@ -1750,6 +1778,8 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 				COALESCE(account_stats_cost, total_cost) * COALESCE(account_rate_multiplier, 1) AS account_cost,
 				request_bytes,
 				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
 				COALESCE(duration_ms, 0) AS duration_ms
 			FROM usage_logs
 			WHERE created_at >= LEAST($1::timestamptz, $3::timestamptz)
@@ -1764,8 +1794,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 			COALESCE(SUM(total_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_cost,
 			COALESCE(SUM(actual_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_actual_cost,
 			COALESCE(SUM(account_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_account_cost,
-			COALESCE(SUM(request_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_request_bytes,
-			COALESCE(SUM(response_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_response_bytes,
+			COALESCE(SUM(request_bytes + upstream_response_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_response_bytes,
+			COALESCE(SUM(upstream_request_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_upstream_response_bytes,
 			COALESCE(SUM(duration_ms) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_duration_ms,
 			COUNT(*) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz) AS today_requests,
 			COALESCE(SUM(input_tokens) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_input_tokens,
@@ -1775,8 +1807,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 			COALESCE(SUM(total_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_cost,
 			COALESCE(SUM(actual_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_actual_cost,
 			COALESCE(SUM(account_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_account_cost,
-			COALESCE(SUM(request_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_request_bytes,
-			COALESCE(SUM(response_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_response_bytes
+			COALESCE(SUM(request_bytes + upstream_response_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_response_bytes,
+			COALESCE(SUM(upstream_request_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_upstream_response_bytes
 		FROM scoped
 	`
 	var totalDurationMs int64
@@ -1795,6 +1829,8 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 		&stats.TotalAccountCost,
 		&stats.TotalRequestBytes,
 		&stats.TotalResponseBytes,
+		&stats.TotalUpstreamRequestBytes,
+		&stats.TotalUpstreamResponseBytes,
 		&totalDurationMs,
 		&stats.TodayRequests,
 		&stats.TodayInputTokens,
@@ -1806,6 +1842,8 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 		&stats.TodayAccountCost,
 		&stats.TodayRequestBytes,
 		&stats.TodayResponseBytes,
+		&stats.TodayUpstreamRequestBytes,
+		&stats.TodayUpstreamResponseBytes,
 	); err != nil {
 		return err
 	}
@@ -2778,9 +2816,11 @@ func (r *usageLogRepository) GetUserUsageTrendByUserID(ctx context.Context, user
 			COALESCE(SUM(input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens), 0) as total_tokens,
 			COALESCE(SUM(total_cost), 0) as cost,
 			COALESCE(SUM(actual_cost), 0) as actual_cost,
-			COALESCE(SUM(request_bytes), 0) as request_bytes,
-			COALESCE(SUM(response_bytes), 0) as response_bytes,
-			COALESCE(SUM(request_bytes + response_bytes), 0) as traffic_bytes
+			COALESCE(SUM(request_bytes + upstream_response_bytes), 0) as request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes), 0) as response_bytes,
+			COALESCE(SUM(upstream_request_bytes), 0) as upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes), 0) as upstream_response_bytes,
+			COALESCE(SUM(request_bytes + response_bytes + upstream_request_bytes + upstream_response_bytes), 0) as traffic_bytes
 		FROM usage_logs
 		WHERE user_id = $1 AND created_at >= $2 AND created_at < $3
 		GROUP BY date
@@ -3103,9 +3143,11 @@ func (r *usageLogRepository) GetUsageTrendWithFilters(ctx context.Context, start
 			COALESCE(SUM(input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens), 0) as total_tokens,
 			COALESCE(SUM(total_cost), 0) as cost,
 			COALESCE(SUM(actual_cost), 0) as actual_cost,
-			COALESCE(SUM(request_bytes), 0) as request_bytes,
-			COALESCE(SUM(response_bytes), 0) as response_bytes,
-			COALESCE(SUM(request_bytes + response_bytes), 0) as traffic_bytes
+			COALESCE(SUM(request_bytes + upstream_response_bytes), 0) as request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes), 0) as response_bytes,
+			COALESCE(SUM(upstream_request_bytes), 0) as upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes), 0) as upstream_response_bytes,
+			COALESCE(SUM(request_bytes + response_bytes + upstream_request_bytes + upstream_response_bytes), 0) as traffic_bytes
 		FROM usage_logs
 		WHERE created_at >= $1 AND created_at < $2
 	`, dateFormat)
@@ -3187,9 +3229,11 @@ func (r *usageLogRepository) getUsageTrendFromAggregates(ctx context.Context, st
 				(input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens) as total_tokens,
 				total_cost as cost,
 				actual_cost,
-				request_bytes,
-				response_bytes,
-				(request_bytes + response_bytes) as traffic_bytes
+				(request_bytes + upstream_response_bytes) as request_bytes,
+				(response_bytes + upstream_request_bytes) as response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
+				(request_bytes + response_bytes + upstream_request_bytes + upstream_response_bytes) as traffic_bytes
 			FROM usage_dashboard_hourly
 			WHERE bucket_start >= $1 AND bucket_start < $2
 			ORDER BY bucket_start ASC
@@ -3206,9 +3250,11 @@ func (r *usageLogRepository) getUsageTrendFromAggregates(ctx context.Context, st
 				(input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens) as total_tokens,
 				total_cost as cost,
 				actual_cost,
-				request_bytes,
-				response_bytes,
-				(request_bytes + response_bytes) as traffic_bytes
+				(request_bytes + upstream_response_bytes) as request_bytes,
+				(response_bytes + upstream_request_bytes) as response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
+				(request_bytes + response_bytes + upstream_request_bytes + upstream_response_bytes) as traffic_bytes
 			FROM usage_dashboard_daily
 			WHERE bucket_date >= $1::date AND bucket_date < $2::date
 			ORDER BY bucket_date ASC
@@ -4359,6 +4405,8 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		ipAddress             sql.NullString
 		requestBytes          int64
 		responseBytes         int64
+		upstreamRequestBytes  int64
+		upstreamResponseBytes int64
 		trafficSource         sql.NullString
 		trafficEstimated      bool
 		imageCount            int
@@ -4417,6 +4465,8 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		&ipAddress,
 		&requestBytes,
 		&responseBytes,
+		&upstreamRequestBytes,
+		&upstreamResponseBytes,
 		&trafficSource,
 		&trafficEstimated,
 		&imageCount,
@@ -4467,6 +4517,8 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		RequestType:           service.RequestTypeFromInt16(requestTypeRaw),
 		RequestBytes:          requestBytes,
 		ResponseBytes:         responseBytes,
+		UpstreamRequestBytes:  upstreamRequestBytes,
+		UpstreamResponseBytes: upstreamResponseBytes,
 		TrafficEstimated:      trafficEstimated,
 		ImageCount:            imageCount,
 		CacheTTLOverridden:    cacheTTLOverridden,
@@ -4570,6 +4622,8 @@ func scanTrendRows(rows *sql.Rows) ([]TrendDataPoint, error) {
 			&row.ActualCost,
 			&row.RequestBytes,
 			&row.ResponseBytes,
+			&row.UpstreamRequestBytes,
+			&row.UpstreamResponseBytes,
 			&row.TrafficBytes,
 		); err != nil {
 			return nil, err

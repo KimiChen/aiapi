@@ -230,6 +230,16 @@ func ResponseBytes(v int64) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldResponseBytes, v))
 }
 
+// UpstreamRequestBytes applies equality check predicate on the "upstream_request_bytes" field. It's identical to UpstreamRequestBytesEQ.
+func UpstreamRequestBytes(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamResponseBytes applies equality check predicate on the "upstream_response_bytes" field. It's identical to UpstreamResponseBytesEQ.
+func UpstreamResponseBytes(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUpstreamResponseBytes, v))
+}
+
 // TrafficSource applies equality check predicate on the "traffic_source" field. It's identical to TrafficSourceEQ.
 func TrafficSource(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldTrafficSource, v))
@@ -1898,6 +1908,86 @@ func ResponseBytesLT(v int64) predicate.UsageLog {
 // ResponseBytesLTE applies the LTE predicate on the "response_bytes" field.
 func ResponseBytesLTE(v int64) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldLTE(FieldResponseBytes, v))
+}
+
+// UpstreamRequestBytesEQ applies the EQ predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamRequestBytesNEQ applies the NEQ predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesNEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamRequestBytesIn applies the In predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldUpstreamRequestBytes, vs...))
+}
+
+// UpstreamRequestBytesNotIn applies the NotIn predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesNotIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldUpstreamRequestBytes, vs...))
+}
+
+// UpstreamRequestBytesGT applies the GT predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesGT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamRequestBytesGTE applies the GTE predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesGTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamRequestBytesLT applies the LT predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesLT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamRequestBytesLTE applies the LTE predicate on the "upstream_request_bytes" field.
+func UpstreamRequestBytesLTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldUpstreamRequestBytes, v))
+}
+
+// UpstreamResponseBytesEQ applies the EQ predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUpstreamResponseBytes, v))
+}
+
+// UpstreamResponseBytesNEQ applies the NEQ predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesNEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldUpstreamResponseBytes, v))
+}
+
+// UpstreamResponseBytesIn applies the In predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldUpstreamResponseBytes, vs...))
+}
+
+// UpstreamResponseBytesNotIn applies the NotIn predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesNotIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldUpstreamResponseBytes, vs...))
+}
+
+// UpstreamResponseBytesGT applies the GT predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesGT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldUpstreamResponseBytes, v))
+}
+
+// UpstreamResponseBytesGTE applies the GTE predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesGTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldUpstreamResponseBytes, v))
+}
+
+// UpstreamResponseBytesLT applies the LT predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesLT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldUpstreamResponseBytes, v))
+}
+
+// UpstreamResponseBytesLTE applies the LTE predicate on the "upstream_response_bytes" field.
+func UpstreamResponseBytesLTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldUpstreamResponseBytes, v))
 }
 
 // TrafficSourceEQ applies the EQ predicate on the "traffic_source" field.

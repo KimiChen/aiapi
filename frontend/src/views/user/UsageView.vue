@@ -339,7 +339,7 @@
 
           <template #cell-traffic="{ row }">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ formatBytes((row.request_bytes || 0) + (row.response_bytes || 0)) }}
+              {{ formatBytes(totalTrafficBytes(row)) }}
             </span>
           </template>
 
@@ -783,6 +783,10 @@ const formatBytes = (value: number | null | undefined): string => {
   }
   const decimals = unit === 0 ? 0 : size >= 100 ? 1 : 2
   return `${size.toFixed(decimals)} ${units[unit]}`
+}
+
+const totalTrafficBytes = (row: UsageLog): number => {
+  return (row.request_bytes || 0) + (row.response_bytes || 0) + (row.upstream_request_bytes || 0) + (row.upstream_response_bytes || 0)
 }
 
 const formatUserAgent = (ua: string): string => {

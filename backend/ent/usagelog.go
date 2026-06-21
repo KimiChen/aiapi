@@ -93,6 +93,10 @@ type UsageLog struct {
 	RequestBytes int64 `json:"request_bytes,omitempty"`
 	// ResponseBytes holds the value of the "response_bytes" field.
 	ResponseBytes int64 `json:"response_bytes,omitempty"`
+	// UpstreamRequestBytes holds the value of the "upstream_request_bytes" field.
+	UpstreamRequestBytes int64 `json:"upstream_request_bytes,omitempty"`
+	// UpstreamResponseBytes holds the value of the "upstream_response_bytes" field.
+	UpstreamResponseBytes int64 `json:"upstream_response_bytes,omitempty"`
 	// TrafficSource holds the value of the "traffic_source" field.
 	TrafficSource *string `json:"traffic_source,omitempty"`
 	// TrafficEstimated holds the value of the "traffic_estimated" field.
@@ -202,7 +206,7 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case usagelog.FieldInputCost, usagelog.FieldOutputCost, usagelog.FieldCacheCreationCost, usagelog.FieldCacheReadCost, usagelog.FieldTotalCost, usagelog.FieldActualCost, usagelog.FieldRateMultiplier, usagelog.FieldAccountRateMultiplier:
 			values[i] = new(sql.NullFloat64)
-		case usagelog.FieldID, usagelog.FieldUserID, usagelog.FieldAPIKeyID, usagelog.FieldAccountID, usagelog.FieldChannelID, usagelog.FieldGroupID, usagelog.FieldSubscriptionID, usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldCacheCreationTokens, usagelog.FieldCacheReadTokens, usagelog.FieldCacheCreation5mTokens, usagelog.FieldCacheCreation1hTokens, usagelog.FieldBillingType, usagelog.FieldDurationMs, usagelog.FieldFirstTokenMs, usagelog.FieldRequestBytes, usagelog.FieldResponseBytes, usagelog.FieldImageCount:
+		case usagelog.FieldID, usagelog.FieldUserID, usagelog.FieldAPIKeyID, usagelog.FieldAccountID, usagelog.FieldChannelID, usagelog.FieldGroupID, usagelog.FieldSubscriptionID, usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldCacheCreationTokens, usagelog.FieldCacheReadTokens, usagelog.FieldCacheCreation5mTokens, usagelog.FieldCacheCreation1hTokens, usagelog.FieldBillingType, usagelog.FieldDurationMs, usagelog.FieldFirstTokenMs, usagelog.FieldRequestBytes, usagelog.FieldResponseBytes, usagelog.FieldUpstreamRequestBytes, usagelog.FieldUpstreamResponseBytes, usagelog.FieldImageCount:
 			values[i] = new(sql.NullInt64)
 		case usagelog.FieldRequestID, usagelog.FieldModel, usagelog.FieldRequestedModel, usagelog.FieldUpstreamModel, usagelog.FieldModelMappingChain, usagelog.FieldBillingTier, usagelog.FieldBillingMode, usagelog.FieldUserAgent, usagelog.FieldIPAddress, usagelog.FieldTrafficSource, usagelog.FieldImageSize, usagelog.FieldImageInputSize, usagelog.FieldImageOutputSize, usagelog.FieldImageSizeSource:
 			values[i] = new(sql.NullString)
@@ -451,6 +455,18 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field response_bytes", values[i])
 			} else if value.Valid {
 				_m.ResponseBytes = value.Int64
+			}
+		case usagelog.FieldUpstreamRequestBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field upstream_request_bytes", values[i])
+			} else if value.Valid {
+				_m.UpstreamRequestBytes = value.Int64
+			}
+		case usagelog.FieldUpstreamResponseBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field upstream_response_bytes", values[i])
+			} else if value.Valid {
+				_m.UpstreamResponseBytes = value.Int64
 			}
 		case usagelog.FieldTrafficSource:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -710,6 +726,12 @@ func (_m *UsageLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("response_bytes=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBytes))
+	builder.WriteString(", ")
+	builder.WriteString("upstream_request_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpstreamRequestBytes))
+	builder.WriteString(", ")
+	builder.WriteString("upstream_response_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpstreamResponseBytes))
 	builder.WriteString(", ")
 	if v := _m.TrafficSource; v != nil {
 		builder.WriteString("traffic_source=")

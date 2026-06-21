@@ -35025,6 +35025,10 @@ type UsageLogMutation struct {
 	addrequest_bytes            *int64
 	response_bytes              *int64
 	addresponse_bytes           *int64
+	upstream_request_bytes      *int64
+	addupstream_request_bytes   *int64
+	upstream_response_bytes     *int64
+	addupstream_response_bytes  *int64
 	traffic_source              *string
 	traffic_estimated           *bool
 	image_count                 *int
@@ -36983,6 +36987,118 @@ func (m *UsageLogMutation) ResetResponseBytes() {
 	m.addresponse_bytes = nil
 }
 
+// SetUpstreamRequestBytes sets the "upstream_request_bytes" field.
+func (m *UsageLogMutation) SetUpstreamRequestBytes(i int64) {
+	m.upstream_request_bytes = &i
+	m.addupstream_request_bytes = nil
+}
+
+// UpstreamRequestBytes returns the value of the "upstream_request_bytes" field in the mutation.
+func (m *UsageLogMutation) UpstreamRequestBytes() (r int64, exists bool) {
+	v := m.upstream_request_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpstreamRequestBytes returns the old "upstream_request_bytes" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldUpstreamRequestBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpstreamRequestBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpstreamRequestBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpstreamRequestBytes: %w", err)
+	}
+	return oldValue.UpstreamRequestBytes, nil
+}
+
+// AddUpstreamRequestBytes adds i to the "upstream_request_bytes" field.
+func (m *UsageLogMutation) AddUpstreamRequestBytes(i int64) {
+	if m.addupstream_request_bytes != nil {
+		*m.addupstream_request_bytes += i
+	} else {
+		m.addupstream_request_bytes = &i
+	}
+}
+
+// AddedUpstreamRequestBytes returns the value that was added to the "upstream_request_bytes" field in this mutation.
+func (m *UsageLogMutation) AddedUpstreamRequestBytes() (r int64, exists bool) {
+	v := m.addupstream_request_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpstreamRequestBytes resets all changes to the "upstream_request_bytes" field.
+func (m *UsageLogMutation) ResetUpstreamRequestBytes() {
+	m.upstream_request_bytes = nil
+	m.addupstream_request_bytes = nil
+}
+
+// SetUpstreamResponseBytes sets the "upstream_response_bytes" field.
+func (m *UsageLogMutation) SetUpstreamResponseBytes(i int64) {
+	m.upstream_response_bytes = &i
+	m.addupstream_response_bytes = nil
+}
+
+// UpstreamResponseBytes returns the value of the "upstream_response_bytes" field in the mutation.
+func (m *UsageLogMutation) UpstreamResponseBytes() (r int64, exists bool) {
+	v := m.upstream_response_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpstreamResponseBytes returns the old "upstream_response_bytes" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldUpstreamResponseBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpstreamResponseBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpstreamResponseBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpstreamResponseBytes: %w", err)
+	}
+	return oldValue.UpstreamResponseBytes, nil
+}
+
+// AddUpstreamResponseBytes adds i to the "upstream_response_bytes" field.
+func (m *UsageLogMutation) AddUpstreamResponseBytes(i int64) {
+	if m.addupstream_response_bytes != nil {
+		*m.addupstream_response_bytes += i
+	} else {
+		m.addupstream_response_bytes = &i
+	}
+}
+
+// AddedUpstreamResponseBytes returns the value that was added to the "upstream_response_bytes" field in this mutation.
+func (m *UsageLogMutation) AddedUpstreamResponseBytes() (r int64, exists bool) {
+	v := m.addupstream_response_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpstreamResponseBytes resets all changes to the "upstream_response_bytes" field.
+func (m *UsageLogMutation) ResetUpstreamResponseBytes() {
+	m.upstream_response_bytes = nil
+	m.addupstream_response_bytes = nil
+}
+
 // SetTrafficSource sets the "traffic_source" field.
 func (m *UsageLogMutation) SetTrafficSource(s string) {
 	m.traffic_source = &s
@@ -37610,7 +37726,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 45)
+	fields := make([]string, 0, 47)
 	if m.user != nil {
 		fields = append(fields, usagelog.FieldUserID)
 	}
@@ -37715,6 +37831,12 @@ func (m *UsageLogMutation) Fields() []string {
 	}
 	if m.response_bytes != nil {
 		fields = append(fields, usagelog.FieldResponseBytes)
+	}
+	if m.upstream_request_bytes != nil {
+		fields = append(fields, usagelog.FieldUpstreamRequestBytes)
+	}
+	if m.upstream_response_bytes != nil {
+		fields = append(fields, usagelog.FieldUpstreamResponseBytes)
 	}
 	if m.traffic_source != nil {
 		fields = append(fields, usagelog.FieldTrafficSource)
@@ -37824,6 +37946,10 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.RequestBytes()
 	case usagelog.FieldResponseBytes:
 		return m.ResponseBytes()
+	case usagelog.FieldUpstreamRequestBytes:
+		return m.UpstreamRequestBytes()
+	case usagelog.FieldUpstreamResponseBytes:
+		return m.UpstreamResponseBytes()
 	case usagelog.FieldTrafficSource:
 		return m.TrafficSource()
 	case usagelog.FieldTrafficEstimated:
@@ -37923,6 +38049,10 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldRequestBytes(ctx)
 	case usagelog.FieldResponseBytes:
 		return m.OldResponseBytes(ctx)
+	case usagelog.FieldUpstreamRequestBytes:
+		return m.OldUpstreamRequestBytes(ctx)
+	case usagelog.FieldUpstreamResponseBytes:
+		return m.OldUpstreamResponseBytes(ctx)
 	case usagelog.FieldTrafficSource:
 		return m.OldTrafficSource(ctx)
 	case usagelog.FieldTrafficEstimated:
@@ -38197,6 +38327,20 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetResponseBytes(v)
 		return nil
+	case usagelog.FieldUpstreamRequestBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpstreamRequestBytes(v)
+		return nil
+	case usagelog.FieldUpstreamResponseBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpstreamResponseBytes(v)
+		return nil
 	case usagelog.FieldTrafficSource:
 		v, ok := value.(string)
 		if !ok {
@@ -38335,6 +38479,12 @@ func (m *UsageLogMutation) AddedFields() []string {
 	if m.addresponse_bytes != nil {
 		fields = append(fields, usagelog.FieldResponseBytes)
 	}
+	if m.addupstream_request_bytes != nil {
+		fields = append(fields, usagelog.FieldUpstreamRequestBytes)
+	}
+	if m.addupstream_response_bytes != nil {
+		fields = append(fields, usagelog.FieldUpstreamResponseBytes)
+	}
 	if m.addimage_count != nil {
 		fields = append(fields, usagelog.FieldImageCount)
 	}
@@ -38386,6 +38536,10 @@ func (m *UsageLogMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedRequestBytes()
 	case usagelog.FieldResponseBytes:
 		return m.AddedResponseBytes()
+	case usagelog.FieldUpstreamRequestBytes:
+		return m.AddedUpstreamRequestBytes()
+	case usagelog.FieldUpstreamResponseBytes:
+		return m.AddedUpstreamResponseBytes()
 	case usagelog.FieldImageCount:
 		return m.AddedImageCount()
 	}
@@ -38536,6 +38690,20 @@ func (m *UsageLogMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddResponseBytes(v)
+		return nil
+	case usagelog.FieldUpstreamRequestBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUpstreamRequestBytes(v)
+		return nil
+	case usagelog.FieldUpstreamResponseBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUpstreamResponseBytes(v)
 		return nil
 	case usagelog.FieldImageCount:
 		v, ok := value.(int)
@@ -38792,6 +38960,12 @@ func (m *UsageLogMutation) ResetField(name string) error {
 		return nil
 	case usagelog.FieldResponseBytes:
 		m.ResetResponseBytes()
+		return nil
+	case usagelog.FieldUpstreamRequestBytes:
+		m.ResetUpstreamRequestBytes()
+		return nil
+	case usagelog.FieldUpstreamResponseBytes:
+		m.ResetUpstreamResponseBytes()
 		return nil
 	case usagelog.FieldTrafficSource:
 		m.ResetTrafficSource()
