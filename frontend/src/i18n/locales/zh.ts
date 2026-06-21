@@ -921,6 +921,7 @@ export default {
     type: '类型',
     tokens: 'Token',
     cost: '费用',
+    traffic: '流量',
     firstToken: '首 Token',
     duration: '耗时',
     time: '时间',

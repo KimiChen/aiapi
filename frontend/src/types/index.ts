@@ -1236,6 +1236,8 @@ export interface UsageLog {
   total_cost: number
   actual_cost: number
   rate_multiplier: number
+  request_bytes?: number
+  response_bytes?: number
   billing_type: number
 
   request_type?: UsageRequestType

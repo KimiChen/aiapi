@@ -337,6 +337,12 @@
             </div>
           </template>
 
+          <template #cell-traffic="{ row }">
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ formatBytes((row.request_bytes || 0) + (row.response_bytes || 0)) }}
+            </span>
+          </template>
+
           <template #cell-first_token="{ row }">
             <span
               v-if="row.first_token_ms != null"
@@ -686,6 +692,7 @@ const columns = computed<Column[]>(() => [
   { key: 'billing_mode', label: t('admin.usage.billingMode'), sortable: false },
   { key: 'tokens', label: t('usage.tokens'), sortable: false },
   { key: 'cost', label: t('usage.cost'), sortable: false },
+  { key: 'traffic', label: t('usage.traffic'), sortable: false },
   { key: 'first_token', label: t('usage.firstToken'), sortable: false },
   { key: 'duration', label: t('usage.duration'), sortable: false },
   { key: 'created_at', label: t('usage.time'), sortable: true },
@@ -765,6 +772,18 @@ const formatDuration = (ms: number | null | undefined): string => {
   return `${(ms / 1000).toFixed(2)}s`
 }
 
+const formatBytes = (value: number | null | undefined): string => {
+  if (!value || value <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = value
+  let unit = 0
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024
+    unit += 1
+  }
+  const decimals = unit === 0 ? 0 : size >= 100 ? 1 : 2
+  return `${size.toFixed(decimals)} ${units[unit]}`
+}
 
 const formatUserAgent = (ua: string): string => {
   return ua

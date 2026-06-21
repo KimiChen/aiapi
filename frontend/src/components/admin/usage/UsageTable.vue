@@ -169,6 +169,12 @@
           </div>
         </template>
 
+        <template #cell-traffic="{ row }">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ formatBytes((row.request_bytes || 0) + (row.response_bytes || 0)) }}
+          </span>
+        </template>
+
         <template #cell-first_token="{ row }">
           <span v-if="row.first_token_ms != null" class="text-sm text-gray-600 dark:text-gray-400">{{ formatDuration(row.first_token_ms) }}</span>
           <span v-else class="text-sm text-gray-400 dark:text-gray-500">-</span>
@@ -501,6 +507,19 @@ const formatDuration = (ms: number | null | undefined): string => {
   if (ms == null) return '-'
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(2)}s`
+}
+
+const formatBytes = (value: number | null | undefined): string => {
+  if (!value || value <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = value
+  let unit = 0
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024
+    unit += 1
+  }
+  const decimals = unit === 0 ? 0 : size >= 100 ? 1 : 2
+  return `${size.toFixed(decimals)} ${units[unit]}`
 }
 
 // Cost tooltip functions

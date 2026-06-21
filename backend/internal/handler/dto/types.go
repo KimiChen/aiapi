@@ -459,6 +459,8 @@ type UsageLog struct {
 	TotalCost         float64 `json:"total_cost"`
 	ActualCost        float64 `json:"actual_cost"`
 	RateMultiplier    float64 `json:"rate_multiplier"`
+	RequestBytes      int64   `json:"request_bytes"`
+	ResponseBytes     int64   `json:"response_bytes"`
 
 	BillingType  int8   `json:"billing_type"`
 	RequestType  string `json:"request_type"`
