@@ -37,9 +37,11 @@ export const useAppStore = defineStore('app', () => {
   const versionLoaded = ref<boolean>(false)
   const versionLoading = ref<boolean>(false)
   const currentVersion = ref<string>('')
+  const upstreamCurrentVersion = ref<string>('')
   const latestVersion = ref<string>('')
   const hasUpdate = ref<boolean>(false)
   const buildType = ref<string>('source')
+  const forkBuild = ref<boolean>(false)
   const releaseInfo = ref<ReleaseInfo | null>(null)
 
   // Auto-incrementing ID for toasts
@@ -243,9 +245,11 @@ export const useAppStore = defineStore('app', () => {
     if (versionLoaded.value && !force) {
       return {
         current_version: currentVersion.value,
+        upstream_current_version: upstreamCurrentVersion.value,
         latest_version: latestVersion.value,
         has_update: hasUpdate.value,
         build_type: buildType.value,
+        fork_build: forkBuild.value,
         release_info: releaseInfo.value || undefined,
         cached: true
       }
@@ -260,9 +264,11 @@ export const useAppStore = defineStore('app', () => {
     try {
       const data = await checkUpdatesAPI(force)
       currentVersion.value = data.current_version
+      upstreamCurrentVersion.value = data.upstream_current_version || data.current_version
       latestVersion.value = data.latest_version
       hasUpdate.value = data.has_update
       buildType.value = data.build_type || 'source'
+      forkBuild.value = data.fork_build || false
       releaseInfo.value = data.release_info || null
       versionLoaded.value = true
       return data
@@ -426,9 +432,11 @@ export const useAppStore = defineStore('app', () => {
     versionLoaded,
     versionLoading,
     currentVersion,
+    upstreamCurrentVersion,
     latestVersion,
     hasUpdate,
     buildType,
+    forkBuild,
     releaseInfo,
 
     // Computed

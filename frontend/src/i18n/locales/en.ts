@@ -6662,6 +6662,8 @@ export default {
     refresh: 'Refresh',
     sourceMode: 'Source Build',
     sourceModeHint: 'Source build, use git pull to update',
+    forkManualSyncHint:
+      'Fork build based on v{version}; sync upstream, rebuild with embedded frontend, and deploy manually',
     updateNow: 'Update Now',
     updating: 'Updating...',
     updateComplete: 'Update Complete',

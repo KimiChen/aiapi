@@ -226,8 +226,8 @@
                 </button>
               </div>
 
-              <!-- Priority 3: Update available for source build - show git pull hint -->
-              <div v-else-if="hasUpdate && !isReleaseBuild" class="space-y-2">
+              <!-- Priority 3: Update available but must be applied manually -->
+              <div v-else-if="hasUpdate && requiresManualSync" class="space-y-2">
                 <a
                   v-if="releaseInfo?.html_url && releaseInfo.html_url !== '#'"
                   :href="releaseInfo.html_url"
@@ -281,7 +281,7 @@
                     />
                   </svg>
                   <p class="text-xs text-blue-600 dark:text-blue-400">
-                    {{ t('version.sourceModeHint') }}
+                    {{ manualSyncHint }}
                   </p>
                 </div>
               </div>
@@ -404,10 +404,12 @@ const dropdownRef = ref<HTMLElement | null>(null)
 // Use store's cached version state
 const loading = computed(() => appStore.versionLoading)
 const currentVersion = computed(() => appStore.currentVersion || props.version || '')
+const upstreamCurrentVersion = computed(() => appStore.upstreamCurrentVersion)
 const latestVersion = computed(() => appStore.latestVersion)
 const hasUpdate = computed(() => appStore.hasUpdate)
 const releaseInfo = computed(() => appStore.releaseInfo)
 const buildType = computed(() => appStore.buildType)
+const isForkBuild = computed(() => appStore.forkBuild)
 
 // Update process states (local to this component)
 const updating = ref(false)
@@ -419,6 +421,14 @@ const restartCountdown = ref(0)
 
 // Only show update check for release builds (binary/docker deployment)
 const isReleaseBuild = computed(() => buildType.value === 'release')
+const requiresManualSync = computed(() => isForkBuild.value || !isReleaseBuild.value)
+const manualSyncHint = computed(() =>
+  isForkBuild.value
+    ? t('version.forkManualSyncHint', {
+        version: upstreamCurrentVersion.value || currentVersion.value
+      })
+    : t('version.sourceModeHint')
+)
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value

@@ -62,3 +62,67 @@ func TestUpdateServicePerformUpdateNoUpdateReturnsSentinel(t *testing.T) {
 	require.True(t, errors.Is(err, ErrNoUpdateAvailable))
 	require.ErrorIs(t, err, ErrNoUpdateAvailable)
 }
+
+func TestUpdateServiceForkVersionUsesUpstreamBaseForUpdateCheck(t *testing.T) {
+	svc := NewUpdateService(
+		&updateServiceCacheStub{},
+		&updateServiceGitHubClientStub{
+			release: &GitHubRelease{
+				TagName: "v0.1.137",
+				Name:    "v0.1.137",
+			},
+		},
+		"0.1.137-kim",
+		"release",
+	)
+
+	info, err := svc.CheckUpdate(context.Background(), true)
+
+	require.NoError(t, err)
+	require.Equal(t, "0.1.137-kim", info.CurrentVersion)
+	require.Equal(t, "0.1.137", info.UpstreamCurrentVersion)
+	require.Equal(t, "0.1.137", info.LatestVersion)
+	require.True(t, info.ForkBuild)
+	require.False(t, info.HasUpdate)
+}
+
+func TestUpdateServiceForkVersionReportsNewUpstreamVersion(t *testing.T) {
+	svc := NewUpdateService(
+		&updateServiceCacheStub{},
+		&updateServiceGitHubClientStub{
+			release: &GitHubRelease{
+				TagName: "v0.1.138",
+				Name:    "v0.1.138",
+			},
+		},
+		"0.1.137-kim",
+		"release",
+	)
+
+	info, err := svc.CheckUpdate(context.Background(), true)
+
+	require.NoError(t, err)
+	require.Equal(t, "0.1.137", info.UpstreamCurrentVersion)
+	require.Equal(t, "0.1.138", info.LatestVersion)
+	require.True(t, info.ForkBuild)
+	require.True(t, info.HasUpdate)
+}
+
+func TestUpdateServicePerformUpdateForkBuildRequiresManualUpdate(t *testing.T) {
+	svc := NewUpdateService(
+		&updateServiceCacheStub{},
+		&updateServiceGitHubClientStub{
+			release: &GitHubRelease{
+				TagName: "v0.1.138",
+				Name:    "v0.1.138",
+			},
+		},
+		"0.1.137-kim",
+		"release",
+	)
+
+	err := svc.PerformUpdate(context.Background())
+
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrManualUpdateRequired)
+}

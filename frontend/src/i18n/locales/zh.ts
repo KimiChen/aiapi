@@ -6817,6 +6817,7 @@ export default {
     refresh: '刷新',
     sourceMode: '源码构建',
     sourceModeHint: '源码构建请使用 git pull 更新',
+    forkManualSyncHint: '当前是基于 v{version} 的本地分支构建；请同步上游后嵌入前端重新构建并手动部署',
     updateNow: '立即更新',
     updating: '正在更新...',
     updateComplete: '更新完成',

@@ -22,7 +22,8 @@ import (
 )
 
 var (
-	ErrNoUpdateAvailable = infraerrors.Conflict("ALREADY_UP_TO_DATE", "no update available; current version is latest")
+	ErrNoUpdateAvailable    = infraerrors.Conflict("ALREADY_UP_TO_DATE", "no update available; current version is latest")
+	ErrManualUpdateRequired = infraerrors.Conflict("MANUAL_UPDATE_REQUIRED", "fork builds must be synced, rebuilt, and deployed manually")
 )
 
 const (
@@ -71,13 +72,15 @@ func NewUpdateService(cache UpdateCache, githubClient GitHubReleaseClient, versi
 
 // UpdateInfo contains update information
 type UpdateInfo struct {
-	CurrentVersion string       `json:"current_version"`
-	LatestVersion  string       `json:"latest_version"`
-	HasUpdate      bool         `json:"has_update"`
-	ReleaseInfo    *ReleaseInfo `json:"release_info,omitempty"`
-	Cached         bool         `json:"cached"`
-	Warning        string       `json:"warning,omitempty"`
-	BuildType      string       `json:"build_type"` // "source" or "release"
+	CurrentVersion         string       `json:"current_version"`
+	UpstreamCurrentVersion string       `json:"upstream_current_version,omitempty"`
+	LatestVersion          string       `json:"latest_version"`
+	HasUpdate              bool         `json:"has_update"`
+	ReleaseInfo            *ReleaseInfo `json:"release_info,omitempty"`
+	Cached                 bool         `json:"cached"`
+	Warning                string       `json:"warning,omitempty"`
+	BuildType              string       `json:"build_type"` // "source" or "release"
+	ForkBuild              bool         `json:"fork_build"`
 }
 
 // ReleaseInfo contains GitHub release details
@@ -130,11 +133,13 @@ func (s *UpdateService) CheckUpdate(ctx context.Context, force bool) (*UpdateInf
 			return cached, nil
 		}
 		return &UpdateInfo{
-			CurrentVersion: s.currentVersion,
-			LatestVersion:  s.currentVersion,
-			HasUpdate:      false,
-			Warning:        err.Error(),
-			BuildType:      s.buildType,
+			CurrentVersion:         s.currentVersion,
+			UpstreamCurrentVersion: upstreamVersionBase(s.currentVersion),
+			LatestVersion:          upstreamVersionBase(s.currentVersion),
+			HasUpdate:              false,
+			Warning:                err.Error(),
+			BuildType:              s.buildType,
+			ForkBuild:              isForkVersion(s.currentVersion),
 		}, nil
 	}
 
@@ -153,6 +158,9 @@ func (s *UpdateService) PerformUpdate(ctx context.Context) error {
 
 	if !info.HasUpdate {
 		return ErrNoUpdateAvailable
+	}
+	if info.ForkBuild {
+		return ErrManualUpdateRequired
 	}
 
 	// Find matching archive and checksum for current platform
@@ -286,6 +294,7 @@ func (s *UpdateService) fetchLatestRelease(ctx context.Context) (*UpdateInfo, er
 	}
 
 	latestVersion := strings.TrimPrefix(release.TagName, "v")
+	upstreamCurrentVersion := upstreamVersionBase(s.currentVersion)
 
 	assets := make([]Asset, len(release.Assets))
 	for i, a := range release.Assets {
@@ -297,9 +306,10 @@ func (s *UpdateService) fetchLatestRelease(ctx context.Context) (*UpdateInfo, er
 	}
 
 	return &UpdateInfo{
-		CurrentVersion: s.currentVersion,
-		LatestVersion:  latestVersion,
-		HasUpdate:      compareVersions(s.currentVersion, latestVersion) < 0,
+		CurrentVersion:         s.currentVersion,
+		UpstreamCurrentVersion: upstreamCurrentVersion,
+		LatestVersion:          latestVersion,
+		HasUpdate:              compareVersions(upstreamCurrentVersion, latestVersion) < 0,
 		ReleaseInfo: &ReleaseInfo{
 			Name:        release.Name,
 			Body:        release.Body,
@@ -309,6 +319,7 @@ func (s *UpdateService) fetchLatestRelease(ctx context.Context) (*UpdateInfo, er
 		},
 		Cached:    false,
 		BuildType: s.buildType,
+		ForkBuild: isForkVersion(s.currentVersion),
 	}, nil
 }
 
@@ -493,12 +504,14 @@ func (s *UpdateService) getFromCache(ctx context.Context) (*UpdateInfo, error) {
 	}
 
 	return &UpdateInfo{
-		CurrentVersion: s.currentVersion,
-		LatestVersion:  cached.Latest,
-		HasUpdate:      compareVersions(s.currentVersion, cached.Latest) < 0,
-		ReleaseInfo:    cached.ReleaseInfo,
-		Cached:         true,
-		BuildType:      s.buildType,
+		CurrentVersion:         s.currentVersion,
+		UpstreamCurrentVersion: upstreamVersionBase(s.currentVersion),
+		LatestVersion:          cached.Latest,
+		HasUpdate:              compareVersions(upstreamVersionBase(s.currentVersion), cached.Latest) < 0,
+		ReleaseInfo:            cached.ReleaseInfo,
+		Cached:                 true,
+		BuildType:              s.buildType,
+		ForkBuild:              isForkVersion(s.currentVersion),
 	}, nil
 }
 
@@ -534,13 +547,37 @@ func compareVersions(current, latest string) int {
 }
 
 func parseVersion(v string) [3]int {
-	v = strings.TrimPrefix(v, "v")
+	v = upstreamVersionBase(v)
 	parts := strings.Split(v, ".")
 	result := [3]int{0, 0, 0}
 	for i := 0; i < len(parts) && i < 3; i++ {
-		if parsed, err := strconv.Atoi(parts[i]); err == nil {
+		part := strings.TrimSpace(parts[i])
+		j := 0
+		for ; j < len(part); j++ {
+			if part[j] < '0' || part[j] > '9' {
+				break
+			}
+		}
+		if j == 0 {
+			continue
+		}
+		if parsed, err := strconv.Atoi(part[:j]); err == nil {
 			result[i] = parsed
 		}
 	}
 	return result
+}
+
+func upstreamVersionBase(v string) string {
+	v = strings.TrimSpace(strings.TrimPrefix(v, "v"))
+	if idx := strings.IndexAny(v, "-+"); idx >= 0 {
+		v = v[:idx]
+	}
+	return v
+}
+
+func isForkVersion(v string) bool {
+	trimmed := strings.TrimSpace(strings.TrimPrefix(v, "v"))
+	base := upstreamVersionBase(v)
+	return base != "" && trimmed != base
 }
