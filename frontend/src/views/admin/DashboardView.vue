@@ -216,6 +216,51 @@
           </div>
         </div>
 
+        <!-- Row 3: Traffic Stats -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="card p-4">
+            <div class="flex items-center gap-3">
+              <div class="rounded-lg bg-sky-100 p-2 dark:bg-sky-900/30">
+                <Icon name="globe" size="md" class="text-sky-600 dark:text-sky-400" :stroke-width="2" />
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {{ t('admin.dashboard.todayTraffic') }}
+                </p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                  {{ formatBytes(stats.today_traffic_bytes) }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('admin.dashboard.inboundTraffic') }} {{ formatBytes(stats.today_request_bytes) }}
+                  <span class="text-gray-400 dark:text-gray-500"> / </span>
+                  {{ t('admin.dashboard.outboundTraffic') }} {{ formatBytes(stats.today_response_bytes) }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <div class="flex items-center gap-3">
+              <div class="rounded-lg bg-teal-100 p-2 dark:bg-teal-900/30">
+                <Icon name="trendingUp" size="md" class="text-teal-600 dark:text-teal-400" :stroke-width="2" />
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {{ t('admin.dashboard.totalTraffic') }}
+                </p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                  {{ formatBytes(stats.total_traffic_bytes) }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('admin.dashboard.inboundTraffic') }} {{ formatBytes(stats.total_request_bytes) }}
+                  <span class="text-gray-400 dark:text-gray-500"> / </span>
+                  {{ t('admin.dashboard.outboundTraffic') }} {{ formatBytes(stats.total_response_bytes) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Charts Section -->
         <div class="space-y-6">
           <!-- Date Range Filter -->
@@ -266,6 +311,7 @@
               @ranking-click="goToUserUsage"
             />
             <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
+            <TrafficUsageTrend :trend-data="trendData" :loading="chartsLoading" />
           </div>
 
           <!-- User Usage Trend (Full Width) -->
@@ -314,6 +360,7 @@ import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
+import TrafficUsageTrend from '@/components/charts/TrafficUsageTrend.vue'
 
 import {
   Chart as ChartJS,
@@ -553,6 +600,19 @@ const formatDuration = (ms: number): string => {
     return `${(ms / 1000).toFixed(2)}s`
   }
   return `${Math.round(ms)}ms`
+}
+
+const formatBytes = (value: number | undefined): string => {
+  if (!value || value <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = value
+  let unit = 0
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024
+    unit += 1
+  }
+  const decimals = unit === 0 ? 0 : size >= 100 ? 1 : 2
+  return `${size.toFixed(decimals)} ${units[unit]}`
 }
 
 const goToUserUsage = (item: UserSpendingRankingItem) => {

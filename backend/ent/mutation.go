@@ -35021,6 +35021,12 @@ type UsageLogMutation struct {
 	addfirst_token_ms           *int
 	user_agent                  *string
 	ip_address                  *string
+	request_bytes               *int64
+	addrequest_bytes            *int64
+	response_bytes              *int64
+	addresponse_bytes           *int64
+	traffic_source              *string
+	traffic_estimated           *bool
 	image_count                 *int
 	addimage_count              *int
 	image_size                  *string
@@ -36865,6 +36871,203 @@ func (m *UsageLogMutation) ResetIPAddress() {
 	delete(m.clearedFields, usagelog.FieldIPAddress)
 }
 
+// SetRequestBytes sets the "request_bytes" field.
+func (m *UsageLogMutation) SetRequestBytes(i int64) {
+	m.request_bytes = &i
+	m.addrequest_bytes = nil
+}
+
+// RequestBytes returns the value of the "request_bytes" field in the mutation.
+func (m *UsageLogMutation) RequestBytes() (r int64, exists bool) {
+	v := m.request_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestBytes returns the old "request_bytes" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldRequestBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestBytes: %w", err)
+	}
+	return oldValue.RequestBytes, nil
+}
+
+// AddRequestBytes adds i to the "request_bytes" field.
+func (m *UsageLogMutation) AddRequestBytes(i int64) {
+	if m.addrequest_bytes != nil {
+		*m.addrequest_bytes += i
+	} else {
+		m.addrequest_bytes = &i
+	}
+}
+
+// AddedRequestBytes returns the value that was added to the "request_bytes" field in this mutation.
+func (m *UsageLogMutation) AddedRequestBytes() (r int64, exists bool) {
+	v := m.addrequest_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRequestBytes resets all changes to the "request_bytes" field.
+func (m *UsageLogMutation) ResetRequestBytes() {
+	m.request_bytes = nil
+	m.addrequest_bytes = nil
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (m *UsageLogMutation) SetResponseBytes(i int64) {
+	m.response_bytes = &i
+	m.addresponse_bytes = nil
+}
+
+// ResponseBytes returns the value of the "response_bytes" field in the mutation.
+func (m *UsageLogMutation) ResponseBytes() (r int64, exists bool) {
+	v := m.response_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponseBytes returns the old "response_bytes" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldResponseBytes(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponseBytes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponseBytes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponseBytes: %w", err)
+	}
+	return oldValue.ResponseBytes, nil
+}
+
+// AddResponseBytes adds i to the "response_bytes" field.
+func (m *UsageLogMutation) AddResponseBytes(i int64) {
+	if m.addresponse_bytes != nil {
+		*m.addresponse_bytes += i
+	} else {
+		m.addresponse_bytes = &i
+	}
+}
+
+// AddedResponseBytes returns the value that was added to the "response_bytes" field in this mutation.
+func (m *UsageLogMutation) AddedResponseBytes() (r int64, exists bool) {
+	v := m.addresponse_bytes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResponseBytes resets all changes to the "response_bytes" field.
+func (m *UsageLogMutation) ResetResponseBytes() {
+	m.response_bytes = nil
+	m.addresponse_bytes = nil
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (m *UsageLogMutation) SetTrafficSource(s string) {
+	m.traffic_source = &s
+}
+
+// TrafficSource returns the value of the "traffic_source" field in the mutation.
+func (m *UsageLogMutation) TrafficSource() (r string, exists bool) {
+	v := m.traffic_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTrafficSource returns the old "traffic_source" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldTrafficSource(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTrafficSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTrafficSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTrafficSource: %w", err)
+	}
+	return oldValue.TrafficSource, nil
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (m *UsageLogMutation) ClearTrafficSource() {
+	m.traffic_source = nil
+	m.clearedFields[usagelog.FieldTrafficSource] = struct{}{}
+}
+
+// TrafficSourceCleared returns if the "traffic_source" field was cleared in this mutation.
+func (m *UsageLogMutation) TrafficSourceCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldTrafficSource]
+	return ok
+}
+
+// ResetTrafficSource resets all changes to the "traffic_source" field.
+func (m *UsageLogMutation) ResetTrafficSource() {
+	m.traffic_source = nil
+	delete(m.clearedFields, usagelog.FieldTrafficSource)
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (m *UsageLogMutation) SetTrafficEstimated(b bool) {
+	m.traffic_estimated = &b
+}
+
+// TrafficEstimated returns the value of the "traffic_estimated" field in the mutation.
+func (m *UsageLogMutation) TrafficEstimated() (r bool, exists bool) {
+	v := m.traffic_estimated
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTrafficEstimated returns the old "traffic_estimated" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldTrafficEstimated(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTrafficEstimated is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTrafficEstimated requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTrafficEstimated: %w", err)
+	}
+	return oldValue.TrafficEstimated, nil
+}
+
+// ResetTrafficEstimated resets all changes to the "traffic_estimated" field.
+func (m *UsageLogMutation) ResetTrafficEstimated() {
+	m.traffic_estimated = nil
+}
+
 // SetImageCount sets the "image_count" field.
 func (m *UsageLogMutation) SetImageCount(i int) {
 	m.image_count = &i
@@ -37407,7 +37610,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 41)
+	fields := make([]string, 0, 45)
 	if m.user != nil {
 		fields = append(fields, usagelog.FieldUserID)
 	}
@@ -37507,6 +37710,18 @@ func (m *UsageLogMutation) Fields() []string {
 	if m.ip_address != nil {
 		fields = append(fields, usagelog.FieldIPAddress)
 	}
+	if m.request_bytes != nil {
+		fields = append(fields, usagelog.FieldRequestBytes)
+	}
+	if m.response_bytes != nil {
+		fields = append(fields, usagelog.FieldResponseBytes)
+	}
+	if m.traffic_source != nil {
+		fields = append(fields, usagelog.FieldTrafficSource)
+	}
+	if m.traffic_estimated != nil {
+		fields = append(fields, usagelog.FieldTrafficEstimated)
+	}
 	if m.image_count != nil {
 		fields = append(fields, usagelog.FieldImageCount)
 	}
@@ -37605,6 +37820,14 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.UserAgent()
 	case usagelog.FieldIPAddress:
 		return m.IPAddress()
+	case usagelog.FieldRequestBytes:
+		return m.RequestBytes()
+	case usagelog.FieldResponseBytes:
+		return m.ResponseBytes()
+	case usagelog.FieldTrafficSource:
+		return m.TrafficSource()
+	case usagelog.FieldTrafficEstimated:
+		return m.TrafficEstimated()
 	case usagelog.FieldImageCount:
 		return m.ImageCount()
 	case usagelog.FieldImageSize:
@@ -37696,6 +37919,14 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldUserAgent(ctx)
 	case usagelog.FieldIPAddress:
 		return m.OldIPAddress(ctx)
+	case usagelog.FieldRequestBytes:
+		return m.OldRequestBytes(ctx)
+	case usagelog.FieldResponseBytes:
+		return m.OldResponseBytes(ctx)
+	case usagelog.FieldTrafficSource:
+		return m.OldTrafficSource(ctx)
+	case usagelog.FieldTrafficEstimated:
+		return m.OldTrafficEstimated(ctx)
 	case usagelog.FieldImageCount:
 		return m.OldImageCount(ctx)
 	case usagelog.FieldImageSize:
@@ -37952,6 +38183,34 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIPAddress(v)
 		return nil
+	case usagelog.FieldRequestBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestBytes(v)
+		return nil
+	case usagelog.FieldResponseBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponseBytes(v)
+		return nil
+	case usagelog.FieldTrafficSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTrafficSource(v)
+		return nil
+	case usagelog.FieldTrafficEstimated:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTrafficEstimated(v)
+		return nil
 	case usagelog.FieldImageCount:
 		v, ok := value.(int)
 		if !ok {
@@ -38070,6 +38329,12 @@ func (m *UsageLogMutation) AddedFields() []string {
 	if m.addfirst_token_ms != nil {
 		fields = append(fields, usagelog.FieldFirstTokenMs)
 	}
+	if m.addrequest_bytes != nil {
+		fields = append(fields, usagelog.FieldRequestBytes)
+	}
+	if m.addresponse_bytes != nil {
+		fields = append(fields, usagelog.FieldResponseBytes)
+	}
 	if m.addimage_count != nil {
 		fields = append(fields, usagelog.FieldImageCount)
 	}
@@ -38117,6 +38382,10 @@ func (m *UsageLogMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDurationMs()
 	case usagelog.FieldFirstTokenMs:
 		return m.AddedFirstTokenMs()
+	case usagelog.FieldRequestBytes:
+		return m.AddedRequestBytes()
+	case usagelog.FieldResponseBytes:
+		return m.AddedResponseBytes()
 	case usagelog.FieldImageCount:
 		return m.AddedImageCount()
 	}
@@ -38254,6 +38523,20 @@ func (m *UsageLogMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddFirstTokenMs(v)
 		return nil
+	case usagelog.FieldRequestBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRequestBytes(v)
+		return nil
+	case usagelog.FieldResponseBytes:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResponseBytes(v)
+		return nil
 	case usagelog.FieldImageCount:
 		v, ok := value.(int)
 		if !ok {
@@ -38307,6 +38590,9 @@ func (m *UsageLogMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(usagelog.FieldIPAddress) {
 		fields = append(fields, usagelog.FieldIPAddress)
+	}
+	if m.FieldCleared(usagelog.FieldTrafficSource) {
+		fields = append(fields, usagelog.FieldTrafficSource)
 	}
 	if m.FieldCleared(usagelog.FieldImageSize) {
 		fields = append(fields, usagelog.FieldImageSize)
@@ -38375,6 +38661,9 @@ func (m *UsageLogMutation) ClearField(name string) error {
 		return nil
 	case usagelog.FieldIPAddress:
 		m.ClearIPAddress()
+		return nil
+	case usagelog.FieldTrafficSource:
+		m.ClearTrafficSource()
 		return nil
 	case usagelog.FieldImageSize:
 		m.ClearImageSize()
@@ -38497,6 +38786,18 @@ func (m *UsageLogMutation) ResetField(name string) error {
 		return nil
 	case usagelog.FieldIPAddress:
 		m.ResetIPAddress()
+		return nil
+	case usagelog.FieldRequestBytes:
+		m.ResetRequestBytes()
+		return nil
+	case usagelog.FieldResponseBytes:
+		m.ResetResponseBytes()
+		return nil
+	case usagelog.FieldTrafficSource:
+		m.ResetTrafficSource()
+		return nil
+	case usagelog.FieldTrafficEstimated:
+		m.ResetTrafficEstimated()
 		return nil
 	case usagelog.FieldImageCount:
 		m.ResetImageCount()

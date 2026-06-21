@@ -126,6 +126,16 @@ func (UsageLog) Fields() []ent.Field {
 			MaxLen(45). // 支持 IPv6
 			Optional().
 			Nillable(),
+		field.Int64("request_bytes").
+			Default(0),
+		field.Int64("response_bytes").
+			Default(0),
+		field.String("traffic_source").
+			MaxLen(32).
+			Optional().
+			Nillable(),
+		field.Bool("traffic_estimated").
+			Default(false),
 
 		// 图片生成字段（仅 gemini-3-pro-image 等图片模型使用）
 		field.Int("image_count").

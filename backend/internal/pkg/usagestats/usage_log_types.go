@@ -59,6 +59,9 @@ type DashboardStats struct {
 	TotalCost                float64 `json:"total_cost"`         // 累计标准计费
 	TotalActualCost          float64 `json:"total_actual_cost"`  // 累计实际扣除
 	TotalAccountCost         float64 `json:"total_account_cost"` // 累计账号成本
+	TotalRequestBytes        int64   `json:"total_request_bytes"`
+	TotalResponseBytes       int64   `json:"total_response_bytes"`
+	TotalTrafficBytes        int64   `json:"total_traffic_bytes"`
 
 	// 今日 Token 使用统计
 	TodayRequests            int64   `json:"today_requests"`
@@ -70,6 +73,9 @@ type DashboardStats struct {
 	TodayCost                float64 `json:"today_cost"`         // 今日标准计费
 	TodayActualCost          float64 `json:"today_actual_cost"`  // 今日实际扣除
 	TodayAccountCost         float64 `json:"today_account_cost"` // 今日账号成本
+	TodayRequestBytes        int64   `json:"today_request_bytes"`
+	TodayResponseBytes       int64   `json:"today_response_bytes"`
+	TodayTrafficBytes        int64   `json:"today_traffic_bytes"`
 
 	// 系统运行统计
 	AverageDurationMs float64 `json:"average_duration_ms"` // 平均响应时间
@@ -90,6 +96,9 @@ type TrendDataPoint struct {
 	TotalTokens         int64   `json:"total_tokens"`
 	Cost                float64 `json:"cost"`        // 标准计费
 	ActualCost          float64 `json:"actual_cost"` // 实际扣除
+	RequestBytes        int64   `json:"request_bytes"`
+	ResponseBytes       int64   `json:"response_bytes"`
+	TrafficBytes        int64   `json:"traffic_bytes"`
 }
 
 // ModelStat represents usage statistics for a single model

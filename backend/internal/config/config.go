@@ -85,6 +85,7 @@ type Config struct {
 	SubscriptionMaintenance SubscriptionMaintenanceConfig `mapstructure:"subscription_maintenance"`
 	Dashboard               DashboardCacheConfig          `mapstructure:"dashboard_cache"`
 	DashboardAgg            DashboardAggregationConfig    `mapstructure:"dashboard_aggregation"`
+	Traffic                 TrafficConfig                 `mapstructure:"traffic"`
 	UsageCleanup            UsageCleanupConfig            `mapstructure:"usage_cleanup"`
 	Concurrency             ConcurrencyConfig             `mapstructure:"concurrency"`
 	TokenRefresh            TokenRefreshConfig            `mapstructure:"token_refresh"`
@@ -1325,6 +1326,22 @@ type DashboardAggregationRetentionConfig struct {
 	DailyDays             int `mapstructure:"daily_days"`
 }
 
+// TrafficConfig controls application-side traffic byte estimation for gateway requests.
+type TrafficConfig struct {
+	// Enabled: whether to estimate request/response traffic bytes on gateway routes.
+	Enabled bool `mapstructure:"enabled"`
+	// Source: stored in usage_logs.traffic_source to identify the measurement method.
+	Source string `mapstructure:"source"`
+	// TLSRecordPayloadBytes: payload bytes per TLS record for overhead estimation.
+	TLSRecordPayloadBytes int `mapstructure:"tls_record_payload_bytes"`
+	// TLSRecordOverheadBytes: per-record TLS overhead, e.g. TLS 1.3 application data is about 21 bytes.
+	TLSRecordOverheadBytes int `mapstructure:"tls_record_overhead_bytes"`
+	// TCPIPHeaderBytes: per packet TCP/IP overhead. IPv4 TCP without options is 40 bytes; IPv6 is often 60.
+	TCPIPHeaderBytes int `mapstructure:"tcp_ip_header_bytes"`
+	// TCPPayloadBytes: estimated TCP payload bytes per packet, normally close to MSS 1460.
+	TCPPayloadBytes int `mapstructure:"tcp_payload_bytes"`
+}
+
 // UsageCleanupConfig 使用记录清理任务配置
 type UsageCleanupConfig struct {
 	// Enabled: 是否启用清理任务执行器
@@ -1459,6 +1476,7 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 	cfg.Log.Environment = strings.TrimSpace(cfg.Log.Environment)
 	cfg.Log.StacktraceLevel = strings.ToLower(strings.TrimSpace(cfg.Log.StacktraceLevel))
 	cfg.Log.Output.FilePath = strings.TrimSpace(cfg.Log.Output.FilePath)
+	cfg.Traffic.Source = strings.TrimSpace(cfg.Traffic.Source)
 	cfg.Gateway.ForcedCodexInstructionsTemplateFile = strings.TrimSpace(cfg.Gateway.ForcedCodexInstructionsTemplateFile)
 	if cfg.Gateway.ForcedCodexInstructionsTemplateFile != "" {
 		content, err := os.ReadFile(cfg.Gateway.ForcedCodexInstructionsTemplateFile)
@@ -1791,6 +1809,14 @@ func setDefaults() {
 	viper.SetDefault("dashboard_aggregation.retention.hourly_days", 180)
 	viper.SetDefault("dashboard_aggregation.retention.daily_days", 730)
 	viper.SetDefault("dashboard_aggregation.recompute_days", 2)
+
+	// Traffic byte estimation
+	viper.SetDefault("traffic.enabled", true)
+	viper.SetDefault("traffic.source", "app_estimate")
+	viper.SetDefault("traffic.tls_record_payload_bytes", 16*1024)
+	viper.SetDefault("traffic.tls_record_overhead_bytes", 21)
+	viper.SetDefault("traffic.tcp_ip_header_bytes", 40)
+	viper.SetDefault("traffic.tcp_payload_bytes", 1460)
 
 	// Usage cleanup task
 	viper.SetDefault("usage_cleanup.enabled", true)
@@ -2384,6 +2410,33 @@ func (c *Config) Validate() error {
 		}
 		if c.DashboardAgg.RecomputeDays < 0 {
 			return fmt.Errorf("dashboard_aggregation.recompute_days must be non-negative")
+		}
+	}
+	if c.Traffic.Enabled {
+		if c.Traffic.TLSRecordPayloadBytes <= 0 {
+			return fmt.Errorf("traffic.tls_record_payload_bytes must be positive")
+		}
+		if c.Traffic.TLSRecordOverheadBytes < 0 {
+			return fmt.Errorf("traffic.tls_record_overhead_bytes must be non-negative")
+		}
+		if c.Traffic.TCPIPHeaderBytes < 0 {
+			return fmt.Errorf("traffic.tcp_ip_header_bytes must be non-negative")
+		}
+		if c.Traffic.TCPPayloadBytes <= 0 {
+			return fmt.Errorf("traffic.tcp_payload_bytes must be positive")
+		}
+	} else {
+		if c.Traffic.TLSRecordPayloadBytes < 0 {
+			return fmt.Errorf("traffic.tls_record_payload_bytes must be non-negative")
+		}
+		if c.Traffic.TLSRecordOverheadBytes < 0 {
+			return fmt.Errorf("traffic.tls_record_overhead_bytes must be non-negative")
+		}
+		if c.Traffic.TCPIPHeaderBytes < 0 {
+			return fmt.Errorf("traffic.tcp_ip_header_bytes must be non-negative")
+		}
+		if c.Traffic.TCPPayloadBytes < 0 {
+			return fmt.Errorf("traffic.tcp_payload_bytes must be non-negative")
 		}
 	}
 	if c.UsageCleanup.Enabled {

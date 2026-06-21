@@ -712,6 +712,28 @@ dashboard_aggregation:
     daily_days: 730
 
 # =============================================================================
+# Gateway Traffic Byte Estimation
+# 网关出入站流量估算（重启生效）
+# =============================================================================
+traffic:
+  # Enable application-side request/response byte estimation on gateway routes.
+  # 启用网关请求/响应流量估算；只统计 API 网关流量，不包含后台静态资源和上游供应商流量。
+  enabled: true
+  # Stored in usage_logs.traffic_source
+  # 写入 usage_logs.traffic_source 的来源标识。
+  source: "app_estimate"
+  # TLS record payload size and overhead. TLS 1.3 application data overhead is about 21 bytes/record.
+  # TLS 记录负载和单记录开销估算；TLS 1.3 应用数据常见约 21 字节/记录。
+  tls_record_payload_bytes: 16384
+  tls_record_overhead_bytes: 21
+  # TCP/IP overhead per packet. IPv4 TCP without options is 40 bytes; IPv6 is commonly 60 bytes.
+  # 每包 TCP/IP 头估算；IPv4 TCP 无选项为 40 字节，IPv6 常用 60 字节。
+  tcp_ip_header_bytes: 40
+  # Estimated TCP payload bytes per packet, normally close to MSS 1460.
+  # 每包 TCP payload 估算，通常接近 MSS 1460。
+  tcp_payload_bytes: 1460
+
+# =============================================================================
 # Usage Cleanup Task Configuration
 # 使用记录清理任务配置（重启生效）
 # =============================================================================

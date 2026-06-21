@@ -220,6 +220,26 @@ func IPAddress(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldIPAddress, v))
 }
 
+// RequestBytes applies equality check predicate on the "request_bytes" field. It's identical to RequestBytesEQ.
+func RequestBytes(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldRequestBytes, v))
+}
+
+// ResponseBytes applies equality check predicate on the "response_bytes" field. It's identical to ResponseBytesEQ.
+func ResponseBytes(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldResponseBytes, v))
+}
+
+// TrafficSource applies equality check predicate on the "traffic_source" field. It's identical to TrafficSourceEQ.
+func TrafficSource(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTrafficSource, v))
+}
+
+// TrafficEstimated applies equality check predicate on the "traffic_estimated" field. It's identical to TrafficEstimatedEQ.
+func TrafficEstimated(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTrafficEstimated, v))
+}
+
 // ImageCount applies equality check predicate on the "image_count" field. It's identical to ImageCountEQ.
 func ImageCount(v int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldImageCount, v))
@@ -1798,6 +1818,171 @@ func IPAddressEqualFold(v string) predicate.UsageLog {
 // IPAddressContainsFold applies the ContainsFold predicate on the "ip_address" field.
 func IPAddressContainsFold(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldContainsFold(FieldIPAddress, v))
+}
+
+// RequestBytesEQ applies the EQ predicate on the "request_bytes" field.
+func RequestBytesEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldRequestBytes, v))
+}
+
+// RequestBytesNEQ applies the NEQ predicate on the "request_bytes" field.
+func RequestBytesNEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldRequestBytes, v))
+}
+
+// RequestBytesIn applies the In predicate on the "request_bytes" field.
+func RequestBytesIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldRequestBytes, vs...))
+}
+
+// RequestBytesNotIn applies the NotIn predicate on the "request_bytes" field.
+func RequestBytesNotIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldRequestBytes, vs...))
+}
+
+// RequestBytesGT applies the GT predicate on the "request_bytes" field.
+func RequestBytesGT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldRequestBytes, v))
+}
+
+// RequestBytesGTE applies the GTE predicate on the "request_bytes" field.
+func RequestBytesGTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldRequestBytes, v))
+}
+
+// RequestBytesLT applies the LT predicate on the "request_bytes" field.
+func RequestBytesLT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldRequestBytes, v))
+}
+
+// RequestBytesLTE applies the LTE predicate on the "request_bytes" field.
+func RequestBytesLTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldRequestBytes, v))
+}
+
+// ResponseBytesEQ applies the EQ predicate on the "response_bytes" field.
+func ResponseBytesEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldResponseBytes, v))
+}
+
+// ResponseBytesNEQ applies the NEQ predicate on the "response_bytes" field.
+func ResponseBytesNEQ(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldResponseBytes, v))
+}
+
+// ResponseBytesIn applies the In predicate on the "response_bytes" field.
+func ResponseBytesIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldResponseBytes, vs...))
+}
+
+// ResponseBytesNotIn applies the NotIn predicate on the "response_bytes" field.
+func ResponseBytesNotIn(vs ...int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldResponseBytes, vs...))
+}
+
+// ResponseBytesGT applies the GT predicate on the "response_bytes" field.
+func ResponseBytesGT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldResponseBytes, v))
+}
+
+// ResponseBytesGTE applies the GTE predicate on the "response_bytes" field.
+func ResponseBytesGTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldResponseBytes, v))
+}
+
+// ResponseBytesLT applies the LT predicate on the "response_bytes" field.
+func ResponseBytesLT(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldResponseBytes, v))
+}
+
+// ResponseBytesLTE applies the LTE predicate on the "response_bytes" field.
+func ResponseBytesLTE(v int64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldResponseBytes, v))
+}
+
+// TrafficSourceEQ applies the EQ predicate on the "traffic_source" field.
+func TrafficSourceEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTrafficSource, v))
+}
+
+// TrafficSourceNEQ applies the NEQ predicate on the "traffic_source" field.
+func TrafficSourceNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldTrafficSource, v))
+}
+
+// TrafficSourceIn applies the In predicate on the "traffic_source" field.
+func TrafficSourceIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldTrafficSource, vs...))
+}
+
+// TrafficSourceNotIn applies the NotIn predicate on the "traffic_source" field.
+func TrafficSourceNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldTrafficSource, vs...))
+}
+
+// TrafficSourceGT applies the GT predicate on the "traffic_source" field.
+func TrafficSourceGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldTrafficSource, v))
+}
+
+// TrafficSourceGTE applies the GTE predicate on the "traffic_source" field.
+func TrafficSourceGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldTrafficSource, v))
+}
+
+// TrafficSourceLT applies the LT predicate on the "traffic_source" field.
+func TrafficSourceLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldTrafficSource, v))
+}
+
+// TrafficSourceLTE applies the LTE predicate on the "traffic_source" field.
+func TrafficSourceLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldTrafficSource, v))
+}
+
+// TrafficSourceContains applies the Contains predicate on the "traffic_source" field.
+func TrafficSourceContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldTrafficSource, v))
+}
+
+// TrafficSourceHasPrefix applies the HasPrefix predicate on the "traffic_source" field.
+func TrafficSourceHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldTrafficSource, v))
+}
+
+// TrafficSourceHasSuffix applies the HasSuffix predicate on the "traffic_source" field.
+func TrafficSourceHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldTrafficSource, v))
+}
+
+// TrafficSourceIsNil applies the IsNil predicate on the "traffic_source" field.
+func TrafficSourceIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldTrafficSource))
+}
+
+// TrafficSourceNotNil applies the NotNil predicate on the "traffic_source" field.
+func TrafficSourceNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldTrafficSource))
+}
+
+// TrafficSourceEqualFold applies the EqualFold predicate on the "traffic_source" field.
+func TrafficSourceEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldTrafficSource, v))
+}
+
+// TrafficSourceContainsFold applies the ContainsFold predicate on the "traffic_source" field.
+func TrafficSourceContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldTrafficSource, v))
+}
+
+// TrafficEstimatedEQ applies the EQ predicate on the "traffic_estimated" field.
+func TrafficEstimatedEQ(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTrafficEstimated, v))
+}
+
+// TrafficEstimatedNEQ applies the NEQ predicate on the "traffic_estimated" field.
+func TrafficEstimatedNEQ(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldTrafficEstimated, v))
 }
 
 // ImageCountEQ applies the EQ predicate on the "image_count" field.

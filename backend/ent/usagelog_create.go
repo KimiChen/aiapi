@@ -449,6 +449,62 @@ func (_c *UsageLogCreate) SetNillableIPAddress(v *string) *UsageLogCreate {
 	return _c
 }
 
+// SetRequestBytes sets the "request_bytes" field.
+func (_c *UsageLogCreate) SetRequestBytes(v int64) *UsageLogCreate {
+	_c.mutation.SetRequestBytes(v)
+	return _c
+}
+
+// SetNillableRequestBytes sets the "request_bytes" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableRequestBytes(v *int64) *UsageLogCreate {
+	if v != nil {
+		_c.SetRequestBytes(*v)
+	}
+	return _c
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (_c *UsageLogCreate) SetResponseBytes(v int64) *UsageLogCreate {
+	_c.mutation.SetResponseBytes(v)
+	return _c
+}
+
+// SetNillableResponseBytes sets the "response_bytes" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableResponseBytes(v *int64) *UsageLogCreate {
+	if v != nil {
+		_c.SetResponseBytes(*v)
+	}
+	return _c
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (_c *UsageLogCreate) SetTrafficSource(v string) *UsageLogCreate {
+	_c.mutation.SetTrafficSource(v)
+	return _c
+}
+
+// SetNillableTrafficSource sets the "traffic_source" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableTrafficSource(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetTrafficSource(*v)
+	}
+	return _c
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (_c *UsageLogCreate) SetTrafficEstimated(v bool) *UsageLogCreate {
+	_c.mutation.SetTrafficEstimated(v)
+	return _c
+}
+
+// SetNillableTrafficEstimated sets the "traffic_estimated" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableTrafficEstimated(v *bool) *UsageLogCreate {
+	if v != nil {
+		_c.SetTrafficEstimated(*v)
+	}
+	return _c
+}
+
 // SetImageCount sets the "image_count" field.
 func (_c *UsageLogCreate) SetImageCount(v int) *UsageLogCreate {
 	_c.mutation.SetImageCount(v)
@@ -673,6 +729,18 @@ func (_c *UsageLogCreate) defaults() {
 		v := usagelog.DefaultStream
 		_c.mutation.SetStream(v)
 	}
+	if _, ok := _c.mutation.RequestBytes(); !ok {
+		v := usagelog.DefaultRequestBytes
+		_c.mutation.SetRequestBytes(v)
+	}
+	if _, ok := _c.mutation.ResponseBytes(); !ok {
+		v := usagelog.DefaultResponseBytes
+		_c.mutation.SetResponseBytes(v)
+	}
+	if _, ok := _c.mutation.TrafficEstimated(); !ok {
+		v := usagelog.DefaultTrafficEstimated
+		_c.mutation.SetTrafficEstimated(v)
+	}
 	if _, ok := _c.mutation.ImageCount(); !ok {
 		v := usagelog.DefaultImageCount
 		_c.mutation.SetImageCount(v)
@@ -793,6 +861,20 @@ func (_c *UsageLogCreate) check() error {
 		if err := usagelog.IPAddressValidator(v); err != nil {
 			return &ValidationError{Name: "ip_address", err: fmt.Errorf(`ent: validator failed for field "UsageLog.ip_address": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.RequestBytes(); !ok {
+		return &ValidationError{Name: "request_bytes", err: errors.New(`ent: missing required field "UsageLog.request_bytes"`)}
+	}
+	if _, ok := _c.mutation.ResponseBytes(); !ok {
+		return &ValidationError{Name: "response_bytes", err: errors.New(`ent: missing required field "UsageLog.response_bytes"`)}
+	}
+	if v, ok := _c.mutation.TrafficSource(); ok {
+		if err := usagelog.TrafficSourceValidator(v); err != nil {
+			return &ValidationError{Name: "traffic_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.traffic_source": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.TrafficEstimated(); !ok {
+		return &ValidationError{Name: "traffic_estimated", err: errors.New(`ent: missing required field "UsageLog.traffic_estimated"`)}
 	}
 	if _, ok := _c.mutation.ImageCount(); !ok {
 		return &ValidationError{Name: "image_count", err: errors.New(`ent: missing required field "UsageLog.image_count"`)}
@@ -970,6 +1052,22 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IPAddress(); ok {
 		_spec.SetField(usagelog.FieldIPAddress, field.TypeString, value)
 		_node.IPAddress = &value
+	}
+	if value, ok := _c.mutation.RequestBytes(); ok {
+		_spec.SetField(usagelog.FieldRequestBytes, field.TypeInt64, value)
+		_node.RequestBytes = value
+	}
+	if value, ok := _c.mutation.ResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+		_node.ResponseBytes = value
+	}
+	if value, ok := _c.mutation.TrafficSource(); ok {
+		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)
+		_node.TrafficSource = &value
+	}
+	if value, ok := _c.mutation.TrafficEstimated(); ok {
+		_spec.SetField(usagelog.FieldTrafficEstimated, field.TypeBool, value)
+		_node.TrafficEstimated = value
 	}
 	if value, ok := _c.mutation.ImageCount(); ok {
 		_spec.SetField(usagelog.FieldImageCount, field.TypeInt, value)
@@ -1719,6 +1817,72 @@ func (u *UsageLogUpsert) UpdateIPAddress() *UsageLogUpsert {
 // ClearIPAddress clears the value of the "ip_address" field.
 func (u *UsageLogUpsert) ClearIPAddress() *UsageLogUpsert {
 	u.SetNull(usagelog.FieldIPAddress)
+	return u
+}
+
+// SetRequestBytes sets the "request_bytes" field.
+func (u *UsageLogUpsert) SetRequestBytes(v int64) *UsageLogUpsert {
+	u.Set(usagelog.FieldRequestBytes, v)
+	return u
+}
+
+// UpdateRequestBytes sets the "request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateRequestBytes() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldRequestBytes)
+	return u
+}
+
+// AddRequestBytes adds v to the "request_bytes" field.
+func (u *UsageLogUpsert) AddRequestBytes(v int64) *UsageLogUpsert {
+	u.Add(usagelog.FieldRequestBytes, v)
+	return u
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (u *UsageLogUpsert) SetResponseBytes(v int64) *UsageLogUpsert {
+	u.Set(usagelog.FieldResponseBytes, v)
+	return u
+}
+
+// UpdateResponseBytes sets the "response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateResponseBytes() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldResponseBytes)
+	return u
+}
+
+// AddResponseBytes adds v to the "response_bytes" field.
+func (u *UsageLogUpsert) AddResponseBytes(v int64) *UsageLogUpsert {
+	u.Add(usagelog.FieldResponseBytes, v)
+	return u
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (u *UsageLogUpsert) SetTrafficSource(v string) *UsageLogUpsert {
+	u.Set(usagelog.FieldTrafficSource, v)
+	return u
+}
+
+// UpdateTrafficSource sets the "traffic_source" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateTrafficSource() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldTrafficSource)
+	return u
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (u *UsageLogUpsert) ClearTrafficSource() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldTrafficSource)
+	return u
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (u *UsageLogUpsert) SetTrafficEstimated(v bool) *UsageLogUpsert {
+	u.Set(usagelog.FieldTrafficEstimated, v)
+	return u
+}
+
+// UpdateTrafficEstimated sets the "traffic_estimated" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateTrafficEstimated() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldTrafficEstimated)
 	return u
 }
 
@@ -2563,6 +2727,83 @@ func (u *UsageLogUpsertOne) UpdateIPAddress() *UsageLogUpsertOne {
 func (u *UsageLogUpsertOne) ClearIPAddress() *UsageLogUpsertOne {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.ClearIPAddress()
+	})
+}
+
+// SetRequestBytes sets the "request_bytes" field.
+func (u *UsageLogUpsertOne) SetRequestBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetRequestBytes(v)
+	})
+}
+
+// AddRequestBytes adds v to the "request_bytes" field.
+func (u *UsageLogUpsertOne) AddRequestBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddRequestBytes(v)
+	})
+}
+
+// UpdateRequestBytes sets the "request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateRequestBytes() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateRequestBytes()
+	})
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (u *UsageLogUpsertOne) SetResponseBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetResponseBytes(v)
+	})
+}
+
+// AddResponseBytes adds v to the "response_bytes" field.
+func (u *UsageLogUpsertOne) AddResponseBytes(v int64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddResponseBytes(v)
+	})
+}
+
+// UpdateResponseBytes sets the "response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateResponseBytes() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateResponseBytes()
+	})
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (u *UsageLogUpsertOne) SetTrafficSource(v string) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTrafficSource(v)
+	})
+}
+
+// UpdateTrafficSource sets the "traffic_source" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateTrafficSource() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTrafficSource()
+	})
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (u *UsageLogUpsertOne) ClearTrafficSource() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearTrafficSource()
+	})
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (u *UsageLogUpsertOne) SetTrafficEstimated(v bool) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTrafficEstimated(v)
+	})
+}
+
+// UpdateTrafficEstimated sets the "traffic_estimated" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateTrafficEstimated() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTrafficEstimated()
 	})
 }
 
@@ -3593,6 +3834,83 @@ func (u *UsageLogUpsertBulk) UpdateIPAddress() *UsageLogUpsertBulk {
 func (u *UsageLogUpsertBulk) ClearIPAddress() *UsageLogUpsertBulk {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.ClearIPAddress()
+	})
+}
+
+// SetRequestBytes sets the "request_bytes" field.
+func (u *UsageLogUpsertBulk) SetRequestBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetRequestBytes(v)
+	})
+}
+
+// AddRequestBytes adds v to the "request_bytes" field.
+func (u *UsageLogUpsertBulk) AddRequestBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddRequestBytes(v)
+	})
+}
+
+// UpdateRequestBytes sets the "request_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateRequestBytes() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateRequestBytes()
+	})
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (u *UsageLogUpsertBulk) SetResponseBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetResponseBytes(v)
+	})
+}
+
+// AddResponseBytes adds v to the "response_bytes" field.
+func (u *UsageLogUpsertBulk) AddResponseBytes(v int64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddResponseBytes(v)
+	})
+}
+
+// UpdateResponseBytes sets the "response_bytes" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateResponseBytes() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateResponseBytes()
+	})
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (u *UsageLogUpsertBulk) SetTrafficSource(v string) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTrafficSource(v)
+	})
+}
+
+// UpdateTrafficSource sets the "traffic_source" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateTrafficSource() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTrafficSource()
+	})
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (u *UsageLogUpsertBulk) ClearTrafficSource() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearTrafficSource()
+	})
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (u *UsageLogUpsertBulk) SetTrafficEstimated(v bool) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTrafficEstimated(v)
+	})
+}
+
+// UpdateTrafficEstimated sets the "traffic_estimated" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateTrafficEstimated() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTrafficEstimated()
 	})
 }
 

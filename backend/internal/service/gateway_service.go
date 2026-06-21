@@ -30,6 +30,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/trafficstats"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/usagestats"
 	"github.com/Wei-Shaw/sub2api/internal/util/responseheaders"
 	"github.com/Wei-Shaw/sub2api/internal/util/urlvalidator"
@@ -9174,6 +9175,7 @@ func writeUsageLogBestEffort(ctx context.Context, repo UsageLogRepository, usage
 	if repo == nil || usageLog == nil {
 		return
 	}
+	applyUsageLogTrafficStats(ctx, usageLog)
 	usageCtx, cancel := detachedBillingContext(ctx)
 	defer cancel()
 
@@ -9192,6 +9194,22 @@ func writeUsageLogBestEffort(ctx context.Context, repo UsageLogRepository, usage
 
 	if _, err := repo.Create(usageCtx, usageLog); err != nil {
 		logger.LegacyPrintf(logKey, "Create usage log failed: %v", err)
+	}
+}
+
+func applyUsageLogTrafficStats(ctx context.Context, usageLog *UsageLog) {
+	if usageLog == nil {
+		return
+	}
+	snapshot, ok := trafficstats.SnapshotFromContext(ctx)
+	if !ok {
+		return
+	}
+	usageLog.RequestBytes = snapshot.RequestBytes
+	usageLog.ResponseBytes = snapshot.ResponseBytes
+	usageLog.TrafficEstimated = snapshot.Estimated
+	if source := strings.TrimSpace(snapshot.Source); source != "" {
+		usageLog.TrafficSource = &source
 	}
 }
 

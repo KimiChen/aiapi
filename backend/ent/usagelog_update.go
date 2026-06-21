@@ -698,6 +698,82 @@ func (_u *UsageLogUpdate) ClearIPAddress() *UsageLogUpdate {
 	return _u
 }
 
+// SetRequestBytes sets the "request_bytes" field.
+func (_u *UsageLogUpdate) SetRequestBytes(v int64) *UsageLogUpdate {
+	_u.mutation.ResetRequestBytes()
+	_u.mutation.SetRequestBytes(v)
+	return _u
+}
+
+// SetNillableRequestBytes sets the "request_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableRequestBytes(v *int64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetRequestBytes(*v)
+	}
+	return _u
+}
+
+// AddRequestBytes adds value to the "request_bytes" field.
+func (_u *UsageLogUpdate) AddRequestBytes(v int64) *UsageLogUpdate {
+	_u.mutation.AddRequestBytes(v)
+	return _u
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (_u *UsageLogUpdate) SetResponseBytes(v int64) *UsageLogUpdate {
+	_u.mutation.ResetResponseBytes()
+	_u.mutation.SetResponseBytes(v)
+	return _u
+}
+
+// SetNillableResponseBytes sets the "response_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableResponseBytes(v *int64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetResponseBytes(*v)
+	}
+	return _u
+}
+
+// AddResponseBytes adds value to the "response_bytes" field.
+func (_u *UsageLogUpdate) AddResponseBytes(v int64) *UsageLogUpdate {
+	_u.mutation.AddResponseBytes(v)
+	return _u
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (_u *UsageLogUpdate) SetTrafficSource(v string) *UsageLogUpdate {
+	_u.mutation.SetTrafficSource(v)
+	return _u
+}
+
+// SetNillableTrafficSource sets the "traffic_source" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableTrafficSource(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetTrafficSource(*v)
+	}
+	return _u
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (_u *UsageLogUpdate) ClearTrafficSource() *UsageLogUpdate {
+	_u.mutation.ClearTrafficSource()
+	return _u
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (_u *UsageLogUpdate) SetTrafficEstimated(v bool) *UsageLogUpdate {
+	_u.mutation.SetTrafficEstimated(v)
+	return _u
+}
+
+// SetNillableTrafficEstimated sets the "traffic_estimated" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableTrafficEstimated(v *bool) *UsageLogUpdate {
+	if v != nil {
+		_u.SetTrafficEstimated(*v)
+	}
+	return _u
+}
+
 // SetImageCount sets the "image_count" field.
 func (_u *UsageLogUpdate) SetImageCount(v int) *UsageLogUpdate {
 	_u.mutation.ResetImageCount()
@@ -959,6 +1035,11 @@ func (_u *UsageLogUpdate) check() error {
 			return &ValidationError{Name: "ip_address", err: fmt.Errorf(`ent: validator failed for field "UsageLog.ip_address": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TrafficSource(); ok {
+		if err := usagelog.TrafficSourceValidator(v); err != nil {
+			return &ValidationError{Name: "traffic_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.traffic_source": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ImageSize(); ok {
 		if err := usagelog.ImageSizeValidator(v); err != nil {
 			return &ValidationError{Name: "image_size", err: fmt.Errorf(`ent: validator failed for field "UsageLog.image_size": %w`, err)}
@@ -1173,6 +1254,27 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.IPAddressCleared() {
 		_spec.ClearField(usagelog.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.RequestBytes(); ok {
+		_spec.SetField(usagelog.FieldRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedRequestBytes(); ok {
+		_spec.AddField(usagelog.FieldRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.ResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedResponseBytes(); ok {
+		_spec.AddField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.TrafficSource(); ok {
+		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)
+	}
+	if _u.mutation.TrafficSourceCleared() {
+		_spec.ClearField(usagelog.FieldTrafficSource, field.TypeString)
+	}
+	if value, ok := _u.mutation.TrafficEstimated(); ok {
+		_spec.SetField(usagelog.FieldTrafficEstimated, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.ImageCount(); ok {
 		_spec.SetField(usagelog.FieldImageCount, field.TypeInt, value)
@@ -2044,6 +2146,82 @@ func (_u *UsageLogUpdateOne) ClearIPAddress() *UsageLogUpdateOne {
 	return _u
 }
 
+// SetRequestBytes sets the "request_bytes" field.
+func (_u *UsageLogUpdateOne) SetRequestBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.ResetRequestBytes()
+	_u.mutation.SetRequestBytes(v)
+	return _u
+}
+
+// SetNillableRequestBytes sets the "request_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableRequestBytes(v *int64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetRequestBytes(*v)
+	}
+	return _u
+}
+
+// AddRequestBytes adds value to the "request_bytes" field.
+func (_u *UsageLogUpdateOne) AddRequestBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.AddRequestBytes(v)
+	return _u
+}
+
+// SetResponseBytes sets the "response_bytes" field.
+func (_u *UsageLogUpdateOne) SetResponseBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.ResetResponseBytes()
+	_u.mutation.SetResponseBytes(v)
+	return _u
+}
+
+// SetNillableResponseBytes sets the "response_bytes" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableResponseBytes(v *int64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetResponseBytes(*v)
+	}
+	return _u
+}
+
+// AddResponseBytes adds value to the "response_bytes" field.
+func (_u *UsageLogUpdateOne) AddResponseBytes(v int64) *UsageLogUpdateOne {
+	_u.mutation.AddResponseBytes(v)
+	return _u
+}
+
+// SetTrafficSource sets the "traffic_source" field.
+func (_u *UsageLogUpdateOne) SetTrafficSource(v string) *UsageLogUpdateOne {
+	_u.mutation.SetTrafficSource(v)
+	return _u
+}
+
+// SetNillableTrafficSource sets the "traffic_source" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableTrafficSource(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetTrafficSource(*v)
+	}
+	return _u
+}
+
+// ClearTrafficSource clears the value of the "traffic_source" field.
+func (_u *UsageLogUpdateOne) ClearTrafficSource() *UsageLogUpdateOne {
+	_u.mutation.ClearTrafficSource()
+	return _u
+}
+
+// SetTrafficEstimated sets the "traffic_estimated" field.
+func (_u *UsageLogUpdateOne) SetTrafficEstimated(v bool) *UsageLogUpdateOne {
+	_u.mutation.SetTrafficEstimated(v)
+	return _u
+}
+
+// SetNillableTrafficEstimated sets the "traffic_estimated" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableTrafficEstimated(v *bool) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetTrafficEstimated(*v)
+	}
+	return _u
+}
+
 // SetImageCount sets the "image_count" field.
 func (_u *UsageLogUpdateOne) SetImageCount(v int) *UsageLogUpdateOne {
 	_u.mutation.ResetImageCount()
@@ -2318,6 +2496,11 @@ func (_u *UsageLogUpdateOne) check() error {
 			return &ValidationError{Name: "ip_address", err: fmt.Errorf(`ent: validator failed for field "UsageLog.ip_address": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TrafficSource(); ok {
+		if err := usagelog.TrafficSourceValidator(v); err != nil {
+			return &ValidationError{Name: "traffic_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.traffic_source": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ImageSize(); ok {
 		if err := usagelog.ImageSizeValidator(v); err != nil {
 			return &ValidationError{Name: "image_size", err: fmt.Errorf(`ent: validator failed for field "UsageLog.image_size": %w`, err)}
@@ -2549,6 +2732,27 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if _u.mutation.IPAddressCleared() {
 		_spec.ClearField(usagelog.FieldIPAddress, field.TypeString)
+	}
+	if value, ok := _u.mutation.RequestBytes(); ok {
+		_spec.SetField(usagelog.FieldRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedRequestBytes(); ok {
+		_spec.AddField(usagelog.FieldRequestBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.ResponseBytes(); ok {
+		_spec.SetField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedResponseBytes(); ok {
+		_spec.AddField(usagelog.FieldResponseBytes, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.TrafficSource(); ok {
+		_spec.SetField(usagelog.FieldTrafficSource, field.TypeString, value)
+	}
+	if _u.mutation.TrafficSourceCleared() {
+		_spec.ClearField(usagelog.FieldTrafficSource, field.TypeString)
+	}
+	if value, ok := _u.mutation.TrafficEstimated(); ok {
+		_spec.SetField(usagelog.FieldTrafficEstimated, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.ImageCount(); ok {
 		_spec.SetField(usagelog.FieldImageCount, field.TypeInt, value)
