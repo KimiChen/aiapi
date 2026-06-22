@@ -173,7 +173,7 @@ func TestFrontendServer_InjectSettings(t *testing.T) {
 
 		// Should contain the script with nonce placeholder
 		assert.Contains(t, string(result), `<script nonce="__CSP_NONCE_VALUE__">`)
-		assert.Contains(t, string(result), `window.__APP_CONFIG__={"test":"data"};`)
+		assert.Contains(t, string(result), `window.__STATIC_APP__={"test":"data"};`)
 		assert.Contains(t, string(result), `</script></head>`)
 	})
 
@@ -210,7 +210,7 @@ func TestFrontendServer_InjectSettings(t *testing.T) {
 		settingsJSON := []byte(`{"nested":{"array":[1,2,3]},"special":"<>&"}`)
 		result := server.injectSettings(settingsJSON)
 
-		assert.Contains(t, string(result), `window.__APP_CONFIG__={"nested":{"array":[1,2,3]},"special":"<>&"};`)
+		assert.Contains(t, string(result), `window.__STATIC_APP__={"nested":{"array":[1,2,3]},"special":"<>&"};`)
 	})
 }
 
@@ -773,7 +773,7 @@ func TestHTMLCache(t *testing.T) {
 
 // Benchmark tests
 func BenchmarkReplaceNoncePlaceholder(b *testing.B) {
-	html := []byte(`<!DOCTYPE html><html><head><script nonce="__CSP_NONCE_VALUE__">window.__APP_CONFIG__={"test":"data"};</script></head><body></body></html>`)
+	html := []byte(`<!DOCTYPE html><html><head><script nonce="__CSP_NONCE_VALUE__">window.__STATIC_APP__={"test":"data"};</script></head><body></body></html>`)
 	nonce := "abcdefghijklmnop123456=="
 
 	b.ResetTimer()

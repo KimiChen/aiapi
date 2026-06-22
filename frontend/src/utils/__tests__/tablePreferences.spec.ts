@@ -10,7 +10,7 @@ import {
 
 describe('tablePreferences', () => {
   afterEach(() => {
-    delete window.__APP_CONFIG__
+    delete window.__STATIC_APP__
   })
 
   it('returns built-in defaults when app config is missing', () => {
@@ -19,7 +19,7 @@ describe('tablePreferences', () => {
   })
 
   it('uses configured defaults when app config is valid', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 50,
       table_page_size_options: [20, 50, 100]
     } as any
@@ -29,7 +29,7 @@ describe('tablePreferences', () => {
   })
 
   it('allows default page size outside selectable options', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 1000,
       table_page_size_options: [20, 50, 100]
     } as any
@@ -41,7 +41,7 @@ describe('tablePreferences', () => {
   })
 
   it('normalizes invalid options without rewriting the configured default itself', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 35,
       table_page_size_options: [1001, 50, 10, 10, 2, 0]
     } as any
@@ -52,7 +52,7 @@ describe('tablePreferences', () => {
   })
 
   it('normalizes page size against configured options by rounding up', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 20,
       table_page_size_options: [20, 50, 1000]
     } as any
@@ -65,7 +65,7 @@ describe('tablePreferences', () => {
   })
 
   it('keeps built-in selectable defaults at 10, 20, 50, 100', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 1000
     } as any
 

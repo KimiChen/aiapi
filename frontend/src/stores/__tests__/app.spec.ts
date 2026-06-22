@@ -17,8 +17,8 @@ describe('useAppStore', () => {
     setActivePinia(createPinia())
     vi.useFakeTimers()
     localStorage.clear()
-    // 清除 window.__APP_CONFIG__
-    delete (window as any).__APP_CONFIG__
+    // 清除 window.__STATIC_APP__
+    delete (window as any).__STATIC_APP__
   })
 
   afterEach(() => {
@@ -252,9 +252,9 @@ describe('useAppStore', () => {
   // --- 公开设置 ---
 
   describe('公开设置加载', () => {
-    it('从 window.__APP_CONFIG__ 初始化', () => {
+    it('从 window.__STATIC_APP__ 初始化', () => {
       const windowAny = window as any
-      windowAny.__APP_CONFIG__ = {
+      windowAny.__STATIC_APP__ = {
         site_name: 'TestSite',
         site_logo: '/logo.png',
         version: '1.0.0',
@@ -283,7 +283,7 @@ describe('useAppStore', () => {
 
     it('clearPublicSettingsCache 清除缓存', () => {
       const windowAny = window as any
-      windowAny.__APP_CONFIG__ = { site_name: 'Test' }
+      windowAny.__STATIC_APP__ = { site_name: 'Test' }
       const store = useAppStore()
       store.initFromInjectedConfig()
 
@@ -329,8 +329,8 @@ describe('useAppStore', () => {
 
       expect(store.cachedPublicSettings?.table_default_page_size).toBe(1000)
       expect(store.cachedPublicSettings?.table_page_size_options).toEqual([20, 100, 1000])
-      expect((window as any).__APP_CONFIG__.table_default_page_size).toBeUndefined()
-      expect((window as any).__APP_CONFIG__.table_page_size_options).toBeUndefined()
+      expect((window as any).__STATIC_APP__.table_default_page_size).toBeUndefined()
+      expect((window as any).__STATIC_APP__.table_page_size_options).toBeUndefined()
       expect(localStorage.getItem('table-page-size')).toBeNull()
       expect(localStorage.getItem('table-page-size-source')).toBeNull()
     })

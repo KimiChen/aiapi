@@ -6,7 +6,7 @@
  *
  * `public settings` reach the frontend through two channels:
  *
- *   1. **SSR injection** — the backend embeds `window.__APP_CONFIG__` into the
+ *   1. **SSR injection** — the backend embeds `window.__STATIC_APP__` into the
  *      HTML. `main.ts` calls `appStore.initFromInjectedConfig()` synchronously
  *      before Vue mounts, so `cachedPublicSettings` is populated on first
  *      render.

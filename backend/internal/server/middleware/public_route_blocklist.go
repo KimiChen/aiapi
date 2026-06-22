@@ -16,10 +16,12 @@ import (
 const publicRouteBlocklistFilename = "public-route-blocklist.yaml"
 
 type PublicRouteBlocklist struct {
-	Enabled      bool
-	Rules        []PublicRouteBlocklistRule
-	Source       string
-	UsingDefault bool
+	Enabled           bool
+	Rules             []PublicRouteBlocklistRule
+	AllowRules        []PublicRouteBlocklistRule
+	UnauthorizedRules []PublicRouteBlocklistRule
+	Source            string
+	UsingDefault      bool
 }
 
 type PublicRouteBlocklistRule struct {
@@ -28,8 +30,15 @@ type PublicRouteBlocklistRule struct {
 }
 
 type publicRouteBlocklistFile struct {
-	Enabled *bool                      `yaml:"enabled"`
-	Rules   []PublicRouteBlocklistRule `yaml:"rules"`
+	Enabled      *bool                      `yaml:"enabled"`
+	Rules        []PublicRouteBlocklistRule `yaml:"rules"` // legacy 404 module
+	NotFound     publicRouteRuleModule      `yaml:"not_found"`
+	Allow        publicRouteRuleModule      `yaml:"allow"`
+	Unauthorized publicRouteRuleModule      `yaml:"unauthorized"`
+}
+
+type publicRouteRuleModule struct {
+	Rules []PublicRouteBlocklistRule `yaml:"rules"`
 }
 
 func LoadPublicRouteBlocklist() (*PublicRouteBlocklist, error) {
@@ -77,13 +86,23 @@ func PublicRouteBlocklistMiddleware(list *PublicRouteBlocklist) gin.HandlerFunc 
 			return
 		}
 
-		if !list.Enabled || shouldBypassPublicRouteBlocklist(path) {
+		if !list.Enabled {
+			c.Next()
+			return
+		}
+
+		if list.Allows(path) || shouldBypassPublicRouteBlocklist(path) {
 			c.Next()
 			return
 		}
 
 		if list.Matches(path) {
 			writePlainNotFound(c)
+			return
+		}
+
+		if list.RequiresUnauthorized(path) && !hasRouteAuthentication(c) {
+			writeUnauthorizedError(c)
 			return
 		}
 
@@ -110,6 +129,36 @@ func (l *PublicRouteBlocklist) Matches(path string) bool {
 	return false
 }
 
+func (l *PublicRouteBlocklist) Allows(path string) bool {
+	if l == nil || !l.Enabled {
+		return false
+	}
+	return matchesPublicRouteRules(l.AllowRules, path)
+}
+
+func (l *PublicRouteBlocklist) RequiresUnauthorized(path string) bool {
+	if l == nil || !l.Enabled {
+		return false
+	}
+	return matchesPublicRouteRules(l.UnauthorizedRules, path)
+}
+
+func matchesPublicRouteRules(rules []PublicRouteBlocklistRule, path string) bool {
+	for _, rule := range rules {
+		switch rule.Match {
+		case "exact":
+			if path == rule.Path {
+				return true
+			}
+		case "prefix":
+			if strings.HasPrefix(path, rule.Path) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func LogPublicRouteBlocklist(list *PublicRouteBlocklist) {
 	if list == nil {
 		return
@@ -118,8 +167,8 @@ func LogPublicRouteBlocklist(list *PublicRouteBlocklist) {
 	if list.UsingDefault {
 		sourceKind = "default"
 	}
-	log.Printf("Public route blocklist loaded: source=%s path=%q enabled=%v effective_rules=%d",
-		sourceKind, list.Source, list.Enabled, len(list.Rules))
+	log.Printf("Public route blocklist loaded: source=%s path=%q enabled=%v effective_rules=%d allow_rules=%d unauthorized_rules=%d",
+		sourceKind, list.Source, list.Enabled, len(list.Rules), len(list.AllowRules), len(list.UnauthorizedRules))
 }
 
 func publicRouteBlocklistCandidatePaths() []string {
@@ -146,59 +195,96 @@ func normalizePublicRouteBlocklist(cfg publicRouteBlocklistFile, source string, 
 		enabled = *cfg.Enabled
 	}
 
-	rules := make([]PublicRouteBlocklistRule, 0, len(cfg.Rules))
-	seen := make(map[string]struct{}, len(cfg.Rules))
-	for i, rule := range cfg.Rules {
+	notFoundInput := make([]PublicRouteBlocklistRule, 0, len(cfg.Rules)+len(cfg.NotFound.Rules))
+	notFoundInput = append(notFoundInput, cfg.Rules...)
+	notFoundInput = append(notFoundInput, cfg.NotFound.Rules...)
+
+	notFoundRules, err := normalizePublicRouteRules(notFoundInput, source, "not_found")
+	if err != nil {
+		return nil, err
+	}
+	allowRules, err := normalizePublicRouteRules(cfg.Allow.Rules, source, "allow")
+	if err != nil {
+		return nil, err
+	}
+	unauthorizedRules, err := normalizePublicRouteRules(cfg.Unauthorized.Rules, source, "unauthorized")
+	if err != nil {
+		return nil, err
+	}
+
+	return &PublicRouteBlocklist{
+		Enabled:           enabled,
+		Rules:             notFoundRules,
+		AllowRules:        allowRules,
+		UnauthorizedRules: unauthorizedRules,
+		Source:            source,
+		UsingDefault:      usingDefault,
+	}, nil
+}
+
+func normalizePublicRouteRules(rules []PublicRouteBlocklistRule, source, module string) ([]PublicRouteBlocklistRule, error) {
+	out := make([]PublicRouteBlocklistRule, 0, len(rules))
+	seen := make(map[string]struct{}, len(rules))
+	for i, rule := range rules {
 		match := strings.ToLower(strings.TrimSpace(rule.Match))
 		path := strings.TrimSpace(rule.Path)
 		if match != "exact" && match != "prefix" {
-			return nil, fmt.Errorf("invalid public route blocklist rule %d in %q: unsupported match %q", i+1, source, rule.Match)
+			return nil, fmt.Errorf("invalid public route blocklist %s rule %d in %q: unsupported match %q", module, i+1, source, rule.Match)
 		}
 		if !strings.HasPrefix(path, "/") {
-			return nil, fmt.Errorf("invalid public route blocklist rule %d in %q: path must start with /", i+1, source)
+			return nil, fmt.Errorf("invalid public route blocklist %s rule %d in %q: path must start with /", module, i+1, source)
 		}
 		key := match + "\x00" + path
 		if _, ok := seen[key]; ok {
 			continue
 		}
 		seen[key] = struct{}{}
-		rules = append(rules, PublicRouteBlocklistRule{
+		out = append(out, PublicRouteBlocklistRule{
 			Match: match,
 			Path:  path,
 		})
 	}
-
-	return &PublicRouteBlocklist{
-		Enabled:      enabled,
-		Rules:        rules,
-		Source:       source,
-		UsingDefault: usingDefault,
-	}, nil
+	return out, nil
 }
 
 func defaultPublicRouteBlocklistFile() publicRouteBlocklistFile {
 	enabled := true
 	return publicRouteBlocklistFile{
 		Enabled: &enabled,
-		Rules: []PublicRouteBlocklistRule{
-			{Match: "prefix", Path: "/auth/"},
-			{Match: "exact", Path: "/forgot-password"},
-			{Match: "exact", Path: "/reset-password"},
-			{Match: "exact", Path: "/key-usage"},
-			{Match: "prefix", Path: "/legal/"},
-			{Match: "prefix", Path: "/payment/"},
-			{Match: "exact", Path: "/api/event_logging/batch"},
-			{Match: "exact", Path: "/api/v1/settings/public"},
-			{Match: "exact", Path: "/api/v1/auth/send-verify-code"},
-			{Match: "exact", Path: "/api/v1/auth/validate-promo-code"},
-			{Match: "exact", Path: "/api/v1/auth/validate-invitation-code"},
-			{Match: "exact", Path: "/api/v1/auth/forgot-password"},
-			{Match: "exact", Path: "/api/v1/auth/reset-password"},
-			{Match: "prefix", Path: "/api/v1/auth/oauth/"},
-			{Match: "prefix", Path: "/api/v1/payment/public/"},
-			{Match: "prefix", Path: "/api/v1/payment/webhook/"},
-			{Match: "exact", Path: "/api/v1/settings/email-unsubscribe"},
-			{Match: "prefix", Path: "/api/v1/pages/"},
+		NotFound: publicRouteRuleModule{
+			Rules: []PublicRouteBlocklistRule{
+				{Match: "prefix", Path: "/auth/"},
+				{Match: "exact", Path: "/forgot-password"},
+				{Match: "exact", Path: "/reset-password"},
+				{Match: "exact", Path: "/key-usage"},
+				{Match: "prefix", Path: "/legal/"},
+				{Match: "prefix", Path: "/payment/"},
+				{Match: "exact", Path: "/api/event_logging/batch"},
+				{Match: "exact", Path: "/api/v1/settings/public"},
+				{Match: "exact", Path: "/api/v1/auth/send-verify-code"},
+				{Match: "exact", Path: "/api/v1/auth/validate-promo-code"},
+				{Match: "exact", Path: "/api/v1/auth/validate-invitation-code"},
+				{Match: "exact", Path: "/api/v1/auth/forgot-password"},
+				{Match: "exact", Path: "/api/v1/auth/reset-password"},
+				{Match: "prefix", Path: "/api/v1/auth/oauth/"},
+				{Match: "prefix", Path: "/api/v1/payment/public/"},
+				{Match: "prefix", Path: "/api/v1/payment/webhook/"},
+				{Match: "exact", Path: "/api/v1/settings/email-unsubscribe"},
+				{Match: "prefix", Path: "/api/v1/pages/"},
+			},
+		},
+		Allow: publicRouteRuleModule{
+			Rules: []PublicRouteBlocklistRule{
+				{Match: "exact", Path: "/responses"},
+				{Match: "exact", Path: "/v1/responses"},
+				{Match: "exact", Path: "/v1/usage"},
+				{Match: "exact", Path: "/v1/chat/completions"},
+			},
+		},
+		Unauthorized: publicRouteRuleModule{
+			Rules: []PublicRouteBlocklistRule{
+				{Match: "prefix", Path: "/api/v1/"},
+			},
 		},
 	}
 }
@@ -211,7 +297,6 @@ func shouldBypassPublicRouteBlocklist(path string) bool {
 		"/status",
 		"/favicon.ico",
 		"/logo.png",
-		"/responses",
 		"/images",
 		"/v1",
 		"/v1beta",
@@ -226,9 +311,7 @@ func shouldBypassPublicRouteBlocklist(path string) bool {
 	for _, prefix := range []string{
 		"/static/app/",
 		"/assets/",
-		"/responses/",
 		"/images/",
-		"/v1/",
 		"/v1beta/",
 		"/backend-api/",
 		"/antigravity/",
@@ -247,6 +330,29 @@ func isCompletedSetupPath(path string) bool {
 func writePlainNotFound(c *gin.Context) {
 	c.Data(http.StatusNotFound, "text/plain; charset=utf-8", []byte("404 Not Found"))
 	c.Abort()
+}
+
+func writeUnauthorizedError(c *gin.Context) {
+	c.JSON(http.StatusUnauthorized, NewErrorResponse("UNAUTHORIZED", "ERROR"))
+	c.Abort()
+}
+
+func hasRouteAuthentication(c *gin.Context) bool {
+	for _, header := range []string{"Authorization", "x-api-key", "x-goog-api-key"} {
+		if strings.TrimSpace(c.GetHeader(header)) != "" {
+			return true
+		}
+	}
+	return hasJWTWebSocketSubprotocol(c.GetHeader("Sec-WebSocket-Protocol"))
+}
+
+func hasJWTWebSocketSubprotocol(raw string) bool {
+	for _, part := range strings.Split(raw, ",") {
+		if strings.HasPrefix(strings.TrimSpace(part), "jwt.") {
+			return true
+		}
+	}
+	return false
 }
 
 func dedupeStringSlice(values []string) []string {

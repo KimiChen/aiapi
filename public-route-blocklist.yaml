@@ -1,38 +1,54 @@
-enabled: true  # 是否启用公开路径 404 隐藏规则；false 表示完全不拦截
-rules:  # 需要返回 404 的公开业务路径规则列表
-  - match: prefix  # 前缀匹配：前端第三方认证回调/补全页面
-    path: /auth/  # 前端 OAuth 回调、微信支付回调、钉钉邮箱补全等页面路径前缀
-  - match: exact   # 精确匹配：前端找回密码页面
-    path: /forgot-password  # 前端找回密码页面路径
-  - match: exact   # 精确匹配：前端重置密码页面
-    path: /reset-password  # 前端重置密码页面路径
-  - match: exact   # 精确匹配：前端 API Key 用量查询公开页面
-    path: /key-usage  # 前端 API Key 用量查询公开页面路径
-  - match: prefix  # 前缀匹配：前端法律文档公开页面
-    path: /legal/  # 前端法律文档公开页面路径前缀，例如 /legal/*
-  - match: prefix  # 前缀匹配：前端支付相关公开页面
-    path: /payment/  # 前端支付相关公开页面路径前缀，例如 /payment/result、/payment/stripe
-  - match: exact   # 精确匹配：公开事件上报接口
-    path: /api/event_logging/batch  # 前端公开事件埋点批量上报接口路径
-  - match: exact   # 精确匹配：后端公开站点设置接口
-    path: /api/v1/settings/public  # 公开站点名称、注册开关、Turnstile 等设置接口路径
-  - match: exact   # 精确匹配：后端发送邮箱验证码接口
-    path: /api/v1/auth/send-verify-code  # 后端发送邮箱验证码接口，常用于注册/找回/绑定等公开流程
-  - match: exact   # 精确匹配：后端优惠码公开校验接口
-    path: /api/v1/auth/validate-promo-code  # 后端优惠码公开校验接口路径
-  - match: exact   # 精确匹配：后端邀请码公开校验接口
-    path: /api/v1/auth/validate-invitation-code  # 后端邀请码公开校验接口路径
-  - match: exact   # 精确匹配：后端忘记密码发起接口
-    path: /api/v1/auth/forgot-password  # 后端忘记密码发起接口路径
-  - match: exact   # 精确匹配：后端重置密码提交接口
-    path: /api/v1/auth/reset-password  # 后端重置密码提交接口路径
-  - match: prefix  # 前缀匹配：第三方 OAuth 公开流程
-    path: /api/v1/auth/oauth/  # 第三方 OAuth 登录/绑定/回调/补全注册等公开流程路径前缀
-  - match: prefix  # 前缀匹配：支付订单公开查询/恢复接口
-    path: /api/v1/payment/public/  # 支付订单公开查询/恢复接口路径前缀
-  - match: prefix  # 前缀匹配：支付服务商 webhook 回调入口
-    path: /api/v1/payment/webhook/  # 支付服务商 webhook 回调入口路径前缀
-  - match: exact   # 精确匹配：邮件通知退订公开入口
-    path: /api/v1/settings/email-unsubscribe  # 邮件通知退订公开入口路径
-  - match: prefix  # 前缀匹配：自定义页面图片等公开资源接口
-    path: /api/v1/pages/  # 自定义页面图片等公开资源接口路径前缀
+enabled: true  # 是否启用公开路径伪装规则；false 表示除安装完成后的 /setup 外完全不拦截
+
+not_found:  # 无条件返回纯文本 404 的路径
+  rules:
+    - match: prefix
+      path: /auth/
+    - match: exact
+      path: /forgot-password
+    - match: exact
+      path: /reset-password
+    - match: exact
+      path: /key-usage
+    - match: prefix
+      path: /legal/
+    - match: prefix
+      path: /payment/
+    - match: exact
+      path: /api/event_logging/batch
+    - match: exact
+      path: /api/v1/auth/send-verify-code
+    - match: exact
+      path: /api/v1/auth/validate-promo-code
+    - match: exact
+      path: /api/v1/auth/validate-invitation-code
+    - match: exact
+      path: /api/v1/auth/forgot-password
+    - match: exact
+      path: /api/v1/auth/reset-password
+    - match: prefix
+      path: /api/v1/auth/oauth/
+    - match: prefix
+      path: /api/v1/payment/public/
+    - match: prefix
+      path: /api/v1/payment/webhook/
+    - match: exact
+      path: /api/v1/settings/email-unsubscribe
+    - match: prefix
+      path: /api/v1/pages/
+
+allow:  # 无条件放行的模型网关主链路
+  rules:
+    - match: exact
+      path: /responses
+    - match: exact
+      path: /v1/responses
+    - match: exact
+      path: /v1/usage
+    - match: exact
+      path: /v1/chat/completions
+
+unauthorized:  # 未带登录/管理认证头时返回 {"code":"UNAUTHORIZED","message":"ERROR"}，已带认证头则交给原路由
+  rules:
+    - match: prefix
+      path: /api/v1/

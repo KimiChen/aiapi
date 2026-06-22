@@ -1196,7 +1196,7 @@ func (s *SettingService) SetVersion(version string) {
 }
 
 // PublicSettingsInjectionPayload is the sparse JSON shape embedded into HTML as
-// `window.__APP_CONFIG__`. Disabled booleans, empty values, and public-API-only
+// `window.__STATIC_APP__`. Disabled booleans, empty values, and public-API-only
 // settings are intentionally omitted so page source does not advertise internal
 // feature names. Frontend code must treat missing flags as false.
 type PublicSettingsInjectionPayload map[string]any

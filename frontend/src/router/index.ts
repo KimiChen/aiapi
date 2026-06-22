@@ -41,6 +41,51 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/catalog',
+    name: 'GuestCatalog',
+    component: () => import('@/views/guest/CatalogView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '数据目录'
+    }
+  },
+  {
+    path: '/governance',
+    name: 'GuestGovernance',
+    component: () => import('@/views/guest/GovernanceView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '数据治理'
+    }
+  },
+  {
+    path: '/exchange',
+    name: 'GuestExchange',
+    component: () => import('@/views/guest/ExchangeView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '交换任务'
+    }
+  },
+  {
+    path: '/orchestration',
+    name: 'GuestOrchestration',
+    component: () => import('@/views/guest/OrchestrationView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '服务编排'
+    }
+  },
+  {
+    path: '/docs',
+    name: 'GuestDocs',
+    component: () => import('@/views/guest/DocsView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '接入规范'
+    }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/guest/LoginView.vue'),

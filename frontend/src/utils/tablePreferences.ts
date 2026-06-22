@@ -20,7 +20,7 @@ const parsePageSizeForSelection = (value: unknown): number | null => {
 
 const getInjectedAppConfig = () => {
   if (typeof window === 'undefined') return null
-  return window.__APP_CONFIG__ ?? null
+  return window.__STATIC_APP__ ?? null
 }
 
 const getSanitizedConfiguredOptions = (): number[] => {

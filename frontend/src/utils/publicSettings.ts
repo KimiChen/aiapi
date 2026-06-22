@@ -157,5 +157,5 @@ export const compactPublicSettingsConfig = (
 
 export const getInjectedPublicSettings = (): PublicSettingsConfig | null => {
   if (typeof window === 'undefined') return null
-  return window.__APP_CONFIG__ ?? null
+  return window.__STATIC_APP__ ?? null
 }

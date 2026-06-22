@@ -302,7 +302,7 @@ export const useAppStore = defineStore('app', () => {
   function applySettings(config: PublicSettingsConfig): PublicSettings {
     const normalized = normalizePublicSettings(config)
     if (typeof window !== 'undefined') {
-      window.__APP_CONFIG__ = compactPublicSettingsConfig(config)
+      window.__STATIC_APP__ = compactPublicSettingsConfig(config)
     }
     cachedPublicSettings.value = normalized
     siteName.value = normalized.site_name || DEFAULT_PUBLIC_SITE_NAME
@@ -321,8 +321,8 @@ export const useAppStore = defineStore('app', () => {
    */
   async function fetchPublicSettings(force = false): Promise<PublicSettings | null> {
     // Check for injected config from server (eliminates flash)
-    if (!publicSettingsLoaded.value && !force && window.__APP_CONFIG__) {
-      return applySettings(window.__APP_CONFIG__)
+    if (!publicSettingsLoaded.value && !force && window.__STATIC_APP__) {
+      return applySettings(window.__STATIC_APP__)
     }
 
     // Return cached data if available and not forcing refresh
@@ -368,13 +368,13 @@ export const useAppStore = defineStore('app', () => {
   }
 
   /**
-   * Initialize settings from injected config (window.__APP_CONFIG__)
+   * Initialize settings from injected config (window.__STATIC_APP__)
    * This is called synchronously before Vue app mounts to prevent flash
    * @returns true if config was found and applied, false otherwise
    */
   function initFromInjectedConfig(): boolean {
-    if (window.__APP_CONFIG__) {
-      applySettings(window.__APP_CONFIG__)
+    if (window.__STATIC_APP__) {
+      applySettings(window.__STATIC_APP__)
       return true
     }
     return false
