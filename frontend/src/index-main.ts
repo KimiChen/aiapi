@@ -23,9 +23,15 @@ function currentPath(): string {
   return `${window.location.pathname}${window.location.search}${window.location.hash}`
 }
 
-function hasPersistedAuthToken(): boolean {
+function hasPersistedAuthSession(): boolean {
   try {
-    return Boolean(localStorage.getItem('auth_token'))
+    const token = localStorage.getItem('auth_token')
+    const rawUser = localStorage.getItem('auth_user')
+    if (!token || !rawUser) {
+      return false
+    }
+    const user = JSON.parse(rawUser)
+    return Boolean(user && typeof user === 'object')
   } catch {
     return false
   }
@@ -69,7 +75,7 @@ async function bootstrap() {
   const pathname = window.location.pathname
 
   if (!isGuestPublicPath(pathname)) {
-    if (hasPersistedAuthToken() || isFullAppPublicPath(pathname)) {
+    if (hasPersistedAuthSession() || isFullAppPublicPath(pathname)) {
       await enterFullApp(currentPath())
       return
     }
