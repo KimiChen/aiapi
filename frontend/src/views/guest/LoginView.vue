@@ -2,11 +2,11 @@
   <GuestAuthLayout>
     <div class="space-y-6">
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-halo-muted">Customer Area</p>
-        <h2 class="mt-2 font-heading text-2xl font-semibold text-halo-txt">
+        <p class="text-xs font-semibold uppercase tracking-wide text-wiki-muted">Customer Area</p>
+        <h2 class="mt-2 font-heading text-2xl font-semibold text-wiki-txt">
           {{ t('auth.welcomeBack') }}
         </h2>
-        <p class="mt-2 text-sm text-halo-muted">
+        <p class="mt-2 text-sm text-wiki-muted">
           {{ t('auth.signInToAccount') }}
         </p>
       </div>
@@ -72,11 +72,11 @@
             </button>
           </div>
           <div class="mt-2 flex items-center justify-between">
-            <span class="text-xs text-halo-muted">API SERVICE</span>
+            <span class="text-xs text-wiki-muted">API SERVICE</span>
             <router-link
               v-if="passwordResetEnabled && !backendModeEnabled"
               to="/forgot-password"
-              class="text-sm font-semibold text-halo-accent transition-colors hover:text-indigo-500"
+              class="text-sm font-semibold text-wiki-accent transition-colors hover:text-indigo-500"
             >
               {{ t('auth.forgotPassword') }}
             </router-link>
@@ -96,7 +96,7 @@
         <button
           type="submit"
           :disabled="authActionDisabled || (turnstileEnabled && !turnstileToken)"
-          class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-halo-accent px-4 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-200 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-wiki-accent px-4 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-200 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg
             v-if="isLoading"
@@ -136,11 +136,11 @@
 
         <div v-if="showOAuthLogin" class="space-y-3 pt-1">
           <div class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-halo-border"></div>
-            <span class="text-xs text-halo-muted">
+            <div class="h-px flex-1 bg-wiki-border"></div>
+            <span class="text-xs text-wiki-muted">
               {{ t('auth.oauthOrContinue') }}
             </span>
-            <div class="h-px flex-1 bg-halo-border"></div>
+            <div class="h-px flex-1 bg-wiki-border"></div>
           </div>
 
           <EmailOAuthButtons
@@ -176,11 +176,11 @@
     </div>
 
     <template v-if="!backendModeEnabled" #footer>
-      <p class="text-halo-muted">
+      <p class="text-wiki-muted">
         {{ t('auth.dontHaveAccount') }}
         <router-link
           to="/register"
-          class="font-semibold text-halo-accent transition-colors hover:text-indigo-500"
+          class="font-semibold text-wiki-accent transition-colors hover:text-indigo-500"
         >
           {{ t('auth.signUp') }}
         </router-link>

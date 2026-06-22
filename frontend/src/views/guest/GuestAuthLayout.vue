@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-halo-bg font-body text-halo-txt">
+  <div class="min-h-screen bg-wiki-bg font-body text-wiki-txt">
     <div class="flex min-h-screen flex-col lg:flex-row">
       <aside
-        class="hidden w-[260px] flex-col border-r border-halo-border bg-white lg:flex"
+        class="hidden w-[260px] flex-col border-r border-wiki-border bg-white lg:flex"
       >
-        <div class="border-b border-halo-border p-5">
+        <div class="border-b border-wiki-border p-5">
           <RouterLink to="/home" class="flex items-center gap-3">
             <div
-              class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-halo-accent to-halo-accent2"
+              class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-wiki-accent to-wiki-accent2"
             >
               <img
                 v-if="siteLogo"
@@ -18,10 +18,10 @@
               <Icon v-else name="sparkles" size="md" class="text-white" :stroke-width="2" />
             </div>
             <div class="min-w-0">
-              <h1 class="truncate font-heading text-base font-bold text-halo-txt">
+              <h1 class="truncate font-heading text-base font-bold text-wiki-txt">
                 {{ displayName }}
               </h1>
-              <p class="text-[11px] uppercase tracking-wide text-halo-muted">API SERVICE</p>
+              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">API SERVICE</p>
             </div>
           </RouterLink>
         </div>
@@ -39,10 +39,10 @@
           </RouterLink>
         </nav>
 
-        <div class="border-t border-halo-border p-4">
+        <div class="border-t border-wiki-border p-4">
           <RouterLink
             to="/home"
-            class="flex items-center gap-2 text-xs text-halo-muted transition-colors hover:text-halo-txt"
+            class="flex items-center gap-2 text-xs text-wiki-muted transition-colors hover:text-wiki-txt"
           >
             <Icon name="arrowLeft" size="xs" :stroke-width="2" />
             <span>返回门户</span>
@@ -52,11 +52,11 @@
 
       <main class="flex min-h-screen flex-1 flex-col">
         <header
-          class="sticky top-0 z-20 flex items-center justify-between border-b border-halo-border bg-white/80 px-4 py-3 backdrop-blur-lg sm:px-6"
+          class="sticky top-0 z-20 flex items-center justify-between border-b border-wiki-border bg-white/80 px-4 py-3 backdrop-blur-lg sm:px-6"
         >
           <RouterLink to="/home" class="flex min-w-0 items-center gap-3 lg:hidden">
             <div
-              class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-halo-accent to-halo-accent2"
+              class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-wiki-accent to-wiki-accent2"
             >
               <img
                 v-if="siteLogo"
@@ -67,17 +67,17 @@
               <Icon v-else name="sparkles" size="md" class="text-white" :stroke-width="2" />
             </div>
             <div class="min-w-0">
-              <p class="truncate font-heading text-base font-semibold text-halo-txt">
+              <p class="truncate font-heading text-base font-semibold text-wiki-txt">
                 {{ displayName }}
               </p>
-              <p class="text-[11px] uppercase tracking-wide text-halo-muted">API SERVICE</p>
+              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">API SERVICE</p>
             </div>
           </RouterLink>
 
-          <div class="hidden items-center gap-2 rounded-lg bg-halo-surface2 px-3 py-1.5 text-sm lg:flex">
-            <Icon name="dollar" size="sm" class="text-halo-accent" />
+          <div class="hidden items-center gap-2 rounded-lg bg-wiki-surface2 px-3 py-1.5 text-sm lg:flex">
+            <Icon name="dollar" size="sm" class="text-wiki-accent" />
             <span class="font-semibold">0.00</span>
-            <span class="text-halo-muted">credits</span>
+            <span class="text-wiki-muted">credits</span>
           </div>
 
           <div class="flex items-center gap-2">
@@ -86,14 +86,14 @@
               :href="docUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-halo-muted transition-colors hover:bg-halo-surface2 hover:text-halo-txt"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-wiki-muted transition-colors hover:bg-wiki-surface2 hover:text-wiki-txt"
               aria-label="Docs"
             >
               <Icon name="book" size="sm" :stroke-width="2" />
             </a>
             <RouterLink
               to="/home"
-              class="hidden rounded-lg border border-halo-border px-3 py-1.5 text-xs font-semibold text-halo-muted transition-colors hover:bg-halo-surface2 hover:text-halo-txt sm:inline-flex"
+              class="hidden rounded-lg border border-wiki-border px-3 py-1.5 text-xs font-semibold text-wiki-muted transition-colors hover:bg-wiki-surface2 hover:text-wiki-txt sm:inline-flex"
             >
               概览
             </RouterLink>
@@ -132,7 +132,7 @@
                 <div
                   v-for="card in statCards"
                   :key="card.label"
-                  class="rounded-xl border border-halo-border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
+                  class="rounded-xl border border-wiki-border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
                 >
                   <div
                     class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg"
@@ -140,27 +140,27 @@
                   >
                     <Icon :name="card.icon" size="sm" :stroke-width="2" />
                   </div>
-                  <p class="text-xs font-medium text-halo-muted">{{ card.label }}</p>
-                  <p class="mt-1 font-heading text-xl font-semibold text-halo-txt">{{ card.value }}</p>
-                  <p class="mt-1 text-xs text-halo-muted">{{ card.detail }}</p>
+                  <p class="text-xs font-medium text-wiki-muted">{{ card.label }}</p>
+                  <p class="mt-1 font-heading text-xl font-semibold text-wiki-txt">{{ card.value }}</p>
+                  <p class="mt-1 text-xs text-wiki-muted">{{ card.detail }}</p>
                 </div>
               </div>
 
-              <div class="rounded-xl border border-halo-border bg-white p-5">
+              <div class="rounded-xl border border-wiki-border bg-white p-5">
                 <div class="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 class="font-heading text-base font-semibold text-halo-txt">Model TPS</h3>
-                    <p class="text-xs text-halo-muted">近 24 小时平台指标</p>
+                    <h3 class="font-heading text-base font-semibold text-wiki-txt">Model TPS</h3>
+                    <p class="text-xs text-wiki-muted">近 24 小时平台指标</p>
                   </div>
-                  <div class="rounded-lg bg-halo-surface2 p-1 text-xs font-medium text-halo-muted">
-                    <span class="rounded-md bg-white px-3 py-1 text-halo-txt shadow-sm">24h</span>
+                  <div class="rounded-lg bg-wiki-surface2 p-1 text-xs font-medium text-wiki-muted">
+                    <span class="rounded-md bg-white px-3 py-1 text-wiki-txt shadow-sm">24h</span>
                     <span class="px-3 py-1">7d</span>
                   </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-lg border border-halo-border">
+                <div class="overflow-x-auto rounded-lg border border-wiki-border">
                   <table class="w-full min-w-[560px] text-left text-sm">
-                    <thead class="bg-halo-surface2 text-xs uppercase tracking-wide text-halo-muted">
+                    <thead class="bg-wiki-surface2 text-xs uppercase tracking-wide text-wiki-muted">
                       <tr>
                         <th class="px-4 py-3 font-semibold">Model</th>
                         <th class="px-4 py-3 font-semibold">Requests</th>
@@ -169,17 +169,17 @@
                         <th class="px-4 py-3 text-right font-semibold">TPS</th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-halo-border">
+                    <tbody class="divide-y divide-wiki-border">
                       <tr
                         v-for="row in modelRows"
                         :key="row.model"
-                        class="transition-colors hover:bg-halo-bg"
+                        class="transition-colors hover:bg-wiki-bg"
                       >
-                        <td class="px-4 py-3 font-medium text-halo-txt">{{ row.model }}</td>
-                        <td class="px-4 py-3 text-halo-muted">{{ row.requests }}</td>
-                        <td class="px-4 py-3 text-halo-muted">{{ row.output }}</td>
-                        <td class="px-4 py-3 text-halo-muted">{{ row.latency }}</td>
-                        <td class="px-4 py-3 text-right font-semibold text-halo-accent">{{ row.tps }}</td>
+                        <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.model }}</td>
+                        <td class="px-4 py-3 text-wiki-muted">{{ row.requests }}</td>
+                        <td class="px-4 py-3 text-wiki-muted">{{ row.output }}</td>
+                        <td class="px-4 py-3 text-wiki-muted">{{ row.latency }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.tps }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -188,7 +188,7 @@
             </div>
 
             <div class="order-1 min-w-0 lg:order-2">
-              <div class="rounded-2xl border border-halo-border bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-8">
+              <div class="rounded-2xl border border-wiki-border bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-8">
                 <slot />
               </div>
 
@@ -246,14 +246,14 @@ const statCards = [
     value: '0.000000',
     detail: 'credits available',
     icon: 'dollar' as const,
-    iconClass: 'bg-indigo-50 text-halo-accent'
+    iconClass: 'bg-indigo-50 text-wiki-accent'
   },
   {
     label: 'API Key',
     value: '1 active',
     detail: 'auto routing enabled',
     icon: 'key' as const,
-    iconClass: 'bg-violet-50 text-halo-accent2'
+    iconClass: 'bg-violet-50 text-wiki-accent2'
   },
   {
     label: 'Models',

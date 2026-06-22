@@ -6,7 +6,7 @@ aihub 线上网址: 网址
 aihub 当前镜像: weishaw/sub2api:latest
 aihub 查看容器状态: cd /opt/compose/sub2api-deploy && docker compose ps
 aihub 查看应用日志: docker logs -f --tail 200 sub2api
-aihub 健康检查: curl -fsS 网址/status
+aihub 健康检查: curl -fsS 网址/health
 aihub Caddy access log:
  - 2026-06-22 已开启完整 JSON access log
  - Caddy 配置文件: /etc/caddy/Caddyfile
@@ -15,7 +15,7 @@ aihub Caddy access log:
  - 配置备份: /etc/caddy/Caddyfile.bak-accesslog-20260622-044859, /etc/caddy/Caddyfile.bak-logrotate-10g-20260622-045436
  - 查看最新日志: tail -f /var/log/caddy/aihub_access.log
  - 统计访问路径: python3 -c 'import json,collections; c=collections.Counter(); [c.update([(json.loads(l).get("request") or {}).get("uri","").split("?")[0]]) for l in open("/var/log/caddy/aihub_access.log") if l.strip()]; print(c.most_common(50))'
- - 验证结果: caddy validate 通过，systemctl reload caddy 成功，网址/status 返回 200 且 access log 记录 /status
+ - 验证结果: caddy validate 通过，systemctl reload caddy 成功，网址/health 返回 200 且 access log 记录 /health
 aihub 部署方式:
  - 本地先执行 `pnpm --dir frontend build`
  - 在 `backend/` 目录执行 linux/amd64 嵌入前端资源构建：
@@ -25,6 +25,13 @@ aihub 部署方式:
  - 只重建应用容器：`cd /opt/compose/sub2api-deploy && docker compose up -d --no-deps --force-recreate sub2api`
  - 部署期间不要修改 Caddy、Docker Compose、Postgres、Redis，除非用户明确要求
 aihub 部署记录:
+ - 回滚时间: 2026-06-23
+ - 回滚到备份镜像: weishaw/sub2api:backup-20260623-024554
+ - 回滚后版本号: 0.1.137-kim
+ - 回滚后容器二进制 SHA256: 03394869e5200338afe508313eb095222c6ad1fa24d214fb15136c7053de2545
+ - 回滚后镜像 ID: sha256:adf33a3f89e7086b10c956d7b6ff0208e98c570683cbf5710b497ed24649c786
+ - Compose 健康检查已恢复为 /health，回滚前 Compose 备份文件: /opt/compose/sub2api-deploy/docker-compose.yml.bak-before-rollback-20260622-191847
+ - 验证结果: 网址/health 返回 {"status":"ok"}，/login、/register、/email-verify 返回 200，/api/v1/auth/login 返回 JSON 校验错误，sub2api/sub2api-postgres/sub2api-redis 均 healthy
  - 部署时间: 2026-06-23
  - Git HEAD: b43d271e
  - 版本号: 0.1.138.kim
@@ -35,6 +42,7 @@ aihub 部署记录:
  - 运行时 blocklist: /opt/compose/sub2api-deploy/data/public-route-blocklist.yaml，启动日志显示 source=file、enabled=true、effective_rules=20
  - Compose 健康检查已从 /health 改为 /status，备份文件: /opt/compose/sub2api-deploy/docker-compose.yml.bak-status-20260623-024554
  - 验证结果: 网址/status 返回 {"status":"perfectly nice"}，/login 返回 200，/user/login 返回 JSON 校验错误而非 SPA HTML，旧 /api/v1/auth/login、/register、/setup/status 均返回 404，/v1/usage 未带 key 返回 401，/static/app/logo.png 返回 200，sub2api/sub2api-postgres/sub2api-redis 均 healthy
+ - 状态: 已于 2026-06-23 回滚，不再是当前线上版本
  - 部署时间: 2026-06-22
  - Git HEAD: 24a0dfbb
  - 版本号: 0.1.137-kim
@@ -51,7 +59,8 @@ aihub 部署记录:
  - 验证结果: 网址/health 返回 {"status":"ok"}，sub2api/sub2api-postgres/sub2api-redis 均 healthy
 aihub 回滚方式:
  - `cd /opt/compose/sub2api-deploy`
- - `docker tag weishaw/sub2api:backup-20260622-025825 weishaw/sub2api:latest`
+ - `docker tag weishaw/sub2api:backup-20260623-024554 weishaw/sub2api:latest`
+ - 如需从 2026-06-23 伪装发布回滚，先恢复 `docker-compose.yml.bak-status-20260623-024554` 或确认健康检查使用当前版本支持的路径
  - `docker compose up -d --no-deps --force-recreate sub2api`
 aihub 数据结构同步记录:
  - 2026-06-22 已确认本地与 aihub 的 `schema_migrations` 均为 190 条，缺失/额外/checksum mismatch 均为 0

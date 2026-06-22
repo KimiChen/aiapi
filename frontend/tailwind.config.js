@@ -47,7 +47,7 @@ export default {
           900: '#0f172a',
           950: '#020617'
         },
-        halo: {
+        wiki: {
           bg: '#F8FAFC',
           surface: '#FFFFFF',
           surface2: '#F1F5F9',

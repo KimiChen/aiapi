@@ -181,8 +181,6 @@ func defaultPublicRouteBlocklistFile() publicRouteBlocklistFile {
 	return publicRouteBlocklistFile{
 		Enabled: &enabled,
 		Rules: []PublicRouteBlocklistRule{
-			{Match: "exact", Path: "/register"},
-			{Match: "exact", Path: "/email-verify"},
 			{Match: "prefix", Path: "/auth/"},
 			{Match: "exact", Path: "/forgot-password"},
 			{Match: "exact", Path: "/reset-password"},
