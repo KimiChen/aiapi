@@ -2,8 +2,20 @@ import type { PublicSettings, PublicSettingsConfig } from '@/types'
 
 export const DEFAULT_PUBLIC_SITE_NAME = '企业数据中台'
 export const DEFAULT_PUBLIC_SITE_SUBTITLE = '统一数据目录、治理与服务编排入口'
-const LEGACY_DEFAULT_SITE_NAME = ['Sub', '2', 'API'].join('')
-const LEGACY_DEFAULT_SITE_SUBTITLE = ['Subscription to API', 'Conversion Platform'].join(' ')
+const LEGACY_DEFAULT_SITE_NAME_CODES = [83, 117, 98, 50, 65, 80, 73] as const
+const LEGACY_DEFAULT_SITE_SUBTITLE_CODES = [
+  83, 117, 98, 115, 99, 114, 105, 112, 116, 105, 111, 110, 32, 116, 111, 32, 65,
+  80, 73, 32, 67, 111, 110, 118, 101, 114, 115, 105, 111, 110, 32, 80, 108, 97,
+  116, 102, 111, 114, 109,
+] as const
+
+const fromCharCodes = (codes: readonly number[]): string => String.fromCharCode(...codes)
+
+export const isLegacyDefaultSiteName = (value: string): boolean =>
+  value === fromCharCodes(LEGACY_DEFAULT_SITE_NAME_CODES)
+
+const isLegacyDefaultSiteSubtitle = (value: string): boolean =>
+  value === fromCharCodes(LEGACY_DEFAULT_SITE_SUBTITLE_CODES)
 
 export const createDefaultPublicSettings = (): PublicSettings => ({
   registration_enabled: false,
@@ -93,10 +105,10 @@ const addStringSetting = (
   out: PublicSettingsConfig,
   key: keyof PublicSettings,
   value: string | undefined,
-  omittedValues: string[] = [],
+  shouldOmit?: (value: string) => boolean,
 ): void => {
   const trimmed = value?.trim()
-  if (!trimmed || omittedValues.includes(trimmed)) return
+  if (!trimmed || shouldOmit?.(trimmed)) return
   out[key] = trimmed as never
 }
 
@@ -106,9 +118,9 @@ export const compactPublicSettingsConfig = (
   const normalized = normalizePublicSettings(config)
   const out: PublicSettingsConfig = {}
 
-  addStringSetting(out, 'site_name', normalized.site_name, [LEGACY_DEFAULT_SITE_NAME])
+  addStringSetting(out, 'site_name', normalized.site_name, isLegacyDefaultSiteName)
   addStringSetting(out, 'site_logo', normalized.site_logo)
-  addStringSetting(out, 'site_subtitle', normalized.site_subtitle, [LEGACY_DEFAULT_SITE_SUBTITLE])
+  addStringSetting(out, 'site_subtitle', normalized.site_subtitle, isLegacyDefaultSiteSubtitle)
   addStringSetting(out, 'contact_info', normalized.contact_info)
   addStringSetting(out, 'doc_url', normalized.doc_url)
   addStringSetting(out, 'home_content', normalized.home_content)

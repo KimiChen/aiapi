@@ -1,13 +1,11 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
-import { useAppStore } from '@/stores/app'
 import { useNavigationLoadingState } from '@/composables/useNavigationLoading'
 import { enterFullApp, navigateToAuthenticatedApp } from '@/public/fullAppBridge'
-import { hasAuthSession } from '@/api/publicAuth'
-import { resolveDocumentTitle } from './title'
+
+const GUEST_SITE_NAME = '企业数据中台'
 
 export const GUEST_PUBLIC_PATHS = [
   '/',
-  '/home',
   '/login',
   '/register',
   '/catalog',
@@ -15,20 +13,10 @@ export const GUEST_PUBLIC_PATHS = [
   '/exchange',
   '/orchestration',
   '/docs',
-  '/forgot-password',
-  '/reset-password',
 ]
 
 export const FULL_APP_PUBLIC_PATH_PREFIXES = [
-  '/setup',
-  '/key-usage',
-  '/legal',
-  '/payment/result',
-  '/payment/stripe',
-  '/payment/airwallex',
-  '/payment/stripe-popup',
   '/email-verify',
-  '/auth',
 ]
 
 export function isGuestPublicPath(path: string): boolean {
@@ -44,11 +32,32 @@ function redirectTarget(to: RouteLocationNormalized): string {
   return typeof redirect === 'string' && redirect.trim() ? redirect : `/${'dashboard'}`
 }
 
+function getGuestDocumentTitle(routeTitle: unknown): string {
+  return typeof routeTitle === 'string' && routeTitle.trim()
+    ? `${routeTitle.trim()} - ${GUEST_SITE_NAME}`
+    : GUEST_SITE_NAME
+}
+
+function backendModeEnabled(): boolean {
+  return window.__STATIC_APP__?.backend_mode_enabled === true
+}
+
+function hasGuestAuthSession(): boolean {
+  try {
+    const token = localStorage.getItem('auth_token')
+    const rawUser = localStorage.getItem('auth_user')
+    if (!token || !rawUser) return false
+    const user = JSON.parse(rawUser)
+    return Boolean(user && typeof user === 'object')
+  } catch {
+    return false
+  }
+}
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'GuestHome',
-    alias: '/home',
     component: () => import('@/views/guest/HomeView.vue'),
     meta: {
       requiresAuth: false,
@@ -115,28 +124,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/guest/RegisterView.vue'),
     meta: {
       requiresAuth: false,
-      title: '账号申请',
-      titleKey: 'auth.createAccount'
-    }
-  },
-  {
-    path: '/forgot-password',
-    name: 'ForgotPassword',
-    component: () => import('@/views/auth/ForgotPasswordView.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Forgot Password',
-      titleKey: 'auth.forgotPasswordTitle'
-    }
-  },
-  {
-    path: '/reset-password',
-    name: 'ResetPassword',
-    component: () => import('@/views/auth/ResetPasswordView.vue'),
-    meta: {
-      requiresAuth: false,
-      title: 'Reset Password',
-      titleKey: 'auth.resetPasswordTitle'
+      title: '账号申请'
     }
   },
   {
@@ -165,9 +153,8 @@ const navigationLoading = useNavigationLoadingState()
 router.beforeEach(async (to, _from, next) => {
   navigationLoading.startNavigation()
 
-  const appStore = useAppStore()
-  document.title = resolveDocumentTitle(to.meta.title, appStore.siteName, to.meta.titleKey as string)
-  const isAuthenticated = hasAuthSession()
+  document.title = getGuestDocumentTitle(to.meta.title)
+  const isAuthenticated = hasGuestAuthSession()
 
   if (!isGuestPublicPath(to.path)) {
     await enterFullApp(to.fullPath)
@@ -176,7 +163,7 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    if (appStore.backendModeEnabled) {
+    if (backendModeEnabled()) {
       next()
       return
     }
@@ -186,7 +173,7 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  if (appStore.backendModeEnabled && !isAuthenticated && to.path !== '/login') {
+  if (backendModeEnabled() && !isAuthenticated && to.path !== '/login') {
     next('/login')
     return
   }

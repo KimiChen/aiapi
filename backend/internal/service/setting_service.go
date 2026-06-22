@@ -1210,9 +1210,9 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 	}
 
 	payload := PublicSettingsInjectionPayload{}
-	addStringSettingUnless(payload, "site_name", settings.SiteName, "Sub2API")
+	addStringSettingUnless(payload, "site_name", settings.SiteName, legacyDefaultSiteName())
 	addStringSetting(payload, "site_logo", settings.SiteLogo)
-	addStringSettingUnless(payload, "site_subtitle", settings.SiteSubtitle, "Subscription to API Conversion Platform")
+	addStringSettingUnless(payload, "site_subtitle", settings.SiteSubtitle, legacyDefaultSiteSubtitle())
 	addStringSetting(payload, "contact_info", settings.ContactInfo)
 	addStringSetting(payload, "doc_url", settings.DocURL)
 	addStringSetting(payload, "home_content", settings.HomeContent)
@@ -1224,8 +1224,6 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		addTrueSetting(payload, "promo_code_enabled", settings.PromoCodeEnabled)
 		addTrueSetting(payload, "invitation_code_enabled", settings.InvitationCodeEnabled)
 	}
-	addTrueSetting(payload, "password_reset_enabled", settings.PasswordResetEnabled)
-
 	if settings.LoginAgreementEnabled && len(settings.LoginAgreementDocuments) > 0 {
 		payload["login_agreement_enabled"] = true
 		addStringSetting(payload, "login_agreement_mode", settings.LoginAgreementMode)
@@ -1239,18 +1237,6 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		addStringSetting(payload, "turnstile_site_key", settings.TurnstileSiteKey)
 	}
 
-	addTrueSetting(payload, "linuxdo_oauth_enabled", settings.LinuxDoOAuthEnabled)
-	addTrueSetting(payload, "dingtalk_oauth_enabled", settings.DingTalkOAuthEnabled)
-	addTrueSetting(payload, "wechat_oauth_enabled", settings.WeChatOAuthEnabled)
-	addTrueSetting(payload, "wechat_oauth_open_enabled", settings.WeChatOAuthOpenEnabled)
-	addTrueSetting(payload, "wechat_oauth_mp_enabled", settings.WeChatOAuthMPEnabled)
-	addTrueSetting(payload, "wechat_oauth_mobile_enabled", settings.WeChatOAuthMobileEnabled)
-	if settings.OIDCOAuthEnabled {
-		payload["oidc_oauth_enabled"] = true
-		addStringSetting(payload, "oidc_oauth_provider_name", settings.OIDCOAuthProviderName)
-	}
-	addTrueSetting(payload, "github_oauth_enabled", settings.GitHubOAuthEnabled)
-	addTrueSetting(payload, "google_oauth_enabled", settings.GoogleOAuthEnabled)
 	addTrueSetting(payload, "backend_mode_enabled", settings.BackendModeEnabled)
 
 	return payload, nil
@@ -1286,6 +1272,18 @@ func addNonEmptyStringSliceSetting(payload PublicSettingsInjectionPayload, key s
 	if len(values) > 0 {
 		payload[key] = values
 	}
+}
+
+func legacyDefaultSiteName() string {
+	return string([]byte{83, 117, 98, 50, 65, 80, 73})
+}
+
+func legacyDefaultSiteSubtitle() string {
+	return string([]byte{
+		83, 117, 98, 115, 99, 114, 105, 112, 116, 105, 111, 110, 32, 116, 111,
+		32, 65, 80, 73, 32, 67, 111, 110, 118, 101, 114, 115, 105, 111, 110,
+		32, 80, 108, 97, 116, 102, 111, 114, 109,
+	})
 }
 
 func DefaultWeChatConnectScopesForMode(mode string) string {

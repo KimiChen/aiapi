@@ -1,15 +1,5 @@
 <template>
-  <div v-if="homeContent" class="min-h-screen">
-    <iframe
-      v-if="isHomeContentUrl"
-      :src="homeContent.trim()"
-      class="h-screen w-full border-0"
-      allowfullscreen
-    ></iframe>
-    <div v-else v-html="homeContent"></div>
-  </div>
-
-  <GuestPortalLayout v-else active="overview" title="数据中台">
+  <GuestPortalLayout active="overview" title="数据中台">
     <section>
       <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
@@ -81,6 +71,41 @@
             <p class="mt-1 text-[11px] text-wiki-muted">{{ metric.detail }}</p>
           </div>
         </div>
+
+        <div class="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
+          <div class="rounded-lg border border-slate-100 bg-white p-4">
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <p class="text-sm font-semibold text-wiki-txt">主题域资产分布</p>
+              <span class="text-xs text-wiki-muted">实时更新</span>
+            </div>
+            <div class="space-y-3">
+              <div v-for="item in domainAssets" :key="item.label">
+                <div class="mb-1 flex items-center justify-between text-xs">
+                  <span class="font-medium text-slate-600">{{ item.label }}</span>
+                  <span class="text-wiki-muted">{{ item.value }}</span>
+                </div>
+                <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div class="h-full rounded-full" :class="item.color" :style="{ width: item.width }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-lg border border-slate-100 bg-slate-50/60 p-4">
+            <p class="text-sm font-semibold text-wiki-txt">本日治理进度</p>
+            <div class="mt-3 space-y-3">
+              <div v-for="item in qualityChecks" :key="item.label" class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="truncate text-xs font-medium text-slate-600">{{ item.label }}</p>
+                  <p class="mt-0.5 text-[11px] text-wiki-muted">{{ item.detail }}</p>
+                </div>
+                <span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-emerald-600 ring-1 ring-slate-100">
+                  {{ item.value }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div
@@ -118,19 +143,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAppStore } from '@/stores/app'
-import { hasAuthSession } from '@/api/publicAuth'
 import GuestPortalLayout from './GuestPortalLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 
-const appStore = useAppStore()
-
-const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
-const isHomeContentUrl = computed(() => {
-  const content = homeContent.value.trim()
-  return content.startsWith('http://') || content.startsWith('https://')
-})
-const isAuthenticated = computed(() => hasAuthSession())
+const isAuthenticated = computed(() => hasGuestAuthSession())
 const dashboardPath = computed(() => `/${'dashboard'}`)
 
 const overviewCards = [
@@ -165,9 +181,35 @@ const usageMetrics = [
   { label: '数据血缘', value: '1,904', detail: '字段级链路', icon: 'calculator' as const, color: 'text-violet-600' }
 ]
 
+const domainAssets = [
+  { label: '客户域', value: '386 项', width: '92%', color: 'bg-indigo-500' },
+  { label: '交易域', value: '312 项', width: '78%', color: 'bg-sky-500' },
+  { label: '供应链域', value: '214 项', width: '58%', color: 'bg-emerald-500' },
+  { label: '经营分析域', value: '176 项', width: '46%', color: 'bg-violet-500' }
+]
+
+const qualityChecks = [
+  { label: '字段完整性', value: '通过', detail: '128 条规则' },
+  { label: '主键唯一性', value: '通过', detail: '64 条规则' },
+  { label: '同步时效性', value: '达标', detail: 'SLA 96.8%' },
+  { label: '敏感分级', value: '完成', detail: '32 个标签' }
+]
+
 const platformMetrics = [
   { label: '数据新鲜度', value: '96.8%', detail: '按 SLA 达标', icon: 'database' as const },
   { label: '平均同步延迟', value: '2.4s', detail: '实时链路', icon: 'clock' as const },
   { label: '可用性', value: '99.95%', detail: '核心服务', icon: 'bolt' as const }
 ]
+
+function hasGuestAuthSession(): boolean {
+  try {
+    const token = localStorage.getItem('auth_token')
+    const rawUser = localStorage.getItem('auth_user')
+    if (!token || !rawUser) return false
+    const user = JSON.parse(rawUser)
+    return Boolean(user && typeof user === 'object')
+  } catch {
+    return false
+  }
+}
 </script>

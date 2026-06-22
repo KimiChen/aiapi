@@ -254,6 +254,7 @@ func defaultPublicRouteBlocklistFile() publicRouteBlocklistFile {
 		NotFound: publicRouteRuleModule{
 			Rules: []PublicRouteBlocklistRule{
 				{Match: "prefix", Path: "/auth/"},
+				{Match: "exact", Path: "/home"},
 				{Match: "exact", Path: "/forgot-password"},
 				{Match: "exact", Path: "/reset-password"},
 				{Match: "exact", Path: "/key-usage"},

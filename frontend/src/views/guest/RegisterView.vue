@@ -19,23 +19,19 @@
       </div>
 
       <div
-        v-if="!registrationEnabled && settingsLoaded"
+        v-if="!settings.registration_enabled"
         class="rounded-xl border border-amber-200 bg-amber-50 p-4"
       >
         <div class="flex items-start gap-3">
-          <div class="flex-shrink-0">
-            <Icon name="exclamationCircle" size="md" class="text-amber-500" />
-          </div>
-          <p class="text-sm text-amber-700">
-            {{ t('auth.registrationDisabled') }}
-          </p>
+          <Icon name="exclamationCircle" size="md" class="flex-shrink-0 text-amber-500" />
+          <p class="text-sm text-amber-700">当前暂未开放注册，请联系管理员开通账号。</p>
         </div>
       </div>
 
       <form v-else @submit.prevent="handleRegister" class="space-y-5">
         <div>
           <label for="email" class="mb-1.5 block text-sm font-semibold text-slate-700">
-            {{ t('auth.emailLabel') }}
+            邮箱
           </label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
@@ -51,14 +47,14 @@
               :disabled="registrationActionDisabled"
               class="guest-input pl-11"
               :class="{ 'guest-input-error': errors.email }"
-              :placeholder="t('auth.emailPlaceholder')"
+              placeholder="name@example.com"
             />
           </div>
         </div>
 
         <div>
           <label for="password" class="mb-1.5 block text-sm font-semibold text-slate-700">
-            {{ t('auth.passwordLabel') }}
+            密码
           </label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
@@ -73,7 +69,7 @@
               :disabled="registrationActionDisabled"
               class="guest-input pl-11 pr-11"
               :class="{ 'guest-input-error': errors.password }"
-              :placeholder="t('auth.createPasswordPlaceholder')"
+              placeholder="创建登录密码"
             />
             <button
               type="button"
@@ -85,14 +81,12 @@
               <Icon v-else name="eye" size="md" />
             </button>
           </div>
-          <p class="mt-2 text-xs text-wiki-muted">
-            {{ t('auth.passwordHint') }}
-          </p>
+          <p class="mt-2 text-xs text-wiki-muted">至少 6 位字符</p>
         </div>
 
-        <div v-if="invitationCodeEnabled">
+        <div v-if="settings.invitation_code_enabled">
           <label for="invitation_code" class="mb-1.5 block text-sm font-semibold text-slate-700">
-            {{ t('auth.invitationCodeLabel') }}
+            邀请码
           </label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
@@ -106,16 +100,13 @@
               class="guest-input pl-11 pr-10"
               :class="{
                 'guest-input-valid': invitationValidation.valid,
-                'guest-input-error': invitationValidation.invalid || errors.invitation_code
+                'guest-input-error': invitationValidation.invalid || errors.invitation_code,
               }"
-              :placeholder="t('auth.invitationCodePlaceholder')"
+              placeholder="请输入邀请码"
               @input="handleInvitationCodeInput"
             />
             <div v-if="invitationValidating" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
-              <svg class="h-4 w-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500"></span>
             </div>
             <div v-else-if="invitationValidation.valid" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
               <Icon name="checkCircle" size="md" class="text-green-500" />
@@ -127,17 +118,15 @@
           <transition name="fade">
             <div v-if="invitationValidation.valid" class="mt-2 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
               <Icon name="checkCircle" size="sm" class="text-green-600" />
-              <span class="text-sm text-green-700">
-                {{ t('auth.invitationCodeValid') }}
-              </span>
+              <span class="text-sm text-green-700">邀请码有效</span>
             </div>
           </transition>
         </div>
 
-        <div v-if="promoCodeEnabled">
+        <div v-if="settings.promo_code_enabled">
           <label for="promo_code" class="mb-1.5 block text-sm font-semibold text-slate-700">
-            {{ t('auth.promoCodeLabel') }}
-            <span class="ml-1 text-xs font-normal text-slate-400">({{ t('common.optional') }})</span>
+            优惠码
+            <span class="ml-1 text-xs font-normal text-slate-400">可选</span>
           </label>
           <div class="relative">
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
@@ -151,16 +140,13 @@
               class="guest-input pl-11 pr-10"
               :class="{
                 'guest-input-valid': promoValidation.valid,
-                'guest-input-error': promoValidation.invalid
+                'guest-input-error': promoValidation.invalid,
               }"
-              :placeholder="t('auth.promoCodePlaceholder')"
+              placeholder="请输入优惠码"
               @input="handlePromoCodeInput"
             />
             <div v-if="promoValidating" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
-              <svg class="h-4 w-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500"></span>
             </div>
             <div v-else-if="promoValidation.valid" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
               <Icon name="checkCircle" size="md" class="text-green-500" />
@@ -173,16 +159,16 @@
             <div v-if="promoValidation.valid" class="mt-2 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
               <Icon name="gift" size="sm" class="text-green-600" />
               <span class="text-sm text-green-700">
-                {{ t('auth.promoCodeValid', { amount: promoValidation.bonusAmount?.toFixed(2) }) }}
+                优惠码有效，奖励 {{ promoValidation.bonusAmount?.toFixed(2) }}
               </span>
             </div>
           </transition>
         </div>
 
-        <div v-if="turnstileEnabled && turnstileSiteKey">
+        <div v-if="settings.turnstile_enabled && settings.turnstile_site_key">
           <TurnstileWidget
             ref="turnstileRef"
-            :site-key="turnstileSiteKey"
+            :site-key="settings.turnstile_site_key"
             @verify="onTurnstileVerify"
             @expire="onTurnstileExpire"
             @error="onTurnstileError"
@@ -192,9 +178,9 @@
         <LoginAgreementPrompt
           v-if="loginAgreementEnabled"
           :accepted="agreementAccepted"
-          :documents="loginAgreementDocuments"
-          :mode="loginAgreementMode"
-          :updated-at="loginAgreementUpdatedAt"
+          :documents="settings.login_agreement_documents"
+          :mode="settings.login_agreement_mode"
+          :updated-at="settings.login_agreement_updated_at"
           :visible="showAgreementModal"
           @accept="acceptLoginAgreement"
           @reject="rejectLoginAgreement"
@@ -203,7 +189,7 @@
 
         <button
           type="submit"
-          :disabled="registrationActionDisabled || (turnstileEnabled && !turnstileToken)"
+          :disabled="registrationActionDisabled || (settings.turnstile_enabled && !turnstileToken)"
           class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-wiki-accent px-4 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-200 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg
@@ -212,80 +198,27 @@
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path
               class="opacity-75"
               fill="currentColor"
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
+            />
           </svg>
           <Icon v-else name="userPlus" size="sm" :stroke-width="2" />
-          <span>
-            {{
-              isLoading
-                ? t('auth.processing')
-                : emailVerifyEnabled
-                  ? t('auth.continue')
-                  : t('auth.createAccount')
-            }}
-          </span>
+          <span>{{ isLoading ? '处理中...' : settings.email_verify_enabled ? '继续' : '创建账号' }}</span>
         </button>
       </form>
-
-      <div v-if="showOAuthLogin" class="space-y-3 pt-1">
-        <div class="flex items-center gap-3">
-          <div class="h-px flex-1 bg-wiki-border"></div>
-          <span class="text-xs text-wiki-muted">
-            {{ t('auth.oauthOrContinue') }}
-          </span>
-          <div class="h-px flex-1 bg-wiki-border"></div>
-        </div>
-
-        <EmailOAuthButtons
-          :disabled="registrationActionDisabled"
-          :aff-code="formData.aff_code"
-          :github-enabled="githubOAuthEnabled"
-          :google-enabled="googleOAuthEnabled"
-          :show-divider="false"
-        />
-
-        <LinuxDoOAuthSection
-          v-if="linuxdoOAuthEnabled"
-          :disabled="registrationActionDisabled"
-          :aff-code="formData.aff_code"
-          :show-divider="false"
-        />
-        <WechatOAuthSection
-          v-if="wechatOAuthEnabled"
-          :disabled="registrationActionDisabled"
-          :aff-code="formData.aff_code"
-          :show-divider="false"
-        />
-        <OidcOAuthSection
-          v-if="oidcOAuthEnabled"
-          :disabled="registrationActionDisabled"
-          :provider-name="oidcOAuthProviderName"
-          :aff-code="formData.aff_code"
-          :show-divider="false"
-        />
-      </div>
     </div>
 
     <template #footer>
       <p class="text-wiki-muted">
-        {{ t('auth.alreadyHaveAccount') }}
+        已有账号？
         <router-link
           to="/login"
           class="font-semibold text-wiki-accent transition-colors hover:text-indigo-500"
         >
-          {{ t('auth.signIn') }}
+          登录
         </router-link>
       </p>
     </template>
@@ -293,99 +226,116 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { computed, onUnmounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import GuestAuthLayout from './GuestAuthLayout.vue'
-import LinuxDoOAuthSection from '@/components/auth/LinuxDoOAuthSection.vue'
-import OidcOAuthSection from '@/components/auth/OidcOAuthSection.vue'
-import WechatOAuthSection from '@/components/auth/WechatOAuthSection.vue'
-import EmailOAuthButtons from '@/components/auth/EmailOAuthButtons.vue'
 import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
-import { useAppStore } from '@/stores/app'
 import {
-  isWeChatWebOAuthEnabled,
-  register,
-  validatePromoCode,
-  validateInvitationCode
-} from '@/api/publicAuth'
-import { buildAuthErrorMessage } from '@/utils/authError'
+  clearGuestAffiliateCode,
+  getGuestErrorMessage,
+  registerGuest,
+  resolveGuestAffiliateCode,
+  validateGuestInvitationCode,
+  validateGuestPromoCode,
+} from '@/api/guestAuth'
+import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
 import {
   formatRegistrationEmailSuffixWhitelistForMessage,
   isRegistrationEmailSuffixAllowed,
-  normalizeRegistrationEmailSuffixWhitelist
+  normalizeRegistrationEmailSuffixWhitelist,
 } from '@/utils/registrationEmailPolicy'
-import {
-  clearAffiliateReferralCode,
-  loadAffiliateReferralCode,
-  resolveAffiliateReferralCode
-} from '@/utils/oauthAffiliate'
-import type { LoginAgreementDocument } from '@/types'
-import { createDefaultPublicSettings } from '@/utils/publicSettings'
-import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
+import { useGuestToast } from '@/composables/useGuestToast'
 
-const { t, locale } = useI18n()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'portal_login_agreement_consent'
+const GUEST_SITE_NAME = '企业数据中台'
 
-// ==================== Router & Stores ====================
+interface GuestLoginAgreementDocument {
+  id: string
+  title: string
+  content_md: string
+}
+
+interface GuestRegisterSettings {
+  registration_enabled: boolean
+  email_verify_enabled: boolean
+  registration_email_suffix_whitelist: string[]
+  promo_code_enabled: boolean
+  invitation_code_enabled: boolean
+  turnstile_enabled: boolean
+  turnstile_site_key: string
+  login_agreement_enabled: boolean
+  login_agreement_mode: 'modal' | 'checkbox'
+  login_agreement_updated_at: string
+  login_agreement_revision: string
+  login_agreement_documents: GuestLoginAgreementDocument[]
+}
+
+function readStaticApp(): Record<string, unknown> {
+  const payload = window.__STATIC_APP__
+  return payload && typeof payload === 'object' ? payload as Record<string, unknown> : {}
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : ''
+}
+
+function stringArrayValue(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+}
+
+function documentArrayValue(value: unknown): GuestLoginAgreementDocument[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object')
+    .map((item) => ({
+      id: stringValue(item.id) || stringValue(item.title),
+      title: stringValue(item.title),
+      content_md: stringValue(item.content_md),
+    }))
+    .filter((item) => item.title)
+}
+
+function getGuestRegisterSettings(): GuestRegisterSettings {
+  const payload = readStaticApp()
+  const documents = documentArrayValue(payload.login_agreement_documents)
+  return {
+    registration_enabled: payload.registration_enabled === true,
+    email_verify_enabled: payload.email_verify_enabled === true,
+    registration_email_suffix_whitelist: stringArrayValue(payload.registration_email_suffix_whitelist),
+    promo_code_enabled: payload.promo_code_enabled === true,
+    invitation_code_enabled: payload.invitation_code_enabled === true,
+    turnstile_enabled: payload.turnstile_enabled === true,
+    turnstile_site_key: stringValue(payload.turnstile_site_key),
+    login_agreement_enabled: payload.login_agreement_enabled === true && documents.length > 0,
+    login_agreement_mode: payload.login_agreement_mode === 'checkbox' ? 'checkbox' : 'modal',
+    login_agreement_updated_at: stringValue(payload.login_agreement_updated_at),
+    login_agreement_revision: stringValue(payload.login_agreement_revision),
+    login_agreement_documents: documents,
+  }
+}
 
 const router = useRouter()
 const route = useRoute()
-const appStore = useAppStore()
+const toast = useGuestToast()
+const settings = getGuestRegisterSettings()
 
-// ==================== State ====================
-
-const isLoading = ref<boolean>(false)
-const settingsLoaded = ref<boolean>(false)
-const errorMessage = ref<string>('')
-const showPassword = ref<boolean>(false)
-
-// Public settings
-const registrationEnabled = ref<boolean>(false)
-const emailVerifyEnabled = ref<boolean>(false)
-const promoCodeEnabled = ref<boolean>(true)
-const invitationCodeEnabled = ref<boolean>(false)
-const turnstileEnabled = ref<boolean>(false)
-const turnstileSiteKey = ref<string>('')
-const siteName = ref<string>('数据中台')
-const linuxdoOAuthEnabled = ref<boolean>(false)
-const wechatOAuthEnabled = ref<boolean>(false)
-const oidcOAuthEnabled = ref<boolean>(false)
-const oidcOAuthProviderName = ref<string>('OIDC')
-const githubOAuthEnabled = ref<boolean>(false)
-const googleOAuthEnabled = ref<boolean>(false)
-const registrationEmailSuffixWhitelist = ref<string[]>([])
-const loginAgreementEnabled = ref<boolean>(false)
-const loginAgreementMode = ref<'modal' | 'checkbox' | string>('modal')
-const loginAgreementUpdatedAt = ref<string>('')
-const loginAgreementRevision = ref<string>('')
-const loginAgreementDocuments = ref<LoginAgreementDocument[]>([])
-const agreementAccepted = ref<boolean>(false)
-const showAgreementModal = ref<boolean>(false)
-
-// Turnstile
+const isLoading = ref(false)
+const errorMessage = ref('')
+const showPassword = ref(false)
 const turnstileRef = ref<InstanceType<typeof TurnstileWidget> | null>(null)
-const turnstileToken = ref<string>('')
+const turnstileToken = ref('')
+const agreementAccepted = ref(false)
+const showAgreementModal = ref(false)
+const promoValidating = ref(false)
+const invitationValidating = ref(false)
+const registrationEmailSuffixWhitelist = normalizeRegistrationEmailSuffixWhitelist(
+  settings.registration_email_suffix_whitelist,
+)
 
-// Promo code validation
-const promoValidating = ref<boolean>(false)
-const promoValidation = reactive({
-  valid: false,
-  invalid: false,
-  bonusAmount: null as number | null,
-  message: ''
-})
 let promoValidateTimeout: ReturnType<typeof setTimeout> | null = null
-
-// Invitation code validation
-const invitationValidating = ref<boolean>(false)
-const invitationValidation = reactive({
-  valid: false,
-  invalid: false,
-  message: ''
-})
 let invitationValidateTimeout: ReturnType<typeof setTimeout> | null = null
 
 const formData = reactive({
@@ -393,151 +343,85 @@ const formData = reactive({
   password: '',
   promo_code: '',
   invitation_code: '',
-  aff_code: ''
+  aff_code: '',
 })
 
 const errors = reactive({
   email: '',
   password: '',
   turnstile: '',
-  invitation_code: ''
+  invitation_code: '',
 })
 
-const validationToastMessage = computed(() =>
-  errors.email ||
-  errors.password ||
-  (invitationValidation.invalid ? invitationValidation.message : '') ||
-  errors.invitation_code ||
-  (promoValidation.invalid ? promoValidation.message : '') ||
-  errors.turnstile ||
-  ''
-)
+const promoValidation = reactive({
+  valid: false,
+  invalid: false,
+  bonusAmount: null as number | null,
+  message: '',
+})
 
-const showOAuthLogin = computed(
+const invitationValidation = reactive({
+  valid: false,
+  invalid: false,
+  message: '',
+})
+
+const loginAgreementEnabled = computed(
+  () => settings.login_agreement_enabled && settings.login_agreement_documents.length > 0,
+)
+const agreementRevision = computed(
   () =>
-    linuxdoOAuthEnabled.value ||
-    wechatOAuthEnabled.value ||
-    oidcOAuthEnabled.value ||
-    githubOAuthEnabled.value ||
-    googleOAuthEnabled.value
+    settings.login_agreement_revision ||
+    `${settings.login_agreement_updated_at}:${settings.login_agreement_documents
+      .map((doc) => `${doc.id}:${doc.title}`)
+      .join('|')}`,
 )
-
-const agreementGateActive = computed(
-  () => loginAgreementEnabled.value && !agreementAccepted.value
-)
-
-const registrationActionDisabled = computed(
-  () => isLoading.value || !settingsLoaded.value || agreementGateActive.value
+const agreementGateActive = computed(() => loginAgreementEnabled.value && !agreementAccepted.value)
+const registrationActionDisabled = computed(() => isLoading.value || agreementGateActive.value)
+const validationToastMessage = computed(
+  () =>
+    errors.email ||
+    errors.password ||
+    (invitationValidation.invalid ? invitationValidation.message : '') ||
+    errors.invitation_code ||
+    (promoValidation.invalid ? promoValidation.message : '') ||
+    errors.turnstile ||
+    '',
 )
 
 watch(validationToastMessage, (value, previousValue) => {
   if (value && value !== previousValue) {
-    appStore.showError(value)
+    toast.showError(value)
   }
 })
 
-function syncAffiliateReferralCode(): string {
-  const code = resolveAffiliateReferralCode(route.query.aff, route.query.aff_code)
-  if (code) {
-    formData.aff_code = code
-  }
-  return code
+agreementAccepted.value = !loginAgreementEnabled.value || hasAcceptedLoginAgreement(agreementRevision.value)
+showAgreementModal.value =
+  loginAgreementEnabled.value && !agreementAccepted.value && settings.login_agreement_mode !== 'checkbox'
+formData.aff_code = resolveGuestAffiliateCode(route.query.aff, route.query.aff_code)
+
+if (settings.promo_code_enabled && typeof route.query.promo === 'string' && route.query.promo.trim()) {
+  formData.promo_code = route.query.promo.trim()
+  void validatePromoCodeDebounced(formData.promo_code)
 }
-
-// ==================== Lifecycle ====================
-
-onMounted(async () => {
-  syncAffiliateReferralCode()
-
-  try {
-    const settings = await appStore.fetchPublicSettings() ?? createDefaultPublicSettings()
-    registrationEnabled.value = settings.registration_enabled === true
-    emailVerifyEnabled.value = settings.email_verify_enabled === true
-    promoCodeEnabled.value = settings.promo_code_enabled === true
-    invitationCodeEnabled.value = settings.invitation_code_enabled === true
-    turnstileEnabled.value = settings.turnstile_enabled === true
-    turnstileSiteKey.value = settings.turnstile_site_key || ''
-    siteName.value = settings.site_name || '数据中台'
-    linuxdoOAuthEnabled.value = settings.linuxdo_oauth_enabled === true
-    wechatOAuthEnabled.value = isWeChatWebOAuthEnabled(settings)
-    oidcOAuthEnabled.value = settings.oidc_oauth_enabled === true
-    oidcOAuthProviderName.value = settings.oidc_oauth_provider_name || 'OIDC'
-    githubOAuthEnabled.value = settings.github_oauth_enabled === true
-    googleOAuthEnabled.value = settings.google_oauth_enabled === true
-    registrationEmailSuffixWhitelist.value = normalizeRegistrationEmailSuffixWhitelist(
-      settings.registration_email_suffix_whitelist || []
-    )
-    applyLoginAgreementSettings(settings)
-
-    // Read promo code from URL parameter only if promo code is enabled
-    if (promoCodeEnabled.value) {
-      const promoParam = route.query.promo as string
-      if (promoParam) {
-        formData.promo_code = promoParam
-        // Validate the promo code from URL
-        await validatePromoCodeDebounced(promoParam)
-      }
-    }
-    syncAffiliateReferralCode()
-  } catch (error) {
-    console.error('Failed to load public settings:', error)
-    loginAgreementEnabled.value = false
-    agreementAccepted.value = true
-  } finally {
-    settingsLoaded.value = true
-  }
-})
 
 watch(
   () => [route.query.aff, route.query.aff_code],
   () => {
-    syncAffiliateReferralCode()
-  }
+    formData.aff_code = resolveGuestAffiliateCode(route.query.aff, route.query.aff_code)
+  },
 )
 
 onUnmounted(() => {
-  if (promoValidateTimeout) {
-    clearTimeout(promoValidateTimeout)
-  }
-  if (invitationValidateTimeout) {
-    clearTimeout(invitationValidateTimeout)
-  }
+  if (promoValidateTimeout) clearTimeout(promoValidateTimeout)
+  if (invitationValidateTimeout) clearTimeout(invitationValidateTimeout)
 })
 
-// ==================== Login Agreement ====================
-
-function applyLoginAgreementSettings(settings: {
-  login_agreement_enabled?: boolean
-  login_agreement_mode?: string
-  login_agreement_updated_at?: string
-  login_agreement_revision?: string
-  login_agreement_documents?: LoginAgreementDocument[]
-}): void {
-  const documents = Array.isArray(settings.login_agreement_documents)
-    ? settings.login_agreement_documents.filter((doc) => doc.title?.trim())
-    : []
-  loginAgreementDocuments.value = documents
-  loginAgreementEnabled.value = settings.login_agreement_enabled === true && documents.length > 0
-  loginAgreementMode.value = settings.login_agreement_mode === 'checkbox' ? 'checkbox' : 'modal'
-  loginAgreementUpdatedAt.value = settings.login_agreement_updated_at || ''
-  loginAgreementRevision.value =
-    settings.login_agreement_revision ||
-    `${loginAgreementUpdatedAt.value}:${documents.map((doc) => `${doc.id}:${doc.title}`).join('|')}`
-
-  agreementAccepted.value = !loginAgreementEnabled.value || hasAcceptedLoginAgreement(loginAgreementRevision.value)
-  showAgreementModal.value =
-    loginAgreementEnabled.value && !agreementAccepted.value && loginAgreementMode.value !== 'checkbox'
-}
-
 function hasAcceptedLoginAgreement(revision: string): boolean {
-  if (!revision) {
-    return false
-  }
+  if (!revision) return false
   try {
     const raw = localStorage.getItem(LOGIN_AGREEMENT_STORAGE_KEY)
-    if (!raw) {
-      return false
-    }
+    if (!raw) return false
     const parsed = JSON.parse(raw) as { revision?: string }
     return parsed.revision === revision
   } catch {
@@ -546,13 +430,10 @@ function hasAcceptedLoginAgreement(revision: string): boolean {
 }
 
 function acceptLoginAgreement(): void {
-  if (loginAgreementRevision.value) {
+  if (agreementRevision.value) {
     localStorage.setItem(
       LOGIN_AGREEMENT_STORAGE_KEY,
-      JSON.stringify({
-        revision: loginAgreementRevision.value,
-        accepted_at: new Date().toISOString()
-      })
+      JSON.stringify({ revision: agreementRevision.value, accepted_at: new Date().toISOString() }),
     )
   }
   agreementAccepted.value = true
@@ -563,43 +444,30 @@ function rejectLoginAgreement(): void {
   localStorage.removeItem(LOGIN_AGREEMENT_STORAGE_KEY)
   agreementAccepted.value = false
   showAgreementModal.value = false
-  appStore.showWarning('未同意最新条款前，无法注册或使用快捷登录。')
+  toast.showWarning('未同意最新条款前，无法注册。')
 }
-
-// ==================== Promo Code Validation ====================
 
 function handlePromoCodeInput(): void {
   const code = formData.promo_code.trim()
-
-  // Clear previous validation
   promoValidation.valid = false
   promoValidation.invalid = false
   promoValidation.bonusAmount = null
   promoValidation.message = ''
-
   if (!code) {
     promoValidating.value = false
     return
   }
-
-  // Debounce validation
-  if (promoValidateTimeout) {
-    clearTimeout(promoValidateTimeout)
-  }
-
+  if (promoValidateTimeout) clearTimeout(promoValidateTimeout)
   promoValidateTimeout = setTimeout(() => {
-    validatePromoCodeDebounced(code)
+    void validatePromoCodeDebounced(code)
   }, 500)
 }
 
 async function validatePromoCodeDebounced(code: string): Promise<void> {
   if (!code.trim()) return
-
   promoValidating.value = true
-
   try {
-    const result = await validatePromoCode(code)
-
+    const result = await validateGuestPromoCode(code)
     if (result.valid) {
       promoValidation.valid = true
       promoValidation.invalid = false
@@ -609,101 +477,54 @@ async function validatePromoCodeDebounced(code: string): Promise<void> {
       promoValidation.valid = false
       promoValidation.invalid = true
       promoValidation.bonusAmount = null
-      // 根据错误码显示对应的翻译
       promoValidation.message = getPromoErrorMessage(result.error_code)
     }
-  } catch (error) {
-    console.error('Failed to validate promo code:', error)
+  } catch {
     promoValidation.valid = false
     promoValidation.invalid = true
-    promoValidation.message = t('auth.promoCodeInvalid')
+    promoValidation.message = '优惠码无效'
   } finally {
     promoValidating.value = false
   }
 }
 
 function getPromoErrorMessage(errorCode?: string): string {
-  switch (errorCode) {
-    case 'PROMO_CODE_NOT_FOUND':
-      return t('auth.promoCodeNotFound')
-    case 'PROMO_CODE_EXPIRED':
-      return t('auth.promoCodeExpired')
-    case 'PROMO_CODE_DISABLED':
-      return t('auth.promoCodeDisabled')
-    case 'PROMO_CODE_MAX_USED':
-      return t('auth.promoCodeMaxUsed')
-    case 'PROMO_CODE_ALREADY_USED':
-      return t('auth.promoCodeAlreadyUsed')
-    default:
-      return t('auth.promoCodeInvalid')
-  }
+  if (errorCode === 'PROMO_CODE_NOT_FOUND') return '优惠码不存在'
+  if (errorCode === 'PROMO_CODE_EXPIRED') return '优惠码已过期'
+  if (errorCode === 'PROMO_CODE_DISABLED') return '优惠码已停用'
+  if (errorCode === 'PROMO_CODE_MAX_USED') return '优惠码已达使用上限'
+  if (errorCode === 'PROMO_CODE_ALREADY_USED') return '优惠码已使用'
+  return '优惠码无效'
 }
-
-// ==================== Invitation Code Validation ====================
 
 function handleInvitationCodeInput(): void {
   const code = formData.invitation_code.trim()
-
-  // Clear previous validation
   invitationValidation.valid = false
   invitationValidation.invalid = false
   invitationValidation.message = ''
   errors.invitation_code = ''
-
-  if (!code) {
-    return
-  }
-
-  // Debounce validation
-  if (invitationValidateTimeout) {
-    clearTimeout(invitationValidateTimeout)
-  }
-
+  if (!code) return
+  if (invitationValidateTimeout) clearTimeout(invitationValidateTimeout)
   invitationValidateTimeout = setTimeout(() => {
-    validateInvitationCodeDebounced(code)
+    void validateInvitationCodeDebounced(code)
   }, 500)
 }
 
 async function validateInvitationCodeDebounced(code: string): Promise<void> {
   invitationValidating.value = true
-
   try {
-    const result = await validateInvitationCode(code)
-
-    if (result.valid) {
-      invitationValidation.valid = true
-      invitationValidation.invalid = false
-      invitationValidation.message = ''
-    } else {
-      invitationValidation.valid = false
-      invitationValidation.invalid = true
-      invitationValidation.message = getInvitationErrorMessage(result.error_code)
-    }
+    const result = await validateGuestInvitationCode(code)
+    invitationValidation.valid = result.valid
+    invitationValidation.invalid = !result.valid
+    invitationValidation.message = result.valid ? '' : '邀请码无效'
   } catch {
     invitationValidation.valid = false
     invitationValidation.invalid = true
-    invitationValidation.message = t('auth.invitationCodeInvalid')
+    invitationValidation.message = '邀请码无效'
   } finally {
     invitationValidating.value = false
   }
 }
-
-function getInvitationErrorMessage(errorCode?: string): string {
-  switch (errorCode) {
-    case 'INVITATION_CODE_NOT_FOUND':
-      return t('auth.invitationCodeInvalid')
-    case 'INVITATION_CODE_INVALID':
-      return t('auth.invitationCodeInvalid')
-    case 'INVITATION_CODE_USED':
-      return t('auth.invitationCodeInvalid')
-    case 'INVITATION_CODE_DISABLED':
-      return t('auth.invitationCodeInvalid')
-    default:
-      return t('auth.invitationCodeInvalid')
-  }
-}
-
-// ==================== Turnstile Handlers ====================
 
 function onTurnstileVerify(token: string): void {
   turnstileToken.value = token
@@ -712,154 +533,103 @@ function onTurnstileVerify(token: string): void {
 
 function onTurnstileExpire(): void {
   turnstileToken.value = ''
-  errors.turnstile = t('auth.turnstileExpired')
+  errors.turnstile = '验证已过期，请重新验证'
 }
 
 function onTurnstileError(): void {
   turnstileToken.value = ''
-  errors.turnstile = t('auth.turnstileFailed')
-}
-
-// ==================== Validation ====================
-
-function validateEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  errors.turnstile = '验证失败，请重试'
 }
 
 function buildEmailSuffixNotAllowedMessage(): string {
-  const normalizedWhitelist = normalizeRegistrationEmailSuffixWhitelist(
-    registrationEmailSuffixWhitelist.value
-  )
-  if (normalizedWhitelist.length === 0) {
-    return t('auth.emailSuffixNotAllowed')
-  }
-  const separator = String(locale.value || '').toLowerCase().startsWith('zh') ? '、' : ', '
-  return t('auth.emailSuffixNotAllowedWithAllowed', {
-    suffixes: formatRegistrationEmailSuffixWhitelistForMessage(normalizedWhitelist, {
-      separator,
-      more: (count) => t('auth.emailSuffixAllowedMore', { count })
-    })
-  })
+  if (registrationEmailSuffixWhitelist.length === 0) return '该邮箱后缀暂不允许注册'
+  return `该邮箱后缀暂不允许注册，请使用 ${formatRegistrationEmailSuffixWhitelistForMessage(
+    registrationEmailSuffixWhitelist,
+    { separator: '、', more: (count) => `等 ${count} 个后缀` },
+  )}`
 }
 
 function validateForm(): boolean {
-  // Reset errors
   errors.email = ''
   errors.password = ''
   errors.turnstile = ''
   errors.invitation_code = ''
 
-  let isValid = true
-
+  let valid = true
   if (agreementGateActive.value) {
-    appStore.showWarning('请先阅读并同意最新条款后再注册。')
-    if (loginAgreementMode.value !== 'checkbox') {
+    toast.showWarning('请先阅读并同意最新条款后再注册。')
+    if (settings.login_agreement_mode !== 'checkbox') {
       showAgreementModal.value = true
     }
     return false
   }
-
-  // Email validation
   if (!formData.email.trim()) {
-    errors.email = t('auth.emailRequired')
-    isValid = false
-  } else if (!validateEmail(formData.email)) {
-    errors.email = t('auth.invalidEmail')
-    isValid = false
-  } else if (
-    !isRegistrationEmailSuffixAllowed(formData.email, registrationEmailSuffixWhitelist.value)
-  ) {
+    errors.email = '请输入邮箱'
+    valid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = '请输入有效邮箱地址'
+    valid = false
+  } else if (!isRegistrationEmailSuffixAllowed(formData.email, registrationEmailSuffixWhitelist)) {
     errors.email = buildEmailSuffixNotAllowedMessage()
-    isValid = false
+    valid = false
   }
-
-  // Password validation
   if (!formData.password) {
-    errors.password = t('auth.passwordRequired')
-    isValid = false
+    errors.password = '请输入密码'
+    valid = false
   } else if (formData.password.length < 6) {
-    errors.password = t('auth.passwordMinLength')
-    isValid = false
+    errors.password = '密码至少 6 位'
+    valid = false
   }
-
-  // Invitation code validation (required when enabled)
-  if (invitationCodeEnabled.value) {
-    if (!formData.invitation_code.trim()) {
-      errors.invitation_code = t('auth.invitationCodeRequired')
-      isValid = false
-    }
+  if (settings.invitation_code_enabled && !formData.invitation_code.trim()) {
+    errors.invitation_code = '请输入邀请码'
+    valid = false
   }
-
-  // Turnstile validation
-  if (turnstileEnabled.value && !turnstileToken.value) {
-    errors.turnstile = t('auth.completeVerification')
-    isValid = false
+  if (settings.turnstile_enabled && !turnstileToken.value) {
+    errors.turnstile = '请先完成人机验证'
+    valid = false
   }
-
-  return isValid
+  return valid
 }
 
-// ==================== Form Handlers ====================
-
 async function handleRegister(): Promise<void> {
-  // Clear previous error
   errorMessage.value = ''
+  if (!validateForm()) return
 
-  // Validate form
-  if (!validateForm()) {
-    return
-  }
-
-  // Check promo code validation status
   if (formData.promo_code.trim()) {
-    // If promo code is being validated, wait
     if (promoValidating.value) {
-      errorMessage.value = t('auth.promoCodeValidating')
+      errorMessage.value = '优惠码校验中，请稍候'
       return
     }
-    // If promo code is invalid, block submission
     if (promoValidation.invalid) {
-      errorMessage.value = t('auth.promoCodeInvalidCannotRegister')
+      errorMessage.value = '优惠码无效，无法注册'
       return
     }
   }
 
-  // Check invitation code validation status (if enabled and code provided)
-  if (invitationCodeEnabled.value) {
-    // If still validating, wait
+  if (settings.invitation_code_enabled) {
     if (invitationValidating.value) {
-      errorMessage.value = t('auth.invitationCodeValidating')
+      errorMessage.value = '邀请码校验中，请稍候'
       return
     }
-    // If invitation code is invalid, block submission
     if (invitationValidation.invalid) {
-      errorMessage.value = t('auth.invitationCodeInvalidCannotRegister')
+      errorMessage.value = '邀请码无效，无法注册'
       return
     }
-    // If invitation code is required but not validated yet
     if (formData.invitation_code.trim() && !invitationValidation.valid) {
-      errorMessage.value = t('auth.invitationCodeValidating')
-      // Trigger validation
+      errorMessage.value = '邀请码校验中，请稍候'
       await validateInvitationCodeDebounced(formData.invitation_code.trim())
       if (!invitationValidation.valid) {
-        errorMessage.value = t('auth.invitationCodeInvalidCannotRegister')
+        errorMessage.value = '邀请码无效，无法注册'
         return
       }
     }
   }
 
   isLoading.value = true
-
   try {
-    const affCode = formData.aff_code.trim() || loadAffiliateReferralCode()
-    if (affCode) {
-      formData.aff_code = affCode
-    }
+    const affCode = formData.aff_code.trim() || resolveGuestAffiliateCode()
 
-    // If email verification is enabled, redirect to verification page
-    if (emailVerifyEnabled.value) {
-      // Store registration data in sessionStorage
+    if (settings.email_verify_enabled) {
       sessionStorage.setItem(
         'register_data',
         JSON.stringify({
@@ -868,44 +638,29 @@ async function handleRegister(): Promise<void> {
           turnstile_token: turnstileToken.value,
           promo_code: formData.promo_code || undefined,
           invitation_code: formData.invitation_code || undefined,
-          ...(affCode ? { aff_code: affCode } : {})
-        })
+          ...(affCode ? { aff_code: affCode } : {}),
+        }),
       )
-
-      // Navigate to email verification page
       await router.push('/email-verify')
       return
     }
 
-    // Otherwise, directly register
-    await register({
+    await registerGuest({
       email: formData.email,
       password: formData.password,
-      turnstile_token: turnstileEnabled.value ? turnstileToken.value : undefined,
+      turnstile_token: settings.turnstile_enabled ? turnstileToken.value : undefined,
       promo_code: formData.promo_code || undefined,
       invitation_code: formData.invitation_code || undefined,
-      ...(affCode ? { aff_code: affCode } : {})
+      ...(affCode ? { aff_code: affCode } : {}),
     })
-    clearAffiliateReferralCode()
-
-    // Show success toast
-    appStore.showSuccess(t('auth.accountCreatedSuccess', { siteName: siteName.value }))
-
+    clearGuestAffiliateCode()
+    toast.showSuccess(`账号创建成功，欢迎使用 ${GUEST_SITE_NAME}`)
     await navigateToAuthenticatedApp(router, `/${'dashboard'}`)
-  } catch (error: unknown) {
-    // Reset Turnstile on error
-    if (turnstileRef.value) {
-      turnstileRef.value.reset()
-      turnstileToken.value = ''
-    }
-
-    // Handle registration error
-    errorMessage.value = buildAuthErrorMessage(error, {
-      fallback: t('auth.registrationFailed')
-    })
-
-    // Also show error toast
-    appStore.showError(errorMessage.value)
+  } catch (error) {
+    turnstileRef.value?.reset()
+    turnstileToken.value = ''
+    errorMessage.value = getGuestErrorMessage(error, '注册失败')
+    toast.showError(errorMessage.value)
   } finally {
     isLoading.value = false
   }

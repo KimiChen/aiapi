@@ -5,6 +5,8 @@ not_found:  # 无条件返回纯文本 404 的路径
     - match: prefix
       path: /auth/
     - match: exact
+      path: /home
+    - match: exact
       path: /forgot-password
     - match: exact
       path: /reset-password

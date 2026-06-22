@@ -1,15 +1,14 @@
 import type { App as VueApp } from 'vue'
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import PublicApp from './PublicApp.vue'
 import publicRouter, {
   isFullAppPublicPath,
   isGuestPublicPath,
 } from './router/guest'
-import i18n, { initPublicI18n } from './i18n'
-import { useAppStore } from '@/stores/app'
 import { enterFullApp, setPublicApp } from '@/public/fullAppBridge'
 import './style.css'
+
+const GUEST_SITE_NAME = '企业数据中台'
 
 function initThemeClass() {
   const savedTheme = localStorage.getItem('theme')
@@ -50,20 +49,10 @@ async function mountPublicApp(): Promise<VueApp<Element>> {
   initThemeClass()
 
   const app = createApp(PublicApp)
-  const pinia = createPinia()
-  app.use(pinia)
 
-  const appStore = useAppStore()
-  appStore.initFromInjectedConfig()
-
-  if (appStore.siteName) {
-    document.title = `${appStore.siteName} - Secure Portal`
-  }
-
-  await initPublicI18n()
+  document.title = `${GUEST_SITE_NAME} - Secure Portal`
 
   app.use(publicRouter)
-  app.use(i18n)
   setPublicApp(app)
 
   await publicRouter.isReady()

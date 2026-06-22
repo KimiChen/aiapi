@@ -122,8 +122,8 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatur
 	require.Equal(t, true, out["invitation_code_enabled"])
 	require.Equal(t, true, out["turnstile_enabled"])
 	require.Equal(t, "site-key", out["turnstile_site_key"])
-	require.Equal(t, true, out["oidc_oauth_enabled"])
-	require.Equal(t, "CorpID", out["oidc_oauth_provider_name"])
+	require.NotContains(t, out, "oidc_oauth_enabled")
+	require.NotContains(t, out, "oidc_oauth_provider_name")
 }
 
 func TestSettingService_GetPublicSettings_ExposesRegistrationEmailSuffixWhitelist(t *testing.T) {

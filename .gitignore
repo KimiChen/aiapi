@@ -117,6 +117,7 @@ backend/.installed
 # ===================
 tests
 CLAUDE.md
+todo.md
 .claude
 scripts
 .code-review-state

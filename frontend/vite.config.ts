@@ -75,11 +75,15 @@ export default defineConfig(({ mode }) => {
          */
         manualChunks(id: string) {
           if (id.includes('node_modules')) {
+            // Pinia 只在完整后台入口使用，不放进未登录首屏的 Vue 核心包。
+            if (id.includes('/pinia/')) {
+              return 'vendor-store'
+            }
+
             // Vue 核心库
             if (
               id.includes('/vue/') ||
               id.includes('/vue-router/') ||
-              id.includes('/pinia/') ||
               id.includes('/@vue/')
             ) {
               return 'vendor-vue'

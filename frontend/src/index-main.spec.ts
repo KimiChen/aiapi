@@ -17,15 +17,6 @@ vi.mock('vue', () => ({
   }),
 }))
 
-vi.mock('pinia', () => ({
-  createPinia: vi.fn(() => ({})),
-}))
-
-vi.mock('./i18n', () => ({
-  default: {},
-  initPublicI18n: vi.fn().mockResolvedValue(undefined),
-}))
-
 vi.mock('./PublicApp.vue', () => ({
   default: {},
 }))
@@ -41,13 +32,6 @@ vi.mock('./router/guest', () => ({
 vi.mock('@/public/fullAppBridge', () => ({
   enterFullApp: mocks.enterFullApp,
   setPublicApp: mocks.setPublicApp,
-}))
-
-vi.mock('@/stores/app', () => ({
-  useAppStore: () => ({
-    initFromInjectedConfig: vi.fn(),
-    siteName: '企业数据中台',
-  }),
 }))
 
 describe('index-main bootstrap auth routing', () => {

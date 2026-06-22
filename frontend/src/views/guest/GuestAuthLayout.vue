@@ -12,21 +12,15 @@
         :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
       >
         <div class="border-b border-wiki-border p-5">
-          <RouterLink to="/home" class="flex items-center gap-3" @click="mobileOpen = false">
+          <RouterLink to="/" class="flex items-center gap-3" @click="mobileOpen = false">
             <div
               class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-wiki-accent to-wiki-accent2"
             >
-              <img
-                v-if="siteLogo"
-                :src="siteLogo"
-                alt=""
-                class="h-full w-full object-contain"
-              />
-              <Icon v-else name="sparkles" size="md" class="text-white" :stroke-width="2" />
+              <Icon name="sparkles" size="md" class="text-white" :stroke-width="2" />
             </div>
             <div class="min-w-0">
               <h1 class="truncate font-heading text-base font-bold text-wiki-txt">
-                {{ displayName }}
+                企业数据中台
               </h1>
               <p class="text-[11px] uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
             </div>
@@ -96,7 +90,7 @@
             </div>
 
             <p class="mt-6 text-center text-xs text-slate-400">
-              &copy; {{ currentYear }} {{ displayName }}. All rights reserved.
+              &copy; {{ currentYear }} 企业数据中台. All rights reserved.
             </p>
           </div>
         </section>
@@ -106,33 +100,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAppStore } from '@/stores/app'
-import { hasAuthSession } from '@/api/publicAuth'
 import Icon from '@/components/icons/Icon.vue'
-import { sanitizeUrl } from '@/utils/url'
-
-const appStore = useAppStore()
 
 const mobileOpen = ref(false)
 
-const siteName = computed(() => {
-  const name = appStore.cachedPublicSettings?.site_name || appStore.siteName || ''
-  const trimmed = name.trim()
-  const legacyDefaultName = ['Sub', '2', 'API'].join('')
-  return trimmed && trimmed !== legacyDefaultName ? trimmed : ''
-})
-const displayName = computed(() => siteName.value || '数据中台')
-const siteLogo = computed(() =>
-  sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
-)
 const currentYear = computed(() => new Date().getFullYear())
-const isAuthenticated = computed(() => hasAuthSession())
+const isAuthenticated = computed(() => hasGuestAuthSession())
 const dashboardPath = computed(() => `/${'dashboard'}`)
 
 const navItems = [
-  { label: '总览', key: 'overview' as const, to: '/home', icon: 'grid' as const },
+  { label: '总览', key: 'overview' as const, to: '/', icon: 'grid' as const },
   { label: '数据目录', key: 'catalog' as const, to: '/catalog', icon: 'database' as const },
   { label: '数据治理', key: 'governance' as const, to: '/governance', icon: 'shield' as const },
   { label: '交换任务', key: 'exchange' as const, to: '/exchange', icon: 'sync' as const },
@@ -140,11 +119,17 @@ const navItems = [
   { label: '接入规范', key: 'docs' as const, to: '/docs', icon: 'book' as const }
 ]
 
-onMounted(() => {
-  if (!appStore.publicSettingsLoaded) {
-    appStore.fetchPublicSettings()
+function hasGuestAuthSession(): boolean {
+  try {
+    const token = localStorage.getItem('auth_token')
+    const rawUser = localStorage.getItem('auth_user')
+    if (!token || !rawUser) return false
+    const user = JSON.parse(rawUser)
+    return Boolean(user && typeof user === 'object')
+  } catch {
+    return false
   }
-})
+}
 </script>
 
 <style scoped>

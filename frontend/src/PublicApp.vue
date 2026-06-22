@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
 import { watch } from 'vue'
-import Toast from '@/components/common/Toast.vue'
 import NavigationProgress from '@/components/common/NavigationProgress.vue'
-import { useAppStore } from '@/stores/app'
-import { resolveDocumentTitle } from '@/router/title'
+import GuestToast from '@/components/guest/GuestToast.vue'
 
 const route = useRoute()
-const appStore = useAppStore()
+const GUEST_SITE_NAME = '企业数据中台'
 
 function updateDocumentTitle() {
-  document.title = resolveDocumentTitle(route.meta.title, appStore.siteName, route.meta.titleKey as string)
+  const title = route.meta.title
+  document.title = typeof title === 'string' && title.trim()
+    ? `${title.trim()} - ${GUEST_SITE_NAME}`
+    : GUEST_SITE_NAME
 }
 
 watch(
   [
     () => route.fullPath,
     () => route.meta.title,
-    () => route.meta.titleKey,
-    () => appStore.siteName,
   ],
   updateDocumentTitle,
   { immediate: true }
@@ -28,5 +27,5 @@ watch(
 <template>
   <NavigationProgress />
   <RouterView />
-  <Toast />
+  <GuestToast />
 </template>

@@ -21,6 +21,7 @@ func TestLoadPublicRouteBlocklistDefault(t *testing.T) {
 	require.True(t, list.UsingDefault)
 	require.False(t, list.Matches("/register"))
 	require.False(t, list.Matches("/email-verify"))
+	require.True(t, list.Matches("/home"))
 	require.True(t, list.Matches("/api/v1/settings/public"))
 	require.True(t, list.Matches("/api/v1/auth/oauth/github/start"))
 	require.True(t, list.Allows("/responses"))

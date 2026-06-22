@@ -141,11 +141,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
-import type { LoginAgreementDocument } from '@/types'
+
+interface GuestLoginAgreementDocument {
+  id: string
+  title: string
+  content_md: string
+}
 
 const props = withDefaults(defineProps<{
   accepted: boolean
-  documents: LoginAgreementDocument[]
+  documents: GuestLoginAgreementDocument[]
   mode: 'modal' | 'checkbox' | string
   updatedAt?: string
   visible: boolean
@@ -165,7 +170,7 @@ const updatedAt = computed(() => props.updatedAt || '')
 const accepted = computed(() => props.accepted)
 const mode = computed(() => props.mode === 'checkbox' ? 'checkbox' : 'modal')
 
-function documentRoute(doc: LoginAgreementDocument) {
+function documentRoute(doc: GuestLoginAgreementDocument) {
   return {
     name: 'LegalDocument',
     params: {
