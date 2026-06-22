@@ -52,7 +52,7 @@ var requiredCSPDirectiveValues = []struct {
 // GenerateNonce generates a cryptographically secure random nonce.
 // 返回 error 以确保调用方在 crypto/rand 失败时能正确降级。
 func GenerateNonce() (string, error) {
-	b := make([]byte, 16)
+	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", fmt.Errorf("generate CSP nonce: %w", err)
 	}
