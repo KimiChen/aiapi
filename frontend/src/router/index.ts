@@ -33,20 +33,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    component: () => import('@/views/guest/HomeView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Home'
+      title: 'AI Console'
     }
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    component: () => import('@/views/guest/LoginView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Login',
-      titleKey: 'home.login'
+      title: 'Customer Area'
     }
   },
   {

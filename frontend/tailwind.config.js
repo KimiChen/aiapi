@@ -46,6 +46,19 @@ export default {
           800: '#1e293b',
           900: '#0f172a',
           950: '#020617'
+        },
+        halo: {
+          bg: '#F8FAFC',
+          surface: '#FFFFFF',
+          surface2: '#F1F5F9',
+          accent: '#6366F1',
+          accent2: '#8B5CF6',
+          danger: '#EF4444',
+          warn: '#F59E0B',
+          success: '#10B981',
+          txt: '#0F172A',
+          muted: '#64748B',
+          border: '#E2E8F0'
         }
       },
       fontFamily: {
@@ -57,6 +70,21 @@ export default {
           'Roboto',
           'Helvetica Neue',
           'Arial',
+          'PingFang SC',
+          'Hiragino Sans GB',
+          'Microsoft YaHei',
+          'sans-serif'
+        ],
+        body: [
+          'DM Sans',
+          'PingFang SC',
+          'Hiragino Sans GB',
+          'Microsoft YaHei',
+          'sans-serif'
+        ],
+        heading: [
+          'Space Grotesk',
+          'DM Sans',
           'PingFang SC',
           'Hiragino Sans GB',
           'Microsoft YaHei',
