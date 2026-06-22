@@ -24,7 +24,7 @@
             />
           </div>
           <EndpointPopover
-            v-if="publicSettings?.api_base_url || (publicSettings?.custom_endpoints?.length ?? 0) > 0"
+            v-if="apiBaseUrls.length > 0 || (publicSettings?.custom_endpoints?.length ?? 0) > 0"
             :api-base-url="publicSettings?.api_base_url || ''"
             :custom-endpoints="publicSettings?.custom_endpoints || []"
           />
@@ -321,14 +321,36 @@
                 <span class="text-xs">{{ t('keys.useKey') }}</span>
               </button>
               <!-- Import to CC Switch Button -->
-              <button
+              <div
                 v-if="!publicSettings?.hide_ccs_import_button"
-                @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                class="flex items-center gap-1"
               >
-                <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
-              </button>
+                <Select
+                  v-if="ccsEndpointOptions.length > 1"
+                  :model-value="selectedCcsBaseUrl"
+                  :options="ccsEndpointOptions"
+                  class="ccs-endpoint-select w-36"
+                  @update:model-value="selectedCcsBaseUrl = String($event || '')"
+                >
+                  <template #selected="{ option }">
+                    <span class="block truncate font-mono text-[11px]">
+                      {{ option?.label || t('keys.ccsEndpointSelect') }}
+                    </span>
+                  </template>
+                  <template #option="{ option }">
+                    <span class="min-w-0 flex-1 truncate font-mono text-xs">
+                      {{ option.label }}
+                    </span>
+                  </template>
+                </Select>
+                <button
+                  @click="importToCcswitch(row)"
+                  class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                >
+                  <Icon name="upload" size="sm" />
+                  <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                </button>
+              </div>
               <!-- Toggle Status Button -->
               <button
                 @click="toggleKeyStatus(row)"
@@ -925,7 +947,7 @@
     <UseKeyModal
       :show="showUseKeyModal"
       :api-key="selectedKey?.key || ''"
-      :base-url="publicSettings?.api_base_url || ''"
+      :base-url="selectedUseKeyBaseUrl"
       :platform="selectedKey?.group?.platform || null"
       :allow-messages-dispatch="selectedKey?.group?.allow_messages_dispatch || false"
       @close="closeUseKeyModal"
@@ -1046,7 +1068,7 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, computed, onMounted, onUnmounted, type ComponentPublicInstance } from 'vue'
+	import { ref, computed, onMounted, onUnmounted, watch, type ComponentPublicInstance } from 'vue'
 	import { useI18n } from 'vue-i18n'
 	import { useAppStore } from '@/stores/app'
 	import { useOnboardingStore } from '@/stores/onboarding'
@@ -1078,6 +1100,7 @@ import {
   buildCcSwitchImportDeeplink,
   type CcSwitchClientType
 } from '@/utils/ccswitchImport'
+import { getPrimaryApiBaseUrl, parseApiBaseUrls } from '@/utils/apiBaseUrl'
 
 // Helper to format date for datetime-local input
 const formatDateTimeLocal = (isoDate: string): string => {
@@ -1146,6 +1169,7 @@ const showResetRateLimitDialog = ref(false)
 const showUseKeyModal = ref(false)
 const showCcsClientSelect = ref(false)
 const pendingCcsRow = ref<ApiKey | null>(null)
+const selectedCcsBaseUrl = ref('')
 const selectedKey = ref<ApiKey | null>(null)
 const copiedKeyId = ref<number | null>(null)
 const groupSelectorKeyId = ref<number | null>(null)
@@ -1154,6 +1178,27 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const dropdownPosition = ref<{ top?: number; bottom?: number; left: number } | null>(null)
 const groupButtonRefs = ref<Map<number, HTMLElement>>(new Map())
 let abortController: AbortController | null = null
+
+const apiBaseUrls = computed(() => parseApiBaseUrls(publicSettings.value?.api_base_url))
+const selectedUseKeyBaseUrl = computed(() =>
+  getPrimaryApiBaseUrl(publicSettings.value?.api_base_url, window.location.origin)
+)
+const ccsEndpointOptions = computed(() =>
+  apiBaseUrls.value.map((endpoint, index) => ({
+    value: endpoint,
+    label: index === 0 ? endpoint : `${index + 1}. ${endpoint}`,
+  }))
+)
+
+watch(apiBaseUrls, (urls) => {
+  if (urls.length === 0) {
+    selectedCcsBaseUrl.value = ''
+    return
+  }
+  if (!urls.includes(selectedCcsBaseUrl.value)) {
+    selectedCcsBaseUrl.value = urls[0]
+  }
+}, { immediate: true })
 
 // Get the currently selected key for group change
 const selectedKeyForGroup = computed(() => {
@@ -1706,7 +1751,7 @@ const importToCcswitch = (row: ApiKey) => {
 }
 
 const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
-  const baseUrl = publicSettings.value?.api_base_url || window.location.origin
+  const baseUrl = selectedCcsBaseUrl.value || selectedUseKeyBaseUrl.value
   const platform = row.group?.platform || 'anthropic'
 
   const usageScript = `({

@@ -710,6 +710,7 @@ export default {
     endpoints: {
       title: 'API Endpoints',
       default: 'Default',
+      defaultIndexed: 'Default #{n}',
       copied: 'Copied',
       copiedHint: 'Copied to clipboard',
       clickToCopy: 'Click to copy this endpoint',
@@ -730,6 +731,7 @@ export default {
     copyToClipboard: 'Copy to clipboard',
     copied: 'Copied!',
     importToCcSwitch: 'Import to CCS',
+    ccsEndpointSelect: 'Select endpoint',
     enable: 'Enable',
     disable: 'Disable',
     nameLabel: 'Name',
@@ -5829,9 +5831,9 @@ export default {
         siteSubtitlePlaceholder: 'Subscription to API Conversion Platform',
         siteSubtitleHint: 'Displayed on login and register pages',
         apiBaseUrl: 'API Base URL',
-        apiBaseUrlPlaceholder: 'https://api.example.com',
+        apiBaseUrlPlaceholder: 'https://api.example.com;https://api2.example.com',
         apiBaseUrlHint:
-          'Used for "Use Key" and "Import to CC Switch" features. Leave empty to use current site URL.',
+          'Used for "Use Key" and "Import to CC Switch" features. Separate multiple endpoints with semicolons (;). Leave empty to use current site URL.',
         tablePreferencesTitle: 'Global Table Preferences',
         tablePreferencesDescription: 'Configure default pagination behavior for shared table components',
         tableDefaultPageSize: 'Default Rows Per Page',
