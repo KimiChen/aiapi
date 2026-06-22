@@ -78,19 +78,16 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFiel
 	var out map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(raw, &out))
 
-	require.JSONEq(t, `{
-		"site_name":"企业数据中台",
-		"site_subtitle":"统一数据目录、治理与服务编排入口",
-		"api_base_url":"https://api-a.example.test;https://api-b.example.test",
-		"custom_endpoints":[{"name":"HK","endpoint":"https://hk.example.test","description":"Hong Kong"}]
-	}`, string(raw))
+	require.JSONEq(t, `{"site_name":"企业数据中台","site_subtitle":"统一数据目录、治理与服务编排入口"}`, string(raw))
 	require.NotContains(t, out, "registration_enabled")
 	require.NotContains(t, out, "promo_code_enabled")
 	require.NotContains(t, out, "google_oauth_enabled")
 	require.NotContains(t, out, "backend_mode_enabled")
+	require.NotContains(t, out, "api_base_url")
 	require.NotContains(t, out, "table_default_page_size")
 	require.NotContains(t, out, "table_page_size_options")
 	require.NotContains(t, out, "custom_menu_items")
+	require.NotContains(t, out, "custom_endpoints")
 	require.NotContains(t, out, "channel_monitor_enabled")
 	require.NotContains(t, out, "allow_user_view_error_requests")
 }

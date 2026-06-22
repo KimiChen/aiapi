@@ -1216,8 +1216,6 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 	addStringSetting(payload, "contact_info", settings.ContactInfo)
 	addStringSetting(payload, "doc_url", settings.DocURL)
 	addStringSetting(payload, "home_content", settings.HomeContent)
-	addStringSetting(payload, "api_base_url", settings.APIBaseURL)
-	addJSONArraySetting(payload, "custom_endpoints", settings.CustomEndpoints)
 
 	addTrueSetting(payload, "registration_enabled", settings.RegistrationEnabled)
 	if settings.RegistrationEnabled {
@@ -1287,13 +1285,6 @@ func addStringSettingUnless(payload PublicSettingsInjectionPayload, key, value s
 func addNonEmptyStringSliceSetting(payload PublicSettingsInjectionPayload, key string, values []string) {
 	if len(values) > 0 {
 		payload[key] = values
-	}
-}
-
-func addJSONArraySetting(payload PublicSettingsInjectionPayload, key, raw string) {
-	value := safeRawJSONArray(raw)
-	if string(value) != "[]" {
-		payload[key] = value
 	}
 }
 
