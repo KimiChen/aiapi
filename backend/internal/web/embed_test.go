@@ -524,44 +524,6 @@ func TestFrontendServer_Middleware(t *testing.T) {
 		}
 	})
 
-	t.Run("serves_static_login_without_spa_assets", func(t *testing.T) {
-		provider := &mockSettingsProvider{
-			settings: map[string]string{
-				"site_name":     "企业数据中台",
-				"site_subtitle": "统一数据目录、治理与服务编排入口",
-			},
-		}
-
-		server, err := NewFrontendServer(provider)
-		require.NoError(t, err)
-
-		router := gin.New()
-		router.Use(func(c *gin.Context) {
-			c.Set(middleware.CSPNonceKey, "login-nonce")
-			c.Next()
-		})
-		router.Use(server.Middleware())
-
-		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/login?redirect=/dashboard", nil)
-		router.ServeHTTP(w, req)
-
-		body := w.Body.String()
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Header().Get("Content-Type"), "text/html")
-		assert.Equal(t, "no-store", w.Header().Get("Cache-Control"))
-		assert.Contains(t, body, "<title>企业数据中台 - 安全登录</title>")
-		assert.Contains(t, body, `nonce="login-nonce"`)
-		assert.Contains(t, body, `"/user/login"`)
-		assert.Contains(t, body, `"/user/login/2fa"`)
-		assert.Contains(t, body, `localStorage.setItem("auth_token"`)
-		assert.NotContains(t, body, `window.__STATIC_APP__`)
-		assert.NotContains(t, body, `/static/app/res/`)
-		assert.NotContains(t, body, `type="module"`)
-		assert.NotContains(t, body, `modulepreload`)
-		assert.NotContains(t, body, `id="app"`)
-	})
-
 	t.Run("serves_static_files", func(t *testing.T) {
 		provider := &mockSettingsProvider{
 			settings: map[string]string{"test": "value"},

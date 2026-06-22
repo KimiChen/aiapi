@@ -92,11 +92,6 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		if isStaticLoginPath(path) {
-			s.serveStaticLoginHTML(c)
-			return
-		}
-
 		cleanPath := embeddedFrontendCleanPath(path)
 		if cleanPath == "" {
 			cleanPath = "index.html"
@@ -263,11 +258,6 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 
 		if shouldBypassEmbeddedFrontend(path) {
 			c.Next()
-			return
-		}
-
-		if isStaticLoginPath(path) {
-			serveStaticLoginHTML(c, defaultStaticLoginConfig())
 			return
 		}
 
