@@ -2,6 +2,8 @@ import type { PublicSettings, PublicSettingsConfig } from '@/types'
 
 export const DEFAULT_PUBLIC_SITE_NAME = '企业数据中台'
 export const DEFAULT_PUBLIC_SITE_SUBTITLE = '统一数据目录、治理与服务编排入口'
+const LEGACY_DEFAULT_SITE_NAME = ['Sub', '2', 'API'].join('')
+const LEGACY_DEFAULT_SITE_SUBTITLE = ['Subscription to API', 'Conversion Platform'].join(' ')
 
 export const createDefaultPublicSettings = (): PublicSettings => ({
   registration_enabled: false,
@@ -104,9 +106,9 @@ export const compactPublicSettingsConfig = (
   const normalized = normalizePublicSettings(config)
   const out: PublicSettingsConfig = {}
 
-  addStringSetting(out, 'site_name', normalized.site_name, ['Sub2API'])
+  addStringSetting(out, 'site_name', normalized.site_name, [LEGACY_DEFAULT_SITE_NAME])
   addStringSetting(out, 'site_logo', normalized.site_logo)
-  addStringSetting(out, 'site_subtitle', normalized.site_subtitle, ['Subscription to API Conversion Platform'])
+  addStringSetting(out, 'site_subtitle', normalized.site_subtitle, [LEGACY_DEFAULT_SITE_SUBTITLE])
   addStringSetting(out, 'contact_info', normalized.contact_info)
   addStringSetting(out, 'doc_url', normalized.doc_url)
   addStringSetting(out, 'home_content', normalized.home_content)

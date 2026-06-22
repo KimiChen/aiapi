@@ -7,12 +7,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Toast, ToastType, PublicSettings, PublicSettingsConfig } from '@/types'
 import { i18n } from '@/i18n'
-import {
-  checkUpdates as checkUpdatesAPI,
-  type VersionInfo,
-  type ReleaseInfo
-} from '@/api/admin/system'
-import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/auth'
+import type { VersionInfo, ReleaseInfo } from '@/api/admin/system'
+import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/publicAuth'
 import {
   DEFAULT_PUBLIC_SITE_NAME,
   compactPublicSettingsConfig,
@@ -268,6 +264,7 @@ export const useAppStore = defineStore('app', () => {
 
     versionLoading.value = true
     try {
+      const { checkUpdates: checkUpdatesAPI } = await import('@/api/admin/system')
       const data = await checkUpdatesAPI(force)
       currentVersion.value = data.current_version
       upstreamCurrentVersion.value = data.upstream_current_version || data.current_version

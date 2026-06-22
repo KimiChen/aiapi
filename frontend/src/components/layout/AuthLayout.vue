@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
 import { sanitizeUrl } from '@/utils/url'
 import { DEFAULT_PUBLIC_SITE_NAME, DEFAULT_PUBLIC_SITE_SUBTITLE } from '@/utils/publicSettings'
 

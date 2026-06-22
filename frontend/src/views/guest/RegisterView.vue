@@ -304,12 +304,13 @@ import EmailOAuthButtons from '@/components/auth/EmailOAuthButtons.vue'
 import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
 import {
   isWeChatWebOAuthEnabled,
+  register,
   validatePromoCode,
   validateInvitationCode
-} from '@/api/auth'
+} from '@/api/publicAuth'
 import { buildAuthErrorMessage } from '@/utils/authError'
 import {
   formatRegistrationEmailSuffixWhitelistForMessage,
@@ -323,15 +324,15 @@ import {
 } from '@/utils/oauthAffiliate'
 import type { LoginAgreementDocument } from '@/types'
 import { createDefaultPublicSettings } from '@/utils/publicSettings'
+import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
 
 const { t, locale } = useI18n()
-const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
+const LOGIN_AGREEMENT_STORAGE_KEY = 'portal_login_agreement_consent'
 
 // ==================== Router & Stores ====================
 
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
 const appStore = useAppStore()
 
 // ==================== State ====================
@@ -877,7 +878,7 @@ async function handleRegister(): Promise<void> {
     }
 
     // Otherwise, directly register
-    await authStore.register({
+    await register({
       email: formData.email,
       password: formData.password,
       turnstile_token: turnstileEnabled.value ? turnstileToken.value : undefined,
@@ -890,8 +891,7 @@ async function handleRegister(): Promise<void> {
     // Show success toast
     appStore.showSuccess(t('auth.accountCreatedSuccess', { siteName: siteName.value }))
 
-    // Redirect to dashboard
-    await router.push('/dashboard')
+    await navigateToAuthenticatedApp(router, `/${'dashboard'}`)
   } catch (error: unknown) {
     // Reset Turnstile on error
     if (turnstileRef.value) {

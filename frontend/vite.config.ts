@@ -100,8 +100,7 @@ export default defineConfig(({ mode }) => {
               return 'vendor-i18n'
             }
 
-            // 其他小型第三方库合并
-            return 'vendor-misc'
+            return undefined
           }
 
           // 应用代码：按入口点自动分包，不手动干预

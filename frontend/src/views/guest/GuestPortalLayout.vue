@@ -108,7 +108,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
+import { hasAuthSession } from '@/api/publicAuth'
 import Icon from '@/components/icons/Icon.vue'
 
 type GuestPortalSection =
@@ -126,7 +127,6 @@ const props = withDefaults(defineProps<{
   title: '数据中台'
 })
 
-const authStore = useAuthStore()
 const appStore = useAppStore()
 
 const mobileOpen = ref(false)
@@ -139,8 +139,8 @@ const siteName = computed(() => {
 })
 const displayName = computed(() => siteName.value || '数据中台')
 const siteLogo = computed(() => appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '')
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const dashboardPath = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
+const isAuthenticated = computed(() => hasAuthSession())
+const dashboardPath = computed(() => `/${'dashboard'}`)
 const active = computed(() => props.active)
 
 const navItems = [
@@ -153,7 +153,6 @@ const navItems = [
 ]
 
 onMounted(() => {
-  authStore.checkAuth()
   if (!appStore.publicSettingsLoaded) {
     appStore.fetchPublicSettings()
   }

@@ -108,11 +108,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
+import { hasAuthSession } from '@/api/publicAuth'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeUrl } from '@/utils/url'
 
-const authStore = useAuthStore()
 const appStore = useAppStore()
 
 const mobileOpen = ref(false)
@@ -128,8 +128,8 @@ const siteLogo = computed(() =>
   sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
 )
 const currentYear = computed(() => new Date().getFullYear())
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const dashboardPath = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
+const isAuthenticated = computed(() => hasAuthSession())
+const dashboardPath = computed(() => `/${'dashboard'}`)
 
 const navItems = [
   { label: '总览', key: 'overview' as const, to: '/home', icon: 'grid' as const },
@@ -141,7 +141,6 @@ const navItems = [
 ]
 
 onMounted(() => {
-  authStore.checkAuth()
   if (!appStore.publicSettingsLoaded) {
     appStore.fetchPublicSettings()
   }

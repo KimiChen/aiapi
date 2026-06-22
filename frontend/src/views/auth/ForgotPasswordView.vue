@@ -127,11 +127,11 @@
 <script setup lang="ts">
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AuthLayout } from '@/components/layout'
+import AuthLayout from '@/components/layout/AuthLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
-import { useAppStore } from '@/stores'
-import { getPublicSettings, forgotPassword } from '@/api/auth'
+import { useAppStore } from '@/stores/app'
+import { getPublicSettings, forgotPassword } from '@/api/publicAuth'
 
 const { t } = useI18n()
 

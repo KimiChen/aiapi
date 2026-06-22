@@ -31,8 +31,8 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { resolveWeChatOAuthStart } from '@/api/auth'
-import { useAppStore } from '@/stores'
+import { resolveWeChatOAuthStart } from '@/api/publicAuth'
+import { useAppStore } from '@/stores/app'
 import { resolveAffiliateReferralCode, storeOAuthAffiliateCode } from '@/utils/oauthAffiliate'
 
 const props = withDefaults(defineProps<{

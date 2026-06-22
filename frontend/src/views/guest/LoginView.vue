@@ -212,18 +212,23 @@ import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import TotpLoginModal from '@/components/auth/TotpLoginModal.vue'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
-import { useAuthStore, useAppStore } from '@/stores'
-import { isTotp2FARequired, isWeChatWebOAuthEnabled } from '@/api/auth'
+import { useAppStore } from '@/stores/app'
+import {
+  isTotp2FARequired,
+  isWeChatWebOAuthEnabled,
+  login,
+  login2FA,
+} from '@/api/publicAuth'
 import type { LoginAgreementDocument, TotpLoginResponse } from '@/types'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { clearAllAffiliateReferralCodes } from '@/utils/oauthAffiliate'
 import { createDefaultPublicSettings } from '@/utils/publicSettings'
+import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
 
 const { t } = useI18n()
-const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
+const LOGIN_AGREEMENT_STORAGE_KEY = 'portal_login_agreement_consent'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const appStore = useAppStore()
 
 const isLoading = ref<boolean>(false)
@@ -454,7 +459,7 @@ async function handleLogin(): Promise<void> {
   isLoading.value = true
 
   try {
-    const response = await authStore.login({
+    const response = await login({
       email: formData.email,
       password: formData.password,
       turnstile_token: turnstileEnabled.value ? turnstileToken.value : undefined
@@ -472,8 +477,8 @@ async function handleLogin(): Promise<void> {
     clearAllAffiliateReferralCodes()
     appStore.showSuccess(t('auth.loginSuccess'))
 
-    const redirectTo = (router.currentRoute.value.query.redirect as string) || '/dashboard'
-    await router.push(redirectTo)
+    const redirectTo = (router.currentRoute.value.query.redirect as string) || `/${'dashboard'}`
+    await navigateToAuthenticatedApp(router, redirectTo)
   } catch (error: unknown) {
     if (turnstileRef.value) {
       turnstileRef.value.reset()
@@ -493,14 +498,14 @@ async function handle2FAVerify(code: string): Promise<void> {
   }
 
   try {
-    await authStore.login2FA(totpTempToken.value, code)
+    await login2FA({ temp_token: totpTempToken.value, totp_code: code })
 
     show2FAModal.value = false
     clearAllAffiliateReferralCodes()
     appStore.showSuccess(t('auth.loginSuccess'))
 
-    const redirectTo = (router.currentRoute.value.query.redirect as string) || '/dashboard'
-    await router.push(redirectTo)
+    const redirectTo = (router.currentRoute.value.query.redirect as string) || `/${'dashboard'}`
+    await navigateToAuthenticatedApp(router, redirectTo)
   } catch (error: unknown) {
     const err = error as { message?: string; response?: { data?: { message?: string } } }
     const message = err.response?.data?.message || err.message || t('profile.totp.loginFailed')

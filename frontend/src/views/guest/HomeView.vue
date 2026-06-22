@@ -118,11 +118,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
+import { hasAuthSession } from '@/api/publicAuth'
 import GuestPortalLayout from './GuestPortalLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 
-const authStore = useAuthStore()
 const appStore = useAppStore()
 
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
@@ -130,8 +130,8 @@ const isHomeContentUrl = computed(() => {
   const content = homeContent.value.trim()
   return content.startsWith('http://') || content.startsWith('https://')
 })
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const dashboardPath = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
+const isAuthenticated = computed(() => hasAuthSession())
+const dashboardPath = computed(() => `/${'dashboard'}`)
 
 const overviewCards = [
   {
