@@ -570,8 +570,33 @@ func parseVersion(v string) [3]int {
 
 func upstreamVersionBase(v string) string {
 	v = strings.TrimSpace(strings.TrimPrefix(v, "v"))
+	parts := strings.Split(v, ".")
+	if len(parts) < 3 {
+		if idx := strings.IndexAny(v, "-+"); idx >= 0 {
+			return v[:idx]
+		}
+		return v
+	}
+
+	baseParts := make([]string, 0, 3)
+	for i := 0; i < 3; i++ {
+		part := strings.TrimSpace(parts[i])
+		j := 0
+		for ; j < len(part); j++ {
+			if part[j] < '0' || part[j] > '9' {
+				break
+			}
+		}
+		if j == 0 {
+			break
+		}
+		baseParts = append(baseParts, part[:j])
+	}
+	if len(baseParts) == 3 {
+		return strings.Join(baseParts, ".")
+	}
 	if idx := strings.IndexAny(v, "-+"); idx >= 0 {
-		v = v[:idx]
+		return v[:idx]
 	}
 	return v
 }

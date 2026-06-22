@@ -10,7 +10,7 @@ aihub 健康检查: curl -fsS 网址/health
 aihub 部署方式:
  - 本地先执行 `pnpm --dir frontend build`
  - 在 `backend/` 目录执行 linux/amd64 嵌入前端资源构建：
-   - `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags embed -ldflags="-s -w -X main.Version=$(tr -d '\r\n' < cmd/server/VERSION) -X main.BuildType=release" -trimpath -o bin/server ./cmd/server`
+   - `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags embed -ldflags="-s -w -X main.Version=$(tr -d '\r\n' < cmd/server/VERSION)$(tr -d '\r\n' < cmd/server/SUB_VERSION) -X main.BuildType=release" -trimpath -o bin/server ./cmd/server`
  - 上传 `backend/bin/server` 到 aihub 的 `/opt/compose/sub2api-deploy/releases/<timestamp>/sub2api`
  - 基于旧镜像备份并替换 `/app/sub2api`；如旧镜像缺 `/app/resources`，同步 `backend/resources` 到镜像内 `/app/resources`
  - 只重建应用容器：`cd /opt/compose/sub2api-deploy && docker compose up -d --no-deps --force-recreate sub2api`

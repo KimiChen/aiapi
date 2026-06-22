@@ -68,20 +68,20 @@ func TestUpdateServiceForkVersionUsesUpstreamBaseForUpdateCheck(t *testing.T) {
 		&updateServiceCacheStub{},
 		&updateServiceGitHubClientStub{
 			release: &GitHubRelease{
-				TagName: "v0.1.137",
-				Name:    "v0.1.137",
+				TagName: "v0.1.138",
+				Name:    "v0.1.138",
 			},
 		},
-		"0.1.137-kim",
+		"0.1.138.kim",
 		"release",
 	)
 
 	info, err := svc.CheckUpdate(context.Background(), true)
 
 	require.NoError(t, err)
-	require.Equal(t, "0.1.137-kim", info.CurrentVersion)
-	require.Equal(t, "0.1.137", info.UpstreamCurrentVersion)
-	require.Equal(t, "0.1.137", info.LatestVersion)
+	require.Equal(t, "0.1.138.kim", info.CurrentVersion)
+	require.Equal(t, "0.1.138", info.UpstreamCurrentVersion)
+	require.Equal(t, "0.1.138", info.LatestVersion)
 	require.True(t, info.ForkBuild)
 	require.False(t, info.HasUpdate)
 }
@@ -91,19 +91,19 @@ func TestUpdateServiceForkVersionReportsNewUpstreamVersion(t *testing.T) {
 		&updateServiceCacheStub{},
 		&updateServiceGitHubClientStub{
 			release: &GitHubRelease{
-				TagName: "v0.1.138",
-				Name:    "v0.1.138",
+				TagName: "v0.1.139",
+				Name:    "v0.1.139",
 			},
 		},
-		"0.1.137-kim",
+		"0.1.138.kim",
 		"release",
 	)
 
 	info, err := svc.CheckUpdate(context.Background(), true)
 
 	require.NoError(t, err)
-	require.Equal(t, "0.1.137", info.UpstreamCurrentVersion)
-	require.Equal(t, "0.1.138", info.LatestVersion)
+	require.Equal(t, "0.1.138", info.UpstreamCurrentVersion)
+	require.Equal(t, "0.1.139", info.LatestVersion)
 	require.True(t, info.ForkBuild)
 	require.True(t, info.HasUpdate)
 }
@@ -113,11 +113,11 @@ func TestUpdateServicePerformUpdateForkBuildRequiresManualUpdate(t *testing.T) {
 		&updateServiceCacheStub{},
 		&updateServiceGitHubClientStub{
 			release: &GitHubRelease{
-				TagName: "v0.1.138",
-				Name:    "v0.1.138",
+				TagName: "v0.1.139",
+				Name:    "v0.1.139",
 			},
 		},
-		"0.1.137-kim",
+		"0.1.138.kim",
 		"release",
 	)
 
@@ -125,4 +125,12 @@ func TestUpdateServicePerformUpdateForkBuildRequiresManualUpdate(t *testing.T) {
 
 	require.Error(t, err)
 	require.ErrorIs(t, err, ErrManualUpdateRequired)
+}
+
+func TestUpstreamVersionBaseSupportsForkSuffixes(t *testing.T) {
+	require.Equal(t, "0.1.138", upstreamVersionBase("0.1.138.kim"))
+	require.Equal(t, "0.1.138", upstreamVersionBase("0.1.138-kim"))
+	require.Equal(t, "0.1.138", upstreamVersionBase("v0.1.138+kim"))
+	require.True(t, isForkVersion("0.1.138.kim"))
+	require.False(t, isForkVersion("v0.1.138"))
 }
