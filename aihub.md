@@ -25,6 +25,16 @@ aihub 部署方式:
  - 只重建应用容器：`cd /opt/compose/sub2api-deploy && docker compose up -d --no-deps --force-recreate sub2api`
  - 部署期间不要修改 Caddy、Docker Compose、Postgres、Redis，除非用户明确要求
 aihub 部署记录:
+ - 部署时间: 2026-06-23
+ - Git HEAD: 186f333e
+ - 版本号: 0.1.138.kim
+ - 发布目录: /opt/compose/sub2api-deploy/releases/20260623-032802
+ - 当前容器二进制 SHA256: 06cea45fd0c3109f80acda5f411d49497510649d49b8f3d40c6f02736a7085e6
+ - 当前镜像 ID: sha256:a5ae7a4988154184ade27ccddd350e01ba214094ebf45789664bd7067c5eb2bb
+ - 备份镜像: weishaw/sub2api:backup-20260623-032802
+ - 备份镜像 ID: sha256:adf33a3f89e7086b10c956d7b6ff0208e98c570683cbf5710b497ed24649c786
+ - Compose 健康检查保持 /health，部署期间未修改 Caddy、Docker Compose、Postgres、Redis
+ - 验证结果: 网址/health 返回 {"status":"ok"}，/login、/register、/email-verify 返回 200，/api/v1/auth/login 返回 JSON 校验错误，sub2api/sub2api-postgres/sub2api-redis 均 healthy
  - 回滚时间: 2026-06-23
  - 回滚到备份镜像: weishaw/sub2api:backup-20260623-024554
  - 回滚后版本号: 0.1.137-kim
@@ -59,8 +69,8 @@ aihub 部署记录:
  - 验证结果: 网址/health 返回 {"status":"ok"}，sub2api/sub2api-postgres/sub2api-redis 均 healthy
 aihub 回滚方式:
  - `cd /opt/compose/sub2api-deploy`
- - `docker tag weishaw/sub2api:backup-20260623-024554 weishaw/sub2api:latest`
- - 如需从 2026-06-23 伪装发布回滚，先恢复 `docker-compose.yml.bak-status-20260623-024554` 或确认健康检查使用当前版本支持的路径
+ - `docker tag weishaw/sub2api:backup-20260623-032802 weishaw/sub2api:latest`
+ - 确认健康检查使用当前版本支持的路径；本次部署和备份版本均支持 `/health`
  - `docker compose up -d --no-deps --force-recreate sub2api`
 aihub 数据结构同步记录:
  - 2026-06-22 已确认本地与 aihub 的 `schema_migrations` 均为 190 条，缺失/额外/checksum mismatch 均为 0
