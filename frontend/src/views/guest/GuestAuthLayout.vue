@@ -1,11 +1,18 @@
 <template>
   <div class="min-h-screen bg-wiki-bg font-body text-wiki-txt">
-    <div class="flex min-h-screen flex-col lg:flex-row">
+    <div
+      v-if="mobileOpen"
+      class="fixed inset-0 z-40 bg-black/30 md:hidden"
+      @click="mobileOpen = false"
+    ></div>
+
+    <div class="flex min-h-screen">
       <aside
-        class="hidden w-[260px] flex-col border-r border-wiki-border bg-white lg:flex"
+        class="fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-wiki-border bg-white transition-transform duration-200 md:sticky md:top-0 md:translate-x-0"
+        :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
       >
         <div class="border-b border-wiki-border p-5">
-          <RouterLink to="/home" class="flex items-center gap-3">
+          <RouterLink to="/home" class="flex items-center gap-3" @click="mobileOpen = false">
             <div
               class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-wiki-accent to-wiki-accent2"
             >
@@ -29,10 +36,10 @@
         <nav class="flex-1 py-3">
           <RouterLink
             v-for="item in navItems"
-            :key="item.label"
+            :key="item.key"
             :to="item.to"
             class="guest-nav-item relative flex items-center gap-3 px-5 py-2.5 text-sm"
-            :class="{ active: item.active }"
+            @click="mobileOpen = false"
           >
             <Icon :name="item.icon" size="sm" :stroke-width="2" />
             <span>{{ item.label }}</span>
@@ -40,166 +47,57 @@
         </nav>
 
         <div class="border-t border-wiki-border p-4">
+          <div class="mb-3 flex items-center gap-2 text-xs text-wiki-muted">
+            <Icon name="globe" size="xs" :stroke-width="2" />
+            <span>简体中文</span>
+          </div>
           <RouterLink
-            to="/home"
+            :to="isAuthenticated ? dashboardPath : '/login'"
             class="flex items-center gap-2 text-xs text-wiki-muted transition-colors hover:text-wiki-txt"
+            @click="mobileOpen = false"
           >
             <Icon name="arrowLeft" size="xs" :stroke-width="2" />
-            <span>返回门户</span>
+            <span>{{ isAuthenticated ? '进入控制台' : '登录工作台' }}</span>
           </RouterLink>
         </div>
       </aside>
 
-      <main class="flex min-h-screen flex-1 flex-col">
+      <main class="flex min-h-screen min-w-0 flex-1 flex-col">
         <header
-          class="sticky top-0 z-20 flex items-center justify-between border-b border-wiki-border bg-white/80 px-4 py-3 backdrop-blur-lg sm:px-6"
+          class="sticky top-0 z-30 flex items-center justify-between border-b border-wiki-border bg-white/80 px-4 py-3 backdrop-blur-lg md:px-6"
         >
-          <RouterLink to="/home" class="flex min-w-0 items-center gap-3 lg:hidden">
-            <div
-              class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-wiki-accent to-wiki-accent2"
+          <div class="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-wiki-muted transition-colors hover:bg-wiki-surface2 md:hidden"
+              @click="mobileOpen = true"
+              aria-label="Open menu"
             >
-              <img
-                v-if="siteLogo"
-                :src="siteLogo"
-                alt=""
-                class="h-full w-full object-contain"
-              />
-              <Icon v-else name="sparkles" size="md" class="text-white" :stroke-width="2" />
-            </div>
-            <div class="min-w-0">
-              <p class="truncate font-heading text-base font-semibold text-wiki-txt">
-                {{ displayName }}
-              </p>
-              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
-            </div>
-          </RouterLink>
-
-          <div class="hidden items-center gap-2 rounded-lg bg-wiki-surface2 px-3 py-1.5 text-sm lg:flex">
-            <Icon name="shield" size="sm" class="text-wiki-accent" />
-            <span class="font-semibold">统一认证</span>
-            <span class="text-wiki-muted">enabled</span>
+              <Icon name="menu" size="md" :stroke-width="2" />
+            </button>
+            <h2 class="truncate font-heading text-lg font-semibold text-wiki-txt">数据中台</h2>
           </div>
 
-          <div class="flex items-center gap-2">
-            <a
-              v-if="docUrl"
-              :href="docUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-wiki-muted transition-colors hover:bg-wiki-surface2 hover:text-wiki-txt"
-              aria-label="Docs"
-            >
-              <Icon name="book" size="sm" :stroke-width="2" />
-            </a>
-            <RouterLink
-              to="/home"
-              class="hidden rounded-lg border border-wiki-border px-3 py-1.5 text-xs font-semibold text-wiki-muted transition-colors hover:bg-wiki-surface2 hover:text-wiki-txt sm:inline-flex"
-            >
-              概览
-            </RouterLink>
+          <div class="hidden items-center gap-2 rounded-lg bg-wiki-surface2 px-3 py-1.5 text-sm sm:flex">
+            <Icon name="shield" size="sm" class="text-wiki-accent" />
+            <span class="font-semibold">统一认证</span>
+            <span class="text-wiki-muted">已启用</span>
           </div>
         </header>
 
         <section class="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-          <div class="grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_430px]">
-            <div class="order-2 min-w-0 space-y-5 lg:order-1">
-              <div
-                class="rounded-2xl border border-indigo-200/80 bg-gradient-to-r from-indigo-500 to-violet-600 p-6 text-white shadow-lg shadow-indigo-500/15"
-              >
-                <div class="mb-5 flex items-center justify-between gap-4">
-                  <div>
-                    <p class="text-sm font-medium text-white/75">Data Fabric Platform</p>
-                    <h2 class="mt-1 font-heading text-2xl font-semibold">数据中台门户</h2>
-                  </div>
-                  <div class="rounded-full bg-white/15 p-2">
-                    <Icon name="sparkles" size="md" :stroke-width="2" />
-                  </div>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-3">
-                  <div
-                    v-for="metric in heroMetrics"
-                    :key="metric.label"
-                    class="rounded-xl bg-white/10 p-4 ring-1 ring-white/10"
-                  >
-                    <p class="text-[11px] uppercase tracking-wide text-white/60">{{ metric.label }}</p>
-                    <p class="mt-2 font-heading text-2xl font-semibold">{{ metric.value }}</p>
-                    <p class="mt-1 text-xs text-white/65">{{ metric.detail }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="grid gap-4 md:grid-cols-3">
-                <div
-                  v-for="card in statCards"
-                  :key="card.label"
-                  class="rounded-xl border border-wiki-border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
-                >
-                  <div
-                    class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg"
-                    :class="card.iconClass"
-                  >
-                    <Icon :name="card.icon" size="sm" :stroke-width="2" />
-                  </div>
-                  <p class="text-xs font-medium text-wiki-muted">{{ card.label }}</p>
-                  <p class="mt-1 font-heading text-xl font-semibold text-wiki-txt">{{ card.value }}</p>
-                  <p class="mt-1 text-xs text-wiki-muted">{{ card.detail }}</p>
-                </div>
-              </div>
-
-              <div class="rounded-xl border border-wiki-border bg-white p-5">
-                <div class="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h3 class="font-heading text-base font-semibold text-wiki-txt">主题域服务</h3>
-                    <p class="text-xs text-wiki-muted">近 24 小时数据服务状态</p>
-                  </div>
-                  <div class="rounded-lg bg-wiki-surface2 p-1 text-xs font-medium text-wiki-muted">
-                    <span class="rounded-md bg-white px-3 py-1 text-wiki-txt shadow-sm">24h</span>
-                    <span class="px-3 py-1">7d</span>
-                  </div>
-                </div>
-
-                <div class="overflow-x-auto rounded-lg border border-wiki-border">
-                  <table class="w-full min-w-[560px] text-left text-sm">
-                    <thead class="bg-wiki-surface2 text-xs uppercase tracking-wide text-wiki-muted">
-                      <tr>
-                        <th class="px-4 py-3 font-semibold">主题域</th>
-                        <th class="px-4 py-3 font-semibold">访问</th>
-                        <th class="px-4 py-3 font-semibold">资产量</th>
-                        <th class="px-4 py-3 font-semibold">同步</th>
-                        <th class="px-4 py-3 text-right font-semibold">状态</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-wiki-border">
-                      <tr
-                        v-for="row in modelRows"
-                        :key="row.domain"
-                        class="transition-colors hover:bg-wiki-bg"
-                      >
-                        <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.domain }}</td>
-                        <td class="px-4 py-3 text-wiki-muted">{{ row.requests }}</td>
-                        <td class="px-4 py-3 text-wiki-muted">{{ row.output }}</td>
-                        <td class="px-4 py-3 text-wiki-muted">{{ row.latency }}</td>
-                        <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.status }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+          <div class="w-full max-w-[430px]">
+            <div class="rounded-2xl border border-wiki-border bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-8">
+              <slot />
             </div>
 
-            <div class="order-1 min-w-0 lg:order-2">
-              <div class="rounded-2xl border border-wiki-border bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-8">
-                <slot />
-              </div>
-
-              <div class="mt-5 text-center text-sm">
-                <slot name="footer" />
-              </div>
-
-              <p class="mt-6 text-center text-xs text-slate-400">
-                &copy; {{ currentYear }} {{ displayName }}. All rights reserved.
-              </p>
+            <div class="mt-5 text-center text-sm">
+              <slot name="footer" />
             </div>
+
+            <p class="mt-6 text-center text-xs text-slate-400">
+              &copy; {{ currentYear }} {{ displayName }}. All rights reserved.
+            </p>
           </div>
         </section>
       </main>
@@ -208,13 +106,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useAppStore } from '@/stores'
+import { useAuthStore, useAppStore } from '@/stores'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeUrl } from '@/utils/url'
 
+const authStore = useAuthStore()
 const appStore = useAppStore()
+
+const mobileOpen = ref(false)
 
 const siteName = computed(() => {
   const name = appStore.cachedPublicSettings?.site_name || appStore.siteName || ''
@@ -223,57 +124,24 @@ const siteName = computed(() => {
   return trimmed && trimmed !== legacyDefaultName ? trimmed : ''
 })
 const displayName = computed(() => siteName.value || '数据中台')
-const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
-const docUrl = computed(() => appStore.cachedPublicSettings?.doc_url || appStore.docUrl || '')
+const siteLogo = computed(() =>
+  sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
+)
 const currentYear = computed(() => new Date().getFullYear())
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const dashboardPath = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
 
 const navItems = [
-  { label: '总览', to: '/home', icon: 'grid' as const, active: false },
-  { label: '账号登录', to: '/login', icon: 'key' as const, active: true },
-  { label: '数据目录', to: '/login', icon: 'database' as const, active: false },
-  { label: '数据治理', to: '/login', icon: 'shield' as const, active: false },
-  { label: '服务编排', to: '/login', icon: 'cube' as const, active: false },
-  { label: '接入规范', to: '/home', icon: 'book' as const, active: false }
-]
-
-const heroMetrics = [
-  { label: 'Quality', value: '99.6%', detail: 'rules passed' },
-  { label: 'Freshness', value: '96.8%', detail: 'SLA met' },
-  { label: 'Services', value: '86', detail: 'published' }
-]
-
-const statCards = [
-  {
-    label: '数据资产',
-    value: '1,248 项',
-    detail: '统一登记',
-    icon: 'database' as const,
-    iconClass: 'bg-indigo-50 text-wiki-accent'
-  },
-  {
-    label: '数据服务',
-    value: '86 个',
-    detail: '授权访问',
-    icon: 'cube' as const,
-    iconClass: 'bg-violet-50 text-wiki-accent2'
-  },
-  {
-    label: '治理规则',
-    value: '312 条',
-    detail: '质量稽核',
-    icon: 'shield' as const,
-    iconClass: 'bg-purple-50 text-purple-500'
-  }
-]
-
-const modelRows = [
-  { domain: '客户主数据', requests: '2,164', output: '18.2M 行', latency: 'CDC 实时', status: '正常' },
-  { domain: '交易明细', requests: '6,442', output: '42.6M 行', latency: '准实时', status: '正常' },
-  { domain: '库存供应链', requests: '1,839', output: '7.4M 行', latency: '15 分钟', status: '正常' },
-  { domain: '经营指标', requests: '873', output: '864 张表', latency: '小时级', status: '正常' }
+  { label: '总览', key: 'overview' as const, to: '/home', icon: 'grid' as const },
+  { label: '数据目录', key: 'catalog' as const, to: '/catalog', icon: 'database' as const },
+  { label: '数据治理', key: 'governance' as const, to: '/governance', icon: 'shield' as const },
+  { label: '交换任务', key: 'exchange' as const, to: '/exchange', icon: 'sync' as const },
+  { label: '服务编排', key: 'orchestration' as const, to: '/orchestration', icon: 'cube' as const },
+  { label: '接入规范', key: 'docs' as const, to: '/docs', icon: 'book' as const }
 ]
 
 onMounted(() => {
+  authStore.checkAuth()
   if (!appStore.publicSettingsLoaded) {
     appStore.fetchPublicSettings()
   }
@@ -291,13 +159,13 @@ onMounted(() => {
   color: #0f172a;
 }
 
-.guest-nav-item.active {
+.guest-nav-item.router-link-active {
   background: rgba(99, 102, 241, 0.08);
   color: #6366f1;
   font-weight: 600;
 }
 
-.guest-nav-item.active::before {
+.guest-nav-item.router-link-active::before {
   content: '';
   position: absolute;
   left: 0;
