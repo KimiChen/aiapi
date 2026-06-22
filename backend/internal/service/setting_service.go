@@ -1195,76 +1195,11 @@ func (s *SettingService) SetVersion(version string) {
 	s.version = version
 }
 
-// PublicSettingsInjectionPayload is the JSON shape embedded into HTML as
-// `window.__APP_CONFIG__` so the frontend can hydrate feature flags & site
-// config before the first XHR finishes.
-//
-// INVARIANT: every `json` tag here MUST also exist on handler/dto.PublicSettings.
-// If you forget a feature-flag field here, the frontend's
-// `cachedPublicSettings.xxx_enabled` will be `undefined` on refresh until the
-// async `/api/v1/settings/public` call returns — which causes opt-in menus
-// (strict `=== true`) to flicker off/on. See
-// frontend/src/utils/featureFlags.ts for the matching registry.
-//
-// A unit test diffs this struct's JSON keys against dto.PublicSettings to catch
-// drift automatically (see setting_service_injection_test.go).
-type PublicSettingsInjectionPayload struct {
-	RegistrationEnabled              bool                     `json:"registration_enabled"`
-	EmailVerifyEnabled               bool                     `json:"email_verify_enabled"`
-	RegistrationEmailSuffixWhitelist []string                 `json:"registration_email_suffix_whitelist"`
-	PromoCodeEnabled                 bool                     `json:"promo_code_enabled"`
-	PasswordResetEnabled             bool                     `json:"password_reset_enabled"`
-	InvitationCodeEnabled            bool                     `json:"invitation_code_enabled"`
-	TotpEnabled                      bool                     `json:"totp_enabled"`
-	LoginAgreementEnabled            bool                     `json:"login_agreement_enabled"`
-	LoginAgreementMode               string                   `json:"login_agreement_mode"`
-	LoginAgreementUpdatedAt          string                   `json:"login_agreement_updated_at"`
-	LoginAgreementRevision           string                   `json:"login_agreement_revision"`
-	LoginAgreementDocuments          []LoginAgreementDocument `json:"login_agreement_documents"`
-	TurnstileEnabled                 bool                     `json:"turnstile_enabled"`
-	TurnstileSiteKey                 string                   `json:"turnstile_site_key"`
-	SiteName                         string                   `json:"site_name"`
-	SiteLogo                         string                   `json:"site_logo"`
-	SiteSubtitle                     string                   `json:"site_subtitle"`
-	APIBaseURL                       string                   `json:"api_base_url"`
-	ContactInfo                      string                   `json:"contact_info"`
-	DocURL                           string                   `json:"doc_url"`
-	HomeContent                      string                   `json:"home_content"`
-	HideCcsImportButton              bool                     `json:"hide_ccs_import_button"`
-	PurchaseSubscriptionEnabled      bool                     `json:"purchase_subscription_enabled"`
-	PurchaseSubscriptionURL          string                   `json:"purchase_subscription_url"`
-	TableDefaultPageSize             int                      `json:"table_default_page_size"`
-	TablePageSizeOptions             []int                    `json:"table_page_size_options"`
-	CustomMenuItems                  json.RawMessage          `json:"custom_menu_items"`
-	CustomEndpoints                  json.RawMessage          `json:"custom_endpoints"`
-	LinuxDoOAuthEnabled              bool                     `json:"linuxdo_oauth_enabled"`
-	DingTalkOAuthEnabled             bool                     `json:"dingtalk_oauth_enabled"`
-	WeChatOAuthEnabled               bool                     `json:"wechat_oauth_enabled"`
-	WeChatOAuthOpenEnabled           bool                     `json:"wechat_oauth_open_enabled"`
-	WeChatOAuthMPEnabled             bool                     `json:"wechat_oauth_mp_enabled"`
-	WeChatOAuthMobileEnabled         bool                     `json:"wechat_oauth_mobile_enabled"`
-	OIDCOAuthEnabled                 bool                     `json:"oidc_oauth_enabled"`
-	OIDCOAuthProviderName            string                   `json:"oidc_oauth_provider_name"`
-	GitHubOAuthEnabled               bool                     `json:"github_oauth_enabled"`
-	GoogleOAuthEnabled               bool                     `json:"google_oauth_enabled"`
-	BackendModeEnabled               bool                     `json:"backend_mode_enabled"`
-	PaymentEnabled                   bool                     `json:"payment_enabled"`
-	Version                          string                   `json:"version"`
-	BalanceLowNotifyEnabled          bool                     `json:"balance_low_notify_enabled"`
-	AccountQuotaNotifyEnabled        bool                     `json:"account_quota_notify_enabled"`
-	BalanceLowNotifyThreshold        float64                  `json:"balance_low_notify_threshold"`
-	BalanceLowNotifyRechargeURL      string                   `json:"balance_low_notify_recharge_url"`
-
-	// Feature flags — MUST match the opt-in/opt-out registry in
-	// frontend/src/utils/featureFlags.ts. Missing a field here is the bug
-	// that hid the "可用渠道" menu on page refresh.
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-	AvailableChannelsEnabled             bool `json:"available_channels_enabled"`
-	AffiliateEnabled                     bool `json:"affiliate_enabled"`
-	RiskControlEnabled                   bool `json:"risk_control_enabled"`
-	AllowUserViewErrorRequests           bool `json:"allow_user_view_error_requests"`
-}
+// PublicSettingsInjectionPayload is the sparse JSON shape embedded into HTML as
+// `window.__APP_CONFIG__`. Disabled booleans, empty values, and public-API-only
+// settings are intentionally omitted so page source does not advertise internal
+// feature names. Frontend code must treat missing flags as false.
+type PublicSettingsInjectionPayload map[string]any
 
 // GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
 // This implements the web.PublicSettingsProvider interface.
@@ -1274,60 +1209,92 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		return nil, err
 	}
 
-	return &PublicSettingsInjectionPayload{
-		RegistrationEnabled:              settings.RegistrationEnabled,
-		EmailVerifyEnabled:               settings.EmailVerifyEnabled,
-		RegistrationEmailSuffixWhitelist: settings.RegistrationEmailSuffixWhitelist,
-		PromoCodeEnabled:                 settings.PromoCodeEnabled,
-		PasswordResetEnabled:             settings.PasswordResetEnabled,
-		InvitationCodeEnabled:            settings.InvitationCodeEnabled,
-		TotpEnabled:                      settings.TotpEnabled,
-		LoginAgreementEnabled:            settings.LoginAgreementEnabled,
-		LoginAgreementMode:               settings.LoginAgreementMode,
-		LoginAgreementUpdatedAt:          settings.LoginAgreementUpdatedAt,
-		LoginAgreementRevision:           settings.LoginAgreementRevision,
-		LoginAgreementDocuments:          settings.LoginAgreementDocuments,
-		TurnstileEnabled:                 settings.TurnstileEnabled,
-		TurnstileSiteKey:                 settings.TurnstileSiteKey,
-		SiteName:                         settings.SiteName,
-		SiteLogo:                         settings.SiteLogo,
-		SiteSubtitle:                     settings.SiteSubtitle,
-		APIBaseURL:                       settings.APIBaseURL,
-		ContactInfo:                      settings.ContactInfo,
-		DocURL:                           settings.DocURL,
-		HomeContent:                      settings.HomeContent,
-		HideCcsImportButton:              settings.HideCcsImportButton,
-		PurchaseSubscriptionEnabled:      settings.PurchaseSubscriptionEnabled,
-		PurchaseSubscriptionURL:          settings.PurchaseSubscriptionURL,
-		TableDefaultPageSize:             settings.TableDefaultPageSize,
-		TablePageSizeOptions:             settings.TablePageSizeOptions,
-		CustomMenuItems:                  filterUserVisibleMenuItems(settings.CustomMenuItems),
-		CustomEndpoints:                  safeRawJSONArray(settings.CustomEndpoints),
-		LinuxDoOAuthEnabled:              settings.LinuxDoOAuthEnabled,
-		DingTalkOAuthEnabled:             settings.DingTalkOAuthEnabled,
-		WeChatOAuthEnabled:               settings.WeChatOAuthEnabled,
-		WeChatOAuthOpenEnabled:           settings.WeChatOAuthOpenEnabled,
-		WeChatOAuthMPEnabled:             settings.WeChatOAuthMPEnabled,
-		WeChatOAuthMobileEnabled:         settings.WeChatOAuthMobileEnabled,
-		OIDCOAuthEnabled:                 settings.OIDCOAuthEnabled,
-		OIDCOAuthProviderName:            settings.OIDCOAuthProviderName,
-		GitHubOAuthEnabled:               settings.GitHubOAuthEnabled,
-		GoogleOAuthEnabled:               settings.GoogleOAuthEnabled,
-		BackendModeEnabled:               settings.BackendModeEnabled,
-		PaymentEnabled:                   settings.PaymentEnabled,
-		Version:                          s.version,
-		BalanceLowNotifyEnabled:          settings.BalanceLowNotifyEnabled,
-		AccountQuotaNotifyEnabled:        settings.AccountQuotaNotifyEnabled,
-		BalanceLowNotifyThreshold:        settings.BalanceLowNotifyThreshold,
-		BalanceLowNotifyRechargeURL:      settings.BalanceLowNotifyRechargeURL,
+	payload := PublicSettingsInjectionPayload{}
+	addStringSettingUnless(payload, "site_name", settings.SiteName, "Sub2API")
+	addStringSetting(payload, "site_logo", settings.SiteLogo)
+	addStringSettingUnless(payload, "site_subtitle", settings.SiteSubtitle, "Subscription to API Conversion Platform")
+	addStringSetting(payload, "contact_info", settings.ContactInfo)
+	addStringSetting(payload, "doc_url", settings.DocURL)
+	addStringSetting(payload, "home_content", settings.HomeContent)
+	addStringSetting(payload, "api_base_url", settings.APIBaseURL)
+	addJSONArraySetting(payload, "custom_endpoints", settings.CustomEndpoints)
 
-		ChannelMonitorEnabled:                settings.ChannelMonitorEnabled,
-		ChannelMonitorDefaultIntervalSeconds: settings.ChannelMonitorDefaultIntervalSeconds,
-		AvailableChannelsEnabled:             settings.AvailableChannelsEnabled,
-		AffiliateEnabled:                     settings.AffiliateEnabled,
-		RiskControlEnabled:                   settings.RiskControlEnabled,
-		AllowUserViewErrorRequests:           settings.AllowUserViewErrorRequests,
-	}, nil
+	addTrueSetting(payload, "registration_enabled", settings.RegistrationEnabled)
+	if settings.RegistrationEnabled {
+		addTrueSetting(payload, "email_verify_enabled", settings.EmailVerifyEnabled)
+		addNonEmptyStringSliceSetting(payload, "registration_email_suffix_whitelist", settings.RegistrationEmailSuffixWhitelist)
+		addTrueSetting(payload, "promo_code_enabled", settings.PromoCodeEnabled)
+		addTrueSetting(payload, "invitation_code_enabled", settings.InvitationCodeEnabled)
+	}
+	addTrueSetting(payload, "password_reset_enabled", settings.PasswordResetEnabled)
+
+	if settings.LoginAgreementEnabled && len(settings.LoginAgreementDocuments) > 0 {
+		payload["login_agreement_enabled"] = true
+		addStringSetting(payload, "login_agreement_mode", settings.LoginAgreementMode)
+		addStringSetting(payload, "login_agreement_updated_at", settings.LoginAgreementUpdatedAt)
+		addStringSetting(payload, "login_agreement_revision", settings.LoginAgreementRevision)
+		payload["login_agreement_documents"] = settings.LoginAgreementDocuments
+	}
+
+	if settings.TurnstileEnabled {
+		payload["turnstile_enabled"] = true
+		addStringSetting(payload, "turnstile_site_key", settings.TurnstileSiteKey)
+	}
+
+	addTrueSetting(payload, "linuxdo_oauth_enabled", settings.LinuxDoOAuthEnabled)
+	addTrueSetting(payload, "dingtalk_oauth_enabled", settings.DingTalkOAuthEnabled)
+	addTrueSetting(payload, "wechat_oauth_enabled", settings.WeChatOAuthEnabled)
+	addTrueSetting(payload, "wechat_oauth_open_enabled", settings.WeChatOAuthOpenEnabled)
+	addTrueSetting(payload, "wechat_oauth_mp_enabled", settings.WeChatOAuthMPEnabled)
+	addTrueSetting(payload, "wechat_oauth_mobile_enabled", settings.WeChatOAuthMobileEnabled)
+	if settings.OIDCOAuthEnabled {
+		payload["oidc_oauth_enabled"] = true
+		addStringSetting(payload, "oidc_oauth_provider_name", settings.OIDCOAuthProviderName)
+	}
+	addTrueSetting(payload, "github_oauth_enabled", settings.GitHubOAuthEnabled)
+	addTrueSetting(payload, "google_oauth_enabled", settings.GoogleOAuthEnabled)
+	addTrueSetting(payload, "backend_mode_enabled", settings.BackendModeEnabled)
+
+	return payload, nil
+}
+
+func addTrueSetting(payload PublicSettingsInjectionPayload, key string, value bool) {
+	if value {
+		payload[key] = true
+	}
+}
+
+func addStringSetting(payload PublicSettingsInjectionPayload, key, value string) {
+	value = strings.TrimSpace(value)
+	if value != "" {
+		payload[key] = value
+	}
+}
+
+func addStringSettingUnless(payload PublicSettingsInjectionPayload, key, value string, omittedValues ...string) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return
+	}
+	for _, omitted := range omittedValues {
+		if value == omitted {
+			return
+		}
+	}
+	payload[key] = value
+}
+
+func addNonEmptyStringSliceSetting(payload PublicSettingsInjectionPayload, key string, values []string) {
+	if len(values) > 0 {
+		payload[key] = values
+	}
+}
+
+func addJSONArraySetting(payload PublicSettingsInjectionPayload, key, raw string) {
+	value := safeRawJSONArray(raw)
+	if string(value) != "[]" {
+		payload[key] = value
+	}
 }
 
 func DefaultWeChatConnectScopesForMode(mode string) string {

@@ -306,7 +306,6 @@ import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
 import { useAuthStore, useAppStore } from '@/stores'
 import {
-  getPublicSettings,
   isWeChatWebOAuthEnabled,
   validatePromoCode,
   validateInvitationCode
@@ -323,6 +322,7 @@ import {
   resolveAffiliateReferralCode
 } from '@/utils/oauthAffiliate'
 import type { LoginAgreementDocument } from '@/types'
+import { createDefaultPublicSettings } from '@/utils/publicSettings'
 
 const { t, locale } = useI18n()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
@@ -342,7 +342,7 @@ const errorMessage = ref<string>('')
 const showPassword = ref<boolean>(false)
 
 // Public settings
-const registrationEnabled = ref<boolean>(true)
+const registrationEnabled = ref<boolean>(false)
 const emailVerifyEnabled = ref<boolean>(false)
 const promoCodeEnabled = ref<boolean>(true)
 const invitationCodeEnabled = ref<boolean>(false)
@@ -449,20 +449,20 @@ onMounted(async () => {
   syncAffiliateReferralCode()
 
   try {
-    const settings = await getPublicSettings()
-    registrationEnabled.value = settings.registration_enabled
-    emailVerifyEnabled.value = settings.email_verify_enabled
-    promoCodeEnabled.value = settings.promo_code_enabled
-    invitationCodeEnabled.value = settings.invitation_code_enabled
-    turnstileEnabled.value = settings.turnstile_enabled
+    const settings = await appStore.fetchPublicSettings() ?? createDefaultPublicSettings()
+    registrationEnabled.value = settings.registration_enabled === true
+    emailVerifyEnabled.value = settings.email_verify_enabled === true
+    promoCodeEnabled.value = settings.promo_code_enabled === true
+    invitationCodeEnabled.value = settings.invitation_code_enabled === true
+    turnstileEnabled.value = settings.turnstile_enabled === true
     turnstileSiteKey.value = settings.turnstile_site_key || ''
     siteName.value = settings.site_name || '数据中台'
-    linuxdoOAuthEnabled.value = settings.linuxdo_oauth_enabled
+    linuxdoOAuthEnabled.value = settings.linuxdo_oauth_enabled === true
     wechatOAuthEnabled.value = isWeChatWebOAuthEnabled(settings)
-    oidcOAuthEnabled.value = settings.oidc_oauth_enabled
+    oidcOAuthEnabled.value = settings.oidc_oauth_enabled === true
     oidcOAuthProviderName.value = settings.oidc_oauth_provider_name || 'OIDC'
-    githubOAuthEnabled.value = settings.github_oauth_enabled
-    googleOAuthEnabled.value = settings.google_oauth_enabled
+    githubOAuthEnabled.value = settings.github_oauth_enabled === true
+    googleOAuthEnabled.value = settings.google_oauth_enabled === true
     registrationEmailSuffixWhitelist.value = normalizeRegistrationEmailSuffixWhitelist(
       settings.registration_email_suffix_whitelist || []
     )

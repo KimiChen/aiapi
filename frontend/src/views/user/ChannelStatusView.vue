@@ -154,14 +154,14 @@ watch(items, () => {
 watch(
   () => appStore.cachedPublicSettings?.channel_monitor_enabled,
   (enabled) => {
-    if (enabled === false) autoRefresh.stop()
+    if (enabled !== true) autoRefresh.stop()
     else if (autoRefresh.enabled.value) autoRefresh.start()
   },
 )
 
 onMounted(() => {
   void reload(false)
-  if (appStore.cachedPublicSettings?.channel_monitor_enabled !== false) {
+  if (appStore.cachedPublicSettings?.channel_monitor_enabled === true) {
     autoRefresh.setEnabled(true)
   }
 })

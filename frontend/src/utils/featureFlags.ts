@@ -13,38 +13,22 @@
  *   2. **Async API** — `App.vue` awaits `appStore.fetchPublicSettings()` on
  *      mount as a fallback (used when injection is missing or stale).
  *
- * If the SSR injection struct forgets to include a feature flag field — the
- * exact bug that hid the "可用渠道" menu after every refresh — the frontend
- * reads `undefined` until the async call resolves. An opt-in flag written as
- * `settings?.xxx_enabled === true` then evaluates to `false` and the menu
- * disappears. An opt-out flag written as `settings?.xxx_enabled !== false`
- * evaluates to `true` (menu stays) but will flicker off if the backend sends
- * `false`.
- *
- * This module hides that `undefined` handling behind two explicit modes.
+ * The HTML injection is intentionally sparse: disabled/default fields are not
+ * emitted. Missing feature flags therefore resolve to `false`.
  *
  * ## Modes
  *
- *   - **`opt-out`** (default enabled) — menu visible when settings unloaded,
- *     hidden only when the backend explicitly sends `false`. Use for features
- *     that ship enabled by default (Channel Monitor, Payment).
- *   - **`opt-in`**  (default disabled) — menu hidden when settings unloaded,
- *     visible only when the backend explicitly sends `true`. Use for features
- *     that ship disabled (Available Channels).
+ *   - **`opt-out`** — legacy label for features that may be enabled in admin.
+ *   - **`opt-in`**  — legacy label for features that are usually hidden.
  *
- * For `opt-in` flags to render immediately on refresh, the backend **must**
- * inject the field through `PublicSettingsInjectionPayload`. A drift test in
- * `backend/internal/handler/dto/public_settings_injection_schema_test.go`
- * catches omissions.
+ * Both modes now fail closed in public HTML when the key is absent.
  *
  * ## Adding a new flag
  *
  *   1. Backend `service/domain_constants.go`  → `SettingKey<Name>Enabled`
  *   2. Backend `service/settings_view.go`      → `PublicSettings` + `SystemSettings`
  *   3. Backend `service/setting_service.go`    → `GetPublicSettings` / `UpdateSettings` /
- *                                                 `GetAllSettings` / `InitDefaultSettings` /
- *                                                 **`PublicSettingsInjectionPayload`**
- *                                                 (the drift test enforces this)
+ *                                                 `GetAllSettings` / `InitDefaultSettings`
  *   4. Backend `handler/dto/settings.go`       → `PublicSettings` + `SystemSettings`
  *   5. Backend `handler/setting_handler.go`    → handler response
  *   6. Backend `handler/admin/setting_handler.go` → update request + audit diff
@@ -134,9 +118,8 @@ export function isFeatureFlagEnabled(flag: FeatureFlagDefinition): boolean {
     | boolean
     | undefined
   if (typeof raw === 'boolean') return raw
-  // Settings not yet loaded → fall back to the flag's declared mode:
-  //   opt-out → visible by default, opt-in → hidden by default.
-  return flag.mode === 'opt-out'
+  // Missing keys are treated as disabled because the SSR config is sparse.
+  return false
 }
 
 /**

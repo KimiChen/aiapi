@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Toast, ToastType, PublicSettings } from '@/types'
+import type { Toast, ToastType, PublicSettings, PublicSettingsConfig } from '@/types'
 import { i18n } from '@/i18n'
 import {
   checkUpdates as checkUpdatesAPI,
@@ -13,6 +13,12 @@ import {
   type ReleaseInfo
 } from '@/api/admin/system'
 import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/auth'
+import {
+  DEFAULT_PUBLIC_SITE_NAME,
+  compactPublicSettingsConfig,
+  createDefaultPublicSettings,
+  normalizePublicSettings,
+} from '@/utils/publicSettings'
 
 export const useAppStore = defineStore('app', () => {
   // ==================== State ====================
@@ -25,7 +31,7 @@ export const useAppStore = defineStore('app', () => {
   // Public settings cache state
   const publicSettingsLoaded = ref<boolean>(false)
   const publicSettingsLoading = ref<boolean>(false)
-  const siteName = ref<string>('Sub2API')
+  const siteName = ref<string>(DEFAULT_PUBLIC_SITE_NAME)
   const siteLogo = ref<string>('')
   const siteVersion = ref<string>('')
   const contactInfo = ref<string>('')
@@ -293,18 +299,20 @@ export const useAppStore = defineStore('app', () => {
   /**
    * Apply settings to store state (internal helper to avoid code duplication)
    */
-  function applySettings(config: PublicSettings): void {
+  function applySettings(config: PublicSettingsConfig): PublicSettings {
+    const normalized = normalizePublicSettings(config)
     if (typeof window !== 'undefined') {
-      window.__APP_CONFIG__ = { ...config }
+      window.__APP_CONFIG__ = compactPublicSettingsConfig(config)
     }
-    cachedPublicSettings.value = config
-    siteName.value = config.site_name || 'Sub2API'
-    siteLogo.value = config.site_logo || ''
-    siteVersion.value = config.version || ''
-    contactInfo.value = config.contact_info || ''
-    apiBaseUrl.value = config.api_base_url || ''
-    docUrl.value = config.doc_url || ''
+    cachedPublicSettings.value = normalized
+    siteName.value = normalized.site_name || DEFAULT_PUBLIC_SITE_NAME
+    siteLogo.value = normalized.site_logo || ''
+    siteVersion.value = normalized.version || ''
+    contactInfo.value = normalized.contact_info || ''
+    apiBaseUrl.value = normalized.api_base_url || ''
+    docUrl.value = normalized.doc_url || ''
     publicSettingsLoaded.value = true
+    return normalized
   }
 
   /**
@@ -314,8 +322,7 @@ export const useAppStore = defineStore('app', () => {
   async function fetchPublicSettings(force = false): Promise<PublicSettings | null> {
     // Check for injected config from server (eliminates flash)
     if (!publicSettingsLoaded.value && !force && window.__APP_CONFIG__) {
-      applySettings(window.__APP_CONFIG__)
-      return window.__APP_CONFIG__
+      return applySettings(window.__APP_CONFIG__)
     }
 
     // Return cached data if available and not forcing refresh
@@ -324,49 +331,13 @@ export const useAppStore = defineStore('app', () => {
         return { ...cachedPublicSettings.value }
       }
       return {
-        registration_enabled: false,
-        email_verify_enabled: false,
-        force_email_on_third_party_signup: false,
-        registration_email_suffix_whitelist: [],
-        promo_code_enabled: true,
-        password_reset_enabled: false,
-        invitation_code_enabled: false,
-        turnstile_enabled: false,
-        turnstile_site_key: '',
+        ...createDefaultPublicSettings(),
         site_name: siteName.value,
         site_logo: siteLogo.value,
-        site_subtitle: '',
         api_base_url: apiBaseUrl.value,
         contact_info: contactInfo.value,
         doc_url: docUrl.value,
-        home_content: '',
-        hide_ccs_import_button: false,
-        payment_enabled: false,
-        table_default_page_size: 20,
-        table_page_size_options: [10, 20, 50, 100],
-        custom_menu_items: [],
-        custom_endpoints: [],
-        linuxdo_oauth_enabled: false,
-        wechat_oauth_enabled: false,
-        wechat_oauth_open_enabled: false,
-        wechat_oauth_mp_enabled: false,
-        wechat_oauth_mobile_enabled: false,
-        oidc_oauth_enabled: false,
-        oidc_oauth_provider_name: 'OIDC',
-        github_oauth_enabled: false,
-        google_oauth_enabled: false,
-        backend_mode_enabled: false,
         version: siteVersion.value,
-        balance_low_notify_enabled: false,
-        account_quota_notify_enabled: false,
-        balance_low_notify_threshold: 0,
-        channel_monitor_enabled: true,
-        channel_monitor_default_interval_seconds: 60,
-        available_channels_enabled: false,
-        risk_control_enabled: false,
-        service_quota_enabled: false,
-        affiliate_enabled: false,
-        allow_user_view_error_requests: false,
       }
     }
 

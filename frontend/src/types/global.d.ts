@@ -1,8 +1,8 @@
-import type { PublicSettings } from '@/types'
+import type { PublicSettingsConfig } from '@/types'
 
 declare global {
   interface Window {
-    __APP_CONFIG__?: PublicSettings
+    __APP_CONFIG__?: PublicSettingsConfig
   }
 }
 

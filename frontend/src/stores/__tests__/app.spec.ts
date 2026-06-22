@@ -327,8 +327,10 @@ describe('useAppStore', () => {
       const store = useAppStore()
       await store.fetchPublicSettings(true)
 
-      expect((window as any).__APP_CONFIG__.table_default_page_size).toBe(1000)
-      expect((window as any).__APP_CONFIG__.table_page_size_options).toEqual([20, 100, 1000])
+      expect(store.cachedPublicSettings?.table_default_page_size).toBe(1000)
+      expect(store.cachedPublicSettings?.table_page_size_options).toEqual([20, 100, 1000])
+      expect((window as any).__APP_CONFIG__.table_default_page_size).toBeUndefined()
+      expect((window as any).__APP_CONFIG__.table_page_size_options).toBeUndefined()
       expect(localStorage.getItem('table-page-size')).toBeNull()
       expect(localStorage.getItem('table-page-size-source')).toBeNull()
     })
