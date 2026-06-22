@@ -52,10 +52,10 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/auth/RegisterView.vue'),
+    component: () => import('@/views/guest/RegisterView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Register',
+      title: 'Create Account',
       titleKey: 'auth.createAccount'
     }
   },
