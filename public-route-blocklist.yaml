@@ -17,6 +17,8 @@ not_found:  # 无条件返回纯文本 404 的路径
     - match: exact
       path: /api/event_logging/batch
     - match: exact
+      path: /api/v1/settings/public
+    - match: exact
       path: /api/v1/auth/send-verify-code
     - match: exact
       path: /api/v1/auth/validate-promo-code
