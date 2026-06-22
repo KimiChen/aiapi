@@ -11,8 +11,8 @@ aihub Caddy access log:
  - 2026-06-22 已开启完整 JSON access log
  - Caddy 配置文件: /etc/caddy/Caddyfile
  - 日志文件: /var/log/caddy/aihub_access.log
- - 轮转策略: roll_size 100MiB, roll_keep 10, roll_keep_for 720h
- - 配置备份: /etc/caddy/Caddyfile.bak-accesslog-20260622-044859
+ - 轮转策略: roll_size 1GiB, roll_keep 9；当前文件加 9 个历史文件总占用约 10GiB
+ - 配置备份: /etc/caddy/Caddyfile.bak-accesslog-20260622-044859, /etc/caddy/Caddyfile.bak-logrotate-10g-20260622-045436
  - 查看最新日志: tail -f /var/log/caddy/aihub_access.log
  - 统计访问路径: python3 -c 'import json,collections; c=collections.Counter(); [c.update([(json.loads(l).get("request") or {}).get("uri","").split("?")[0]]) for l in open("/var/log/caddy/aihub_access.log") if l.strip()]; print(c.most_common(50))'
  - 验证结果: caddy validate 通过，systemctl reload caddy 成功，网址/health 返回 200 且 access log 记录 /health
