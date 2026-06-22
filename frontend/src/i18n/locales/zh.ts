@@ -731,8 +731,6 @@ export default {
     copied: '已复制！',
     importToCcSwitch: '导入到 CCS',
     ccsEndpointSelect: '选择端点',
-    ccsLineDefault: '线路',
-    ccsLineIndexed: '线路 {n}',
     enable: '启用',
     disable: '禁用',
     nameLabel: '名称',

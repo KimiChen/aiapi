@@ -732,8 +732,6 @@ export default {
     copied: 'Copied!',
     importToCcSwitch: 'Import to CCS',
     ccsEndpointSelect: 'Select endpoint',
-    ccsLineDefault: 'Line',
-    ccsLineIndexed: 'Line {n}',
     enable: 'Enable',
     disable: 'Disable',
     nameLabel: 'Name',

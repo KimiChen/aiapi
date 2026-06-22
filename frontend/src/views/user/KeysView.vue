@@ -1168,9 +1168,9 @@ const selectedUseKeyBaseUrl = computed(() =>
   getPrimaryApiBaseUrl(publicSettings.value?.api_base_url, window.location.origin)
 )
 const ccsEndpointOptions = computed(() =>
-  apiBaseUrls.value.map((endpoint, index) => ({
+  apiBaseUrls.value.map((endpoint) => ({
     value: endpoint,
-    label: index === 0 ? t('keys.ccsLineDefault') : t('keys.ccsLineIndexed', { n: index + 1 }),
+    label: endpoint,
     endpoint,
   }))
 )
