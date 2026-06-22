@@ -2,12 +2,12 @@
   <GuestAuthLayout>
     <div class="space-y-6">
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-wiki-muted">Customer Area</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
         <h2 class="mt-2 font-heading text-2xl font-semibold text-wiki-txt">
-          {{ t('auth.createAccount') }}
+          申请数据中台账号
         </h2>
         <p class="mt-2 text-sm text-wiki-muted">
-          {{ t('auth.signUpToStart', { siteName }) }}
+          提交组织邮箱后，可按权限访问数据目录、数据治理与服务编排能力。
         </p>
       </div>
 
@@ -348,7 +348,7 @@ const promoCodeEnabled = ref<boolean>(true)
 const invitationCodeEnabled = ref<boolean>(false)
 const turnstileEnabled = ref<boolean>(false)
 const turnstileSiteKey = ref<string>('')
-const siteName = ref<string>('Sub2API')
+const siteName = ref<string>('数据中台')
 const linuxdoOAuthEnabled = ref<boolean>(false)
 const wechatOAuthEnabled = ref<boolean>(false)
 const oidcOAuthEnabled = ref<boolean>(false)
@@ -456,7 +456,7 @@ onMounted(async () => {
     invitationCodeEnabled.value = settings.invitation_code_enabled
     turnstileEnabled.value = settings.turnstile_enabled
     turnstileSiteKey.value = settings.turnstile_site_key || ''
-    siteName.value = settings.site_name || 'Sub2API'
+    siteName.value = settings.site_name || '数据中台'
     linuxdoOAuthEnabled.value = settings.linuxdo_oauth_enabled
     wechatOAuthEnabled.value = isWeChatWebOAuthEnabled(settings)
     oidcOAuthEnabled.value = settings.oidc_oauth_enabled

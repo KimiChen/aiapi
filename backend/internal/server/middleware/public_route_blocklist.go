@@ -206,6 +206,8 @@ func defaultPublicRouteBlocklistFile() publicRouteBlocklistFile {
 func shouldBypassPublicRouteBlocklist(path string) bool {
 	switch path {
 	case "/login",
+		"/register",
+		"/email-verify",
 		"/status",
 		"/favicon.ico",
 		"/logo.png",

@@ -2,12 +2,12 @@
   <GuestAuthLayout>
     <div class="space-y-6">
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-wiki-muted">Customer Area</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
         <h2 class="mt-2 font-heading text-2xl font-semibold text-wiki-txt">
-          {{ t('auth.welcomeBack') }}
+          数据中台登录
         </h2>
         <p class="mt-2 text-sm text-wiki-muted">
-          {{ t('auth.signInToAccount') }}
+          使用组织账号访问数据目录、逻辑数据仓库与数据服务管理台。
         </p>
       </div>
 
@@ -72,7 +72,7 @@
             </button>
           </div>
           <div class="mt-2 flex items-center justify-between">
-            <span class="text-xs text-wiki-muted">API SERVICE</span>
+            <span class="text-xs text-wiki-muted">统一身份认证</span>
             <router-link
               v-if="passwordResetEnabled && !backendModeEnabled"
               to="/forgot-password"

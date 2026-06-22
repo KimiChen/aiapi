@@ -38,7 +38,7 @@
               <h1 class="truncate font-heading text-base font-bold text-wiki-txt">
                 {{ displayName }}
               </h1>
-              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">API SERVICE</p>
+              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
             </div>
           </RouterLink>
         </div>
@@ -87,14 +87,14 @@
             >
               <Icon name="menu" size="md" :stroke-width="2" />
             </button>
-            <h2 class="font-heading text-lg font-semibold text-wiki-txt">概览</h2>
+            <h2 class="font-heading text-lg font-semibold text-wiki-txt">数据中台</h2>
           </div>
 
           <div class="flex items-center gap-3">
             <div class="hidden items-center gap-2 rounded-lg bg-wiki-surface2 px-3 py-1.5 text-sm sm:flex">
-              <Icon name="dollar" size="sm" class="text-wiki-accent" />
-              <span class="font-semibold">0.00</span>
-              <span class="text-wiki-muted">代币</span>
+              <Icon name="shield" size="sm" class="text-wiki-accent" />
+              <span class="font-semibold">统一认证</span>
+              <span class="text-wiki-muted">已启用</span>
             </div>
             <RouterLink
               :to="isAuthenticated ? dashboardPath : '/login'"
@@ -130,16 +130,16 @@
               <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                   <h3 class="font-heading text-base font-semibold text-wiki-txt">
-                    用量统计（近 30 天）
+                    数据资产概览（近 30 天）
                   </h3>
-                  <p class="mt-1 text-xs text-wiki-muted">今日 0 次请求 · 0 Token</p>
+                  <p class="mt-1 text-xs text-wiki-muted">今日同步 24 批次 · 异常 0 项</p>
                 </div>
                 <RouterLink
                   to="/login"
                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all hover:from-indigo-600 hover:to-violet-700"
                 >
-                  <Icon name="creditCard" size="sm" :stroke-width="2" />
-                  <span>立即充值</span>
+                  <Icon name="login" size="sm" :stroke-width="2" />
+                  <span>申请接入</span>
                 </RouterLink>
               </div>
 
@@ -164,8 +164,8 @@
             >
               <div class="mb-5 flex items-center justify-between gap-4">
                 <div>
-                  <h3 class="font-heading text-base font-semibold">全平台指标</h3>
-                  <p class="mt-1 text-xs text-white/65">24小时</p>
+                  <h3 class="font-heading text-base font-semibold">平台运行态</h3>
+                  <p class="mt-1 text-xs text-white/65">实时概览</p>
                 </div>
                 <div class="rounded-full bg-white/15 p-2">
                   <Icon name="chart" size="sm" :stroke-width="2" />
@@ -192,9 +192,9 @@
           <section class="mt-5 rounded-xl border border-wiki-border bg-white p-5">
             <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h3 class="font-heading text-base font-semibold text-wiki-txt">模型 TPS</h3>
+                <h3 class="font-heading text-base font-semibold text-wiki-txt">数据服务目录</h3>
                 <p class="text-xs text-wiki-muted">
-                  点击模型行展开上游分组 TPS 与 24h 延迟趋势
+                  按主题域查看来源系统、同步策略与服务等级
                 </p>
               </div>
               <div class="rounded-lg bg-wiki-surface2 p-1 text-xs font-medium text-wiki-muted">
@@ -207,26 +207,26 @@
               <table class="w-full min-w-[720px] text-left text-sm">
                 <thead class="bg-wiki-surface2 text-xs uppercase tracking-wide text-wiki-muted">
                   <tr>
-                    <th class="px-4 py-3 font-semibold">模型</th>
-                    <th class="px-4 py-3 font-semibold">请求数</th>
-                    <th class="px-4 py-3 font-semibold">输出 Token</th>
-                    <th class="px-4 py-3 font-semibold">工作时间</th>
-                    <th class="px-4 py-3 font-semibold">平均延迟</th>
-                    <th class="px-4 py-3 text-right font-semibold">TPS</th>
+                    <th class="px-4 py-3 font-semibold">主题域</th>
+                    <th class="px-4 py-3 font-semibold">数据源</th>
+                    <th class="px-4 py-3 font-semibold">数据量</th>
+                    <th class="px-4 py-3 font-semibold">同步策略</th>
+                    <th class="px-4 py-3 font-semibold">最近校验</th>
+                    <th class="px-4 py-3 text-right font-semibold">服务等级</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-wiki-border">
                   <tr
                     v-for="row in modelRows"
-                    :key="row.model"
+                    :key="row.domain"
                     class="transition-colors hover:bg-wiki-bg"
                   >
-                    <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.model }}</td>
-                    <td class="px-4 py-3 text-wiki-muted">{{ row.requests }}</td>
+                    <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.domain }}</td>
+                    <td class="px-4 py-3 text-wiki-muted">{{ row.sources }}</td>
                     <td class="px-4 py-3 text-wiki-muted">{{ row.output }}</td>
                     <td class="px-4 py-3 text-wiki-muted">{{ row.work }}</td>
                     <td class="px-4 py-3 text-wiki-muted">{{ row.latency }}</td>
-                    <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.tps }}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.sla }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -237,30 +237,30 @@
             <div class="rounded-xl border border-wiki-border bg-white p-5">
               <div class="mb-4 flex items-center gap-2">
                 <Icon name="book" size="sm" class="text-wiki-accent" :stroke-width="2" />
-                <h3 class="font-heading text-base font-semibold text-wiki-txt">接入文档</h3>
+                <h3 class="font-heading text-base font-semibold text-wiki-txt">接入规范</h3>
               </div>
               <p class="text-sm text-wiki-muted">
-                所有模型（OpenAI / Claude / Gemini 等）均使用同一入口，网关会自动识别格式并转发上游。
+                面向业务系统提供统一数据模型、逻辑数据仓库与实时 CDC 管道，降低跨库查询与报表整合成本。
               </p>
               <div class="mt-4 rounded-xl bg-slate-900 p-4 font-mono text-xs text-slate-100">
-                <p class="text-emerald-300">curl /v1/chat/completions \</p>
-                <p class="pl-3 text-slate-300">-H "Authorization: Bearer sk-xxxx" \</p>
-                <p class="pl-3 text-slate-300">-H "Content-Type: application/json" \</p>
-                <p class="pl-3 text-amber-200">-d '{"model":"claude-sonnet-4","messages":[...]}'</p>
+                <p class="text-emerald-300">SELECT customer_id, risk_level, updated_at</p>
+                <p class="pl-3 text-slate-300">FROM fabric.customer_profile</p>
+                <p class="pl-3 text-slate-300">WHERE biz_date = CURRENT_DATE</p>
+                <p class="pl-3 text-amber-200">AND data_quality_status = 'PASS';</p>
               </div>
             </div>
 
             <div class="rounded-xl border border-wiki-border bg-white p-5">
               <div class="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h3 class="font-heading text-base font-semibold text-wiki-txt">最近调用</h3>
+                  <h3 class="font-heading text-base font-semibold text-wiki-txt">最近任务</h3>
                   <p class="text-xs text-wiki-muted">查看全部</p>
                 </div>
                 <Icon name="clock" size="sm" class="text-slate-300" :stroke-width="1.5" />
               </div>
               <div class="flex min-h-[130px] flex-col items-center justify-center text-center">
                 <Icon name="clock" size="xl" class="mb-3 text-slate-200" :stroke-width="1.5" />
-                <p class="text-sm text-wiki-muted">暂无记录</p>
+                <p class="text-sm text-wiki-muted">暂无异常任务</p>
               </div>
             </div>
           </section>
@@ -284,9 +284,11 @@ const mobileOpen = ref(false)
 
 const siteName = computed(() => {
   const name = appStore.cachedPublicSettings?.site_name || appStore.siteName || ''
-  return name.trim() && name.trim() !== 'Sub2API' ? name.trim() : ''
+  const trimmed = name.trim()
+  const legacyDefaultName = ['Sub', '2', 'API'].join('')
+  return trimmed && trimmed !== legacyDefaultName ? trimmed : ''
 })
-const displayName = computed(() => siteName.value || 'AI Console')
+const displayName = computed(() => siteName.value || '数据中台')
 const siteLogo = computed(() => appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '')
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 const isHomeContentUrl = computed(() => {
@@ -298,58 +300,58 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 const dashboardPath = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
 
 const navItems = [
-  { label: '概览', target: 'overview', icon: 'grid' as const, active: true },
-  { label: 'API Key', target: 'login', icon: 'key' as const, active: false },
-  { label: '充值', target: 'login', icon: 'creditCard' as const, active: false },
-  { label: '用量', target: 'usage', icon: 'chart' as const, active: false },
-  { label: '模型', target: 'models', icon: 'cpu' as const, active: false },
-  { label: '文档', target: 'docs', icon: 'book' as const, active: false }
+  { label: '总览', target: 'overview', icon: 'grid' as const, active: true },
+  { label: '数据目录', target: 'catalog', icon: 'database' as const, active: false },
+  { label: '数据治理', target: 'governance', icon: 'shield' as const, active: false },
+  { label: '交换任务', target: 'usage', icon: 'sync' as const, active: false },
+  { label: '服务编排', target: 'models', icon: 'cube' as const, active: false },
+  { label: '接入规范', target: 'docs', icon: 'book' as const, active: false }
 ]
 
 const overviewCards = [
   {
-    label: '代币余额',
-    value: '0.000000',
-    detail: '点击充值',
-    icon: 'dollar' as const,
+    label: '已登记数据资产',
+    value: '1,248 项',
+    detail: '覆盖 18 个业务域',
+    icon: 'database' as const,
     iconClass: 'bg-indigo-50 text-wiki-accent'
   },
   {
-    label: 'API Key',
-    value: '1 个活跃 Key',
-    detail: '自动（最便宜）',
-    icon: 'key' as const,
+    label: '数据服务',
+    value: '86 个服务',
+    detail: '统一目录与权限',
+    icon: 'cube' as const,
     iconClass: 'bg-violet-50 text-wiki-accent2'
   },
   {
-    label: '可用模型',
-    value: '20 个在线模型',
-    detail: 'OpenAI / Claude / Gemini',
-    icon: 'cpu' as const,
+    label: '质量规则',
+    value: '312 条在线',
+    detail: '自动稽核与追溯',
+    icon: 'shield' as const,
     iconClass: 'bg-purple-50 text-purple-500'
   }
 ]
 
 const usageMetrics = [
-  { label: '请求数', value: '0', detail: '总调用次数', icon: 'chartBar' as const, color: 'text-indigo-500' },
-  { label: '输入', value: '0', detail: '提示词 Token', icon: 'download' as const, color: 'text-sky-500' },
-  { label: '输出', value: '0', detail: '补全 Token', icon: 'upload' as const, color: 'text-emerald-500' },
-  { label: '缓存', value: '0', detail: '读取 + 写入', icon: 'database' as const, color: 'text-amber-500' },
-  { label: '总 Token', value: '0', detail: '全部累计', icon: 'calculator' as const, color: 'text-violet-600' }
+  { label: '交换批次', value: '724', detail: '今日已完成', icon: 'sync' as const, color: 'text-indigo-500' },
+  { label: '实时通道', value: '36', detail: 'CDC 运行中', icon: 'download' as const, color: 'text-sky-500' },
+  { label: '服务调用', value: '18.6K', detail: '业务系统访问', icon: 'upload' as const, color: 'text-emerald-500' },
+  { label: '质量稽核', value: '99.6%', detail: '规则通过率', icon: 'database' as const, color: 'text-amber-500' },
+  { label: '数据血缘', value: '1,904', detail: '字段级链路', icon: 'calculator' as const, color: 'text-violet-600' }
 ]
 
 const platformMetrics = [
-  { label: '缓存命中率', value: '88.1%', detail: 'read + write', icon: 'database' as const },
-  { label: '平均延迟', value: '11.1s', detail: '单次请求', icon: 'clock' as const },
-  { label: '请求数', value: '6,425', detail: '全站累计', icon: 'bolt' as const }
+  { label: '数据新鲜度', value: '96.8%', detail: '按 SLA 达标', icon: 'database' as const },
+  { label: '平均同步延迟', value: '2.4s', detail: '实时链路', icon: 'clock' as const },
+  { label: '可用性', value: '99.95%', detail: '核心服务', icon: 'bolt' as const }
 ]
 
 const modelRows = [
-  { model: 'claude-opus-4', requests: '2,164', output: '19.32M', work: '6.8h', latency: '11.3s', tps: '791.8' },
-  { model: 'claude-sonnet-4', requests: '644', output: '36.59M', work: '1.4h', latency: '11.7s', tps: '1267.3' },
-  { model: 'claude-opus-4-thinking', requests: '443', output: '3.41M', work: '12.4m', latency: '16.9s', tps: '4588.8' },
-  { model: 'gpt-5.5', requests: '1,839', output: '584.1K', work: '5.4h', latency: '10.6s', tps: '29.9' },
-  { model: 'gpt-image-2', requests: '173', output: '438', work: '38s', latency: '38.3s', tps: '19.2' }
+  { domain: '客户主数据', sources: 'CRM / 会员中心', output: '18.2M 行', work: 'CDC 实时', latency: '2 分钟前', sla: '核心' },
+  { domain: '交易明细', sources: '订单库 / 支付库', output: '42.6M 行', work: '准实时', latency: '1 分钟前', sla: '核心' },
+  { domain: '库存与供应链', sources: 'ERP / WMS', output: '7.4M 行', work: '15 分钟批', latency: '通过', sla: '重要' },
+  { domain: '经营指标', sources: '财务 / BI', output: '864 张宽表', work: '小时级', latency: '通过', sla: '重要' },
+  { domain: '风控标签', sources: '规则引擎 / 日志', output: '2,318 标签', work: '事件驱动', latency: '通过', sla: '敏感' }
 ]
 
 function handleNavClick(target: string) {

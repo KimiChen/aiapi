@@ -1,5 +1,5 @@
 /**
- * Vue Router configuration for Sub2API frontend
+ * Vue Router configuration for the frontend
  * Defines all application routes with lazy loading and navigation guards
  */
 
@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/guest/HomeView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'AI Console'
+      title: '数据中台'
     }
   },
   {
@@ -46,7 +46,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/guest/LoginView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Customer Area'
+      title: '数据中台登录'
     }
   },
   {
@@ -55,7 +55,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/guest/RegisterView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Create Account',
+      title: '账号申请',
       titleKey: 'auth.createAccount'
     }
   },
@@ -665,7 +665,7 @@ const routes: RouteRecordRaw[] = [
  * Create router instance
  */
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory('/'),
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     // Scroll to saved position when using browser back/forward

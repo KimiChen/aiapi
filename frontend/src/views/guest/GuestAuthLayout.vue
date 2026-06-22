@@ -21,7 +21,7 @@
               <h1 class="truncate font-heading text-base font-bold text-wiki-txt">
                 {{ displayName }}
               </h1>
-              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">API SERVICE</p>
+              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
             </div>
           </RouterLink>
         </div>
@@ -70,14 +70,14 @@
               <p class="truncate font-heading text-base font-semibold text-wiki-txt">
                 {{ displayName }}
               </p>
-              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">API SERVICE</p>
+              <p class="text-[11px] uppercase tracking-wide text-wiki-muted">DATA FABRIC</p>
             </div>
           </RouterLink>
 
           <div class="hidden items-center gap-2 rounded-lg bg-wiki-surface2 px-3 py-1.5 text-sm lg:flex">
-            <Icon name="dollar" size="sm" class="text-wiki-accent" />
-            <span class="font-semibold">0.00</span>
-            <span class="text-wiki-muted">credits</span>
+            <Icon name="shield" size="sm" class="text-wiki-accent" />
+            <span class="font-semibold">统一认证</span>
+            <span class="text-wiki-muted">enabled</span>
           </div>
 
           <div class="flex items-center gap-2">
@@ -108,8 +108,8 @@
               >
                 <div class="mb-5 flex items-center justify-between gap-4">
                   <div>
-                    <p class="text-sm font-medium text-white/75">Unified API Service</p>
-                    <h2 class="mt-1 font-heading text-2xl font-semibold">Gateway Console</h2>
+                    <p class="text-sm font-medium text-white/75">Data Fabric Platform</p>
+                    <h2 class="mt-1 font-heading text-2xl font-semibold">数据中台门户</h2>
                   </div>
                   <div class="rounded-full bg-white/15 p-2">
                     <Icon name="sparkles" size="md" :stroke-width="2" />
@@ -149,8 +149,8 @@
               <div class="rounded-xl border border-wiki-border bg-white p-5">
                 <div class="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 class="font-heading text-base font-semibold text-wiki-txt">Model TPS</h3>
-                    <p class="text-xs text-wiki-muted">近 24 小时平台指标</p>
+                    <h3 class="font-heading text-base font-semibold text-wiki-txt">主题域服务</h3>
+                    <p class="text-xs text-wiki-muted">近 24 小时数据服务状态</p>
                   </div>
                   <div class="rounded-lg bg-wiki-surface2 p-1 text-xs font-medium text-wiki-muted">
                     <span class="rounded-md bg-white px-3 py-1 text-wiki-txt shadow-sm">24h</span>
@@ -162,24 +162,24 @@
                   <table class="w-full min-w-[560px] text-left text-sm">
                     <thead class="bg-wiki-surface2 text-xs uppercase tracking-wide text-wiki-muted">
                       <tr>
-                        <th class="px-4 py-3 font-semibold">Model</th>
-                        <th class="px-4 py-3 font-semibold">Requests</th>
-                        <th class="px-4 py-3 font-semibold">Output</th>
-                        <th class="px-4 py-3 font-semibold">Latency</th>
-                        <th class="px-4 py-3 text-right font-semibold">TPS</th>
+                        <th class="px-4 py-3 font-semibold">主题域</th>
+                        <th class="px-4 py-3 font-semibold">访问</th>
+                        <th class="px-4 py-3 font-semibold">资产量</th>
+                        <th class="px-4 py-3 font-semibold">同步</th>
+                        <th class="px-4 py-3 text-right font-semibold">状态</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-wiki-border">
                       <tr
                         v-for="row in modelRows"
-                        :key="row.model"
+                        :key="row.domain"
                         class="transition-colors hover:bg-wiki-bg"
                       >
-                        <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.model }}</td>
+                        <td class="px-4 py-3 font-medium text-wiki-txt">{{ row.domain }}</td>
                         <td class="px-4 py-3 text-wiki-muted">{{ row.requests }}</td>
                         <td class="px-4 py-3 text-wiki-muted">{{ row.output }}</td>
                         <td class="px-4 py-3 text-wiki-muted">{{ row.latency }}</td>
-                        <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.tps }}</td>
+                        <td class="px-4 py-3 text-right font-semibold text-wiki-accent">{{ row.status }}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -218,57 +218,59 @@ const appStore = useAppStore()
 
 const siteName = computed(() => {
   const name = appStore.cachedPublicSettings?.site_name || appStore.siteName || ''
-  return name.trim() && name.trim() !== 'Sub2API' ? name.trim() : ''
+  const trimmed = name.trim()
+  const legacyDefaultName = ['Sub', '2', 'API'].join('')
+  return trimmed && trimmed !== legacyDefaultName ? trimmed : ''
 })
-const displayName = computed(() => siteName.value || 'AI Console')
+const displayName = computed(() => siteName.value || '数据中台')
 const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
 const docUrl = computed(() => appStore.cachedPublicSettings?.doc_url || appStore.docUrl || '')
 const currentYear = computed(() => new Date().getFullYear())
 
 const navItems = [
-  { label: '概览', to: '/home', icon: 'grid' as const, active: false },
-  { label: 'API Key', to: '/login', icon: 'key' as const, active: true },
-  { label: '充值', to: '/login', icon: 'creditCard' as const, active: false },
-  { label: '用量', to: '/login', icon: 'chart' as const, active: false },
-  { label: '模型', to: '/login', icon: 'cpu' as const, active: false },
-  { label: '文档', to: '/home', icon: 'book' as const, active: false }
+  { label: '总览', to: '/home', icon: 'grid' as const, active: false },
+  { label: '账号登录', to: '/login', icon: 'key' as const, active: true },
+  { label: '数据目录', to: '/login', icon: 'database' as const, active: false },
+  { label: '数据治理', to: '/login', icon: 'shield' as const, active: false },
+  { label: '服务编排', to: '/login', icon: 'cube' as const, active: false },
+  { label: '接入规范', to: '/home', icon: 'book' as const, active: false }
 ]
 
 const heroMetrics = [
-  { label: 'Cache Hit', value: '88.1%', detail: 'read + write' },
-  { label: 'Latency', value: '11.1s', detail: 'per request' },
-  { label: 'Requests', value: '6,425', detail: 'last 24h' }
+  { label: 'Quality', value: '99.6%', detail: 'rules passed' },
+  { label: 'Freshness', value: '96.8%', detail: 'SLA met' },
+  { label: 'Services', value: '86', detail: 'published' }
 ]
 
 const statCards = [
   {
-    label: 'Token Balance',
-    value: '0.000000',
-    detail: 'credits available',
-    icon: 'dollar' as const,
+    label: '数据资产',
+    value: '1,248 项',
+    detail: '统一登记',
+    icon: 'database' as const,
     iconClass: 'bg-indigo-50 text-wiki-accent'
   },
   {
-    label: 'API Key',
-    value: '1 active',
-    detail: 'auto routing enabled',
-    icon: 'key' as const,
+    label: '数据服务',
+    value: '86 个',
+    detail: '授权访问',
+    icon: 'cube' as const,
     iconClass: 'bg-violet-50 text-wiki-accent2'
   },
   {
-    label: 'Models',
-    value: '20 online',
-    detail: 'multi-platform access',
-    icon: 'cpu' as const,
+    label: '治理规则',
+    value: '312 条',
+    detail: '质量稽核',
+    icon: 'shield' as const,
     iconClass: 'bg-purple-50 text-purple-500'
   }
 ]
 
 const modelRows = [
-  { model: 'claude-opus-4', requests: '2,164', output: '19.32M', latency: '11.3s', tps: '791.8' },
-  { model: 'claude-sonnet-4', requests: '644', output: '36.59M', latency: '11.7s', tps: '1267.3' },
-  { model: 'gpt-5.5', requests: '1,839', output: '584.1K', latency: '10.6s', tps: '29.9' },
-  { model: 'gpt-image-2', requests: '173', output: '438', latency: '38.3s', tps: '19.2' }
+  { domain: '客户主数据', requests: '2,164', output: '18.2M 行', latency: 'CDC 实时', status: '正常' },
+  { domain: '交易明细', requests: '6,442', output: '42.6M 行', latency: '准实时', status: '正常' },
+  { domain: '库存供应链', requests: '1,839', output: '7.4M 行', latency: '15 分钟', status: '正常' },
+  { domain: '经营指标', requests: '873', output: '864 张表', latency: '小时级', status: '正常' }
 ]
 
 onMounted(() => {

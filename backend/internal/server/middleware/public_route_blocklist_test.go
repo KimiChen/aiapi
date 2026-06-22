@@ -115,6 +115,8 @@ func TestPublicRouteBlocklistMiddleware(t *testing.T) {
 		{path: "/setup", wantStatus: http.StatusNotFound, wantBody: "404 Not Found"},
 		{path: "/setup/status", wantStatus: http.StatusNotFound, wantBody: "404 Not Found"},
 		{path: "/login", wantStatus: http.StatusOK, wantBody: "ok"},
+		{path: "/register", wantStatus: http.StatusOK, wantBody: "ok"},
+		{path: "/email-verify", wantStatus: http.StatusOK, wantBody: "ok"},
 		{path: "/v1/usage", wantStatus: http.StatusOK, wantBody: "ok"},
 		{path: "/assets/app.js", wantStatus: http.StatusOK, wantBody: "ok"},
 		{path: "/static/app/res/app.js", wantStatus: http.StatusOK, wantBody: "ok"},
