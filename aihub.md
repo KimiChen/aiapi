@@ -7,6 +7,15 @@ aihub 当前镜像: weishaw/sub2api:latest
 aihub 查看容器状态: cd /opt/compose/sub2api-deploy && docker compose ps
 aihub 查看应用日志: docker logs -f --tail 200 sub2api
 aihub 健康检查: curl -fsS 网址/health
+aihub Caddy access log:
+ - 2026-06-22 已开启完整 JSON access log
+ - Caddy 配置文件: /etc/caddy/Caddyfile
+ - 日志文件: /var/log/caddy/aihub_access.log
+ - 轮转策略: roll_size 100MiB, roll_keep 10, roll_keep_for 720h
+ - 配置备份: /etc/caddy/Caddyfile.bak-accesslog-20260622-044859
+ - 查看最新日志: tail -f /var/log/caddy/aihub_access.log
+ - 统计访问路径: python3 -c 'import json,collections; c=collections.Counter(); [c.update([(json.loads(l).get("request") or {}).get("uri","").split("?")[0]]) for l in open("/var/log/caddy/aihub_access.log") if l.strip()]; print(c.most_common(50))'
+ - 验证结果: caddy validate 通过，systemctl reload caddy 成功，网址/health 返回 200 且 access log 记录 /health
 aihub 部署方式:
  - 本地先执行 `pnpm --dir frontend build`
  - 在 `backend/` 目录执行 linux/amd64 嵌入前端资源构建：
