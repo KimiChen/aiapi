@@ -41,7 +41,7 @@ const publicMessages: Record<LocaleCode, LocaleMessages> = {
       },
       dontHaveAccount: '还没有账号？',
       emailLabel: '邮箱',
-      emailPlaceholder: 'name@example.com',
+      emailPlaceholder: "name{'@'}example.com",
       emailOAuth: {
         signIn: '使用 {providerName} 登录',
       },
@@ -115,6 +115,7 @@ const publicMessages: Record<LocaleCode, LocaleMessages> = {
       sendResetLinkFailed: '发送重置链接失败',
       sendingResetLink: '发送中...',
       signIn: '登录',
+      signUp: '注册',
       signingIn: '登录中...',
       turnstileExpired: '验证已过期，请重新验证',
       turnstileFailed: '验证失败，请重试',
@@ -169,7 +170,7 @@ const publicMessages: Record<LocaleCode, LocaleMessages> = {
       },
       dontHaveAccount: "Don't have an account?",
       emailLabel: 'Email',
-      emailPlaceholder: 'name@example.com',
+      emailPlaceholder: "name{'@'}example.com",
       emailOAuth: {
         signIn: 'Sign in with {providerName}',
       },
@@ -243,6 +244,7 @@ const publicMessages: Record<LocaleCode, LocaleMessages> = {
       sendResetLinkFailed: 'Failed to send reset link',
       sendingResetLink: 'Sending...',
       signIn: 'Sign in',
+      signUp: 'Sign up',
       signingIn: 'Signing in...',
       turnstileExpired: 'Verification expired. Try again.',
       turnstileFailed: 'Verification failed. Try again.',
