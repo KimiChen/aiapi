@@ -86,7 +86,7 @@
         </header>
 
         <section class="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-          <div class="w-full max-w-[430px]">
+          <div class="w-full max-w-[430px] md:-translate-y-[28px] lg:-translate-x-[120px]">
             <div class="rounded-2xl border border-wiki-border bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.05)] sm:p-8">
               <slot />
             </div>
