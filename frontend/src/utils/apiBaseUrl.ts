@@ -19,3 +19,7 @@ export function formatApiBaseUrls(value: string | null | undefined): string {
 export function getPrimaryApiBaseUrl(value: string | null | undefined, fallback: string): string {
   return parseApiBaseUrls(value)[0] || fallback
 }
+
+export function formatApiBaseUrlLabel(value: string): string {
+  return value.replace(/^[a-z][a-z\d+.-]*:\/\//i, '')
+}

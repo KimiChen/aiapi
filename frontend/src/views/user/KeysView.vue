@@ -1084,7 +1084,7 @@ import {
   buildCcSwitchImportDeeplink,
   type CcSwitchClientType
 } from '@/utils/ccswitchImport'
-import { getPrimaryApiBaseUrl, parseApiBaseUrls } from '@/utils/apiBaseUrl'
+import { formatApiBaseUrlLabel, getPrimaryApiBaseUrl, parseApiBaseUrls } from '@/utils/apiBaseUrl'
 
 // Helper to format date for datetime-local input
 const formatDateTimeLocal = (isoDate: string): string => {
@@ -1170,7 +1170,7 @@ const selectedUseKeyBaseUrl = computed(() =>
 const ccsEndpointOptions = computed(() =>
   apiBaseUrls.value.map((endpoint) => ({
     value: endpoint,
-    label: endpoint,
+    label: formatApiBaseUrlLabel(endpoint),
     endpoint,
   }))
 )
