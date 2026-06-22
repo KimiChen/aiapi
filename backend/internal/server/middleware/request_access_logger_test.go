@@ -217,18 +217,18 @@ func TestLogger_HealthPathSkipped(t *testing.T) {
 
 	r := gin.New()
 	r.Use(Logger())
-	r.GET("/health", func(c *gin.Context) {
+	r.GET("/status", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	req := httptest.NewRequest(http.MethodGet, "/status", nil)
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatalf("status=%d", w.Code)
 	}
 	if len(sink.list()) != 0 {
-		t.Fatalf("health endpoint should not write access log")
+		t.Fatalf("status endpoint should not write access log")
 	}
 }
 

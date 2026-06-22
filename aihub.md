@@ -6,7 +6,7 @@ aihub 线上网址: 网址
 aihub 当前镜像: weishaw/sub2api:latest
 aihub 查看容器状态: cd /opt/compose/sub2api-deploy && docker compose ps
 aihub 查看应用日志: docker logs -f --tail 200 sub2api
-aihub 健康检查: curl -fsS 网址/health
+aihub 健康检查: curl -fsS 网址/status
 aihub Caddy access log:
  - 2026-06-22 已开启完整 JSON access log
  - Caddy 配置文件: /etc/caddy/Caddyfile

@@ -501,7 +501,7 @@ async function checkServiceAndReload() {
 
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await fetch('/health', {
+      const response = await fetch('/status', {
         method: 'GET',
         cache: 'no-cache'
       })
