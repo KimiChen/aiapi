@@ -330,6 +330,13 @@ type PublicSettings struct {
 	AllowUserViewErrorRequests bool `json:"allow_user_view_error_requests"`
 }
 
+type ClientEndpointSettings struct {
+	SiteName            string           `json:"site_name"`
+	APIBaseURL          string           `json:"api_base_url"`
+	CustomEndpoints     []CustomEndpoint `json:"custom_endpoints"`
+	HideCcsImportButton bool             `json:"hide_ccs_import_button"`
+}
+
 type LoginAgreementDocument struct {
 	ID        string `json:"id"`
 	Title     string `json:"title"`

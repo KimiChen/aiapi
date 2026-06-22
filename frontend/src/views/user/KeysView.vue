@@ -22,12 +22,14 @@
               :options="statusFilterOptions"
               @update:model-value="onStatusFilterChange"
             />
+            <Select
+              v-if="ccsEndpointOptions.length > 1 && !publicSettings?.hide_ccs_import_button"
+              :model-value="selectedCcsBaseUrl"
+              class="w-40"
+              :options="ccsEndpointOptions"
+              @update:model-value="selectedCcsBaseUrl = String($event || '')"
+            />
           </div>
-          <EndpointPopover
-            v-if="apiBaseUrls.length > 0 || (publicSettings?.custom_endpoints?.length ?? 0) > 0"
-            :api-base-url="publicSettings?.api_base_url || ''"
-            :custom-endpoints="publicSettings?.custom_endpoints || []"
-          />
         </div>
       </template>
 
@@ -325,24 +327,6 @@
                 v-if="!publicSettings?.hide_ccs_import_button"
                 class="flex items-center gap-1"
               >
-                <Select
-                  v-if="ccsEndpointOptions.length > 1"
-                  :model-value="selectedCcsBaseUrl"
-                  :options="ccsEndpointOptions"
-                  class="ccs-endpoint-select w-36"
-                  @update:model-value="selectedCcsBaseUrl = String($event || '')"
-                >
-                  <template #selected="{ option }">
-                    <span class="block truncate font-mono text-[11px]">
-                      {{ option?.label || t('keys.ccsEndpointSelect') }}
-                    </span>
-                  </template>
-                  <template #option="{ option }">
-                    <span class="min-w-0 flex-1 truncate font-mono text-xs">
-                      {{ option.label }}
-                    </span>
-                  </template>
-                </Select>
                 <button
                   @click="importToCcswitch(row)"
                   class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
@@ -1088,10 +1072,10 @@ import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 	import SearchInput from '@/components/common/SearchInput.vue'
 	import Icon from '@/components/icons/Icon.vue'
 	import UseKeyModal from '@/components/keys/UseKeyModal.vue'
-	import EndpointPopover from '@/components/keys/EndpointPopover.vue'
 	import GroupBadge from '@/components/common/GroupBadge.vue'
 	import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
-	import type { ApiKey, Group, PublicSettings, SubscriptionType, GroupPlatform } from '@/types'
+	import { settingsAPI } from '@/api/settings'
+	import type { ApiKey, ClientEndpointSettings, Group, SubscriptionType, GroupPlatform } from '@/types'
 import type { Column } from '@/components/common/types'
 import type { BatchApiKeyUsageStats } from '@/api/usage'
 import { formatDateTime } from '@/utils/format'
@@ -1173,7 +1157,7 @@ const selectedCcsBaseUrl = ref('')
 const selectedKey = ref<ApiKey | null>(null)
 const copiedKeyId = ref<number | null>(null)
 const groupSelectorKeyId = ref<number | null>(null)
-const publicSettings = ref<PublicSettings | null>(null)
+const publicSettings = ref<ClientEndpointSettings | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const dropdownPosition = ref<{ top?: number; bottom?: number; left: number } | null>(null)
 const groupButtonRefs = ref<Map<number, HTMLElement>>(new Map())
@@ -1186,7 +1170,8 @@ const selectedUseKeyBaseUrl = computed(() =>
 const ccsEndpointOptions = computed(() =>
   apiBaseUrls.value.map((endpoint, index) => ({
     value: endpoint,
-    label: index === 0 ? endpoint : `${index + 1}. ${endpoint}`,
+    label: index === 0 ? t('keys.ccsLineDefault') : t('keys.ccsLineIndexed', { n: index + 1 }),
+    endpoint,
   }))
 )
 
@@ -1399,12 +1384,19 @@ const loadUserGroupRates = async () => {
 
 const loadPublicSettings = async () => {
   try {
-    publicSettings.value =
-      await appStore.fetchPublicSettings() ||
-      appStore.cachedPublicSettings ||
-      publicSettings.value
+    const endpoints = await settingsAPI.getClientEndpoints()
+    publicSettings.value = endpoints
   } catch (error) {
-    console.error('Failed to load public settings:', error)
+    console.error('Failed to load client endpoint settings:', error)
+    const cached = appStore.cachedPublicSettings
+    if (cached) {
+      publicSettings.value = {
+        site_name: cached.site_name,
+        api_base_url: cached.api_base_url,
+        custom_endpoints: cached.custom_endpoints,
+        hide_ccs_import_button: cached.hide_ccs_import_button,
+      }
+    }
   }
 }
 

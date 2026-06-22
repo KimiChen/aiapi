@@ -103,6 +103,23 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 	})
 }
 
+// GetClientEndpointSettings returns endpoint settings needed by authenticated clients.
+// GET /api/v1/settings/client-endpoints
+func (h *SettingHandler) GetClientEndpointSettings(c *gin.Context) {
+	settings, err := h.settingService.GetPublicSettings(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, dto.ClientEndpointSettings{
+		SiteName:            settings.SiteName,
+		APIBaseURL:          settings.APIBaseURL,
+		CustomEndpoints:     dto.ParseCustomEndpoints(settings.CustomEndpoints),
+		HideCcsImportButton: settings.HideCcsImportButton,
+	})
+}
+
 // UnsubscribeNotificationEmail handles optional notification email opt-outs.
 // GET /api/v1/settings/email-unsubscribe?token=...
 func (h *SettingHandler) UnsubscribeNotificationEmail(c *gin.Context) {
