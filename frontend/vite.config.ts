@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
   const devPort = Number(env.VITE_DEV_PORT || 3000)
 
   return {
+    base: '/static/app/',
     plugins: [
       vue(),
       checker({
@@ -65,6 +66,9 @@ export default defineConfig(({ mode }) => {
     emptyOutDir: true,
     rollupOptions: {
       output: {
+        entryFileNames: 'res/[hash].js',
+        chunkFileNames: 'res/[hash].js',
+        assetFileNames: 'res/[hash][extname]',
         /**
          * 手动分包配置
          * 分离第三方库并按功能合并应用代码，避免循环依赖
@@ -111,6 +115,10 @@ export default defineConfig(({ mode }) => {
       port: devPort,
       proxy: {
         '/api': {
+          target: backendUrl,
+          changeOrigin: true
+        },
+        '/user': {
           target: backendUrl,
           changeOrigin: true
         },

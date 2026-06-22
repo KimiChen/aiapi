@@ -92,7 +92,7 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		cleanPath := strings.TrimPrefix(path, "/")
+		cleanPath := embeddedFrontendCleanPath(path)
 		if cleanPath == "" {
 			cleanPath = "index.html"
 		}
@@ -109,7 +109,7 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 		}
 
 		// Serve static files normally
-		s.fileServer.ServeHTTP(c.Writer, c.Request)
+		serveFrontendFile(c, s.fileServer, cleanPath)
 		c.Abort()
 	}
 }
@@ -230,7 +230,7 @@ func injectSiteTitle(html, settingsJSON []byte) []byte {
 		return html
 	}
 
-	newTitle := []byte("<title>" + cfg.SiteName + " - AI API Gateway</title>")
+	newTitle := []byte("<title>" + cfg.SiteName + " - Secure Portal</title>")
 	var buf bytes.Buffer
 	buf.Write(html[:titleStart])
 	buf.Write(newTitle)
@@ -261,7 +261,7 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 			return
 		}
 
-		cleanPath := strings.TrimPrefix(path, "/")
+		cleanPath := embeddedFrontendCleanPath(path)
 		if cleanPath == "" {
 			cleanPath = "index.html"
 		}
@@ -272,7 +272,7 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 			if tryServeOverrideFile(c, overrideDir, cleanPath) {
 				return
 			}
-			fileServer.ServeHTTP(c.Writer, c.Request)
+			serveFrontendFile(c, fileServer, cleanPath)
 			c.Abort()
 			return
 		}
@@ -309,6 +309,25 @@ func shouldBypassEmbeddedFrontend(path string) bool {
 		trimmed == "/responses" ||
 		strings.HasPrefix(trimmed, "/responses/") ||
 		strings.HasPrefix(trimmed, "/images/")
+}
+
+func embeddedFrontendCleanPath(path string) string {
+	cleanPath := strings.TrimPrefix(path, "/")
+	if strings.HasPrefix(cleanPath, "static/app/") {
+		return strings.TrimPrefix(cleanPath, "static/app/")
+	}
+	return cleanPath
+}
+
+func serveFrontendFile(c *gin.Context, fileServer http.Handler, cleanPath string) {
+	originalPath := c.Request.URL.Path
+	internalPath := "/" + strings.TrimPrefix(cleanPath, "/")
+	if cleanPath == "index.html" {
+		internalPath = "/"
+	}
+	c.Request.URL.Path = internalPath
+	fileServer.ServeHTTP(c.Writer, c.Request)
+	c.Request.URL.Path = originalPath
 }
 
 func serveIndexHTML(c *gin.Context, fsys fs.FS) {

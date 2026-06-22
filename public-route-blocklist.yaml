@@ -1,5 +1,11 @@
 enabled: true  # 是否启用公开路径 404 隐藏规则；false 表示完全不拦截
 rules:  # 需要返回 404 的公开业务路径规则列表
+  - match: exact   # 精确匹配：前端注册页面
+    path: /register  # 前端用户注册页面路径
+  - match: exact   # 精确匹配：前端邮箱验证页面
+    path: /email-verify  # 前端邮箱验证页面路径
+  - match: prefix  # 前缀匹配：前端第三方认证回调/补全页面
+    path: /auth/  # 前端 OAuth 回调、微信支付回调、钉钉邮箱补全等页面路径前缀
   - match: exact   # 精确匹配：前端找回密码页面
     path: /forgot-password  # 前端找回密码页面路径
   - match: exact   # 精确匹配：前端重置密码页面
@@ -10,6 +16,10 @@ rules:  # 需要返回 404 的公开业务路径规则列表
     path: /legal/  # 前端法律文档公开页面路径前缀，例如 /legal/*
   - match: prefix  # 前缀匹配：前端支付相关公开页面
     path: /payment/  # 前端支付相关公开页面路径前缀，例如 /payment/result、/payment/stripe
+  - match: exact   # 精确匹配：公开事件上报接口
+    path: /api/event_logging/batch  # 前端公开事件埋点批量上报接口路径
+  - match: exact   # 精确匹配：后端公开站点设置接口
+    path: /api/v1/settings/public  # 公开站点名称、注册开关、Turnstile 等设置接口路径
   - match: exact   # 精确匹配：后端发送邮箱验证码接口
     path: /api/v1/auth/send-verify-code  # 后端发送邮箱验证码接口，常用于注册/找回/绑定等公开流程
   - match: exact   # 精确匹配：后端优惠码公开校验接口

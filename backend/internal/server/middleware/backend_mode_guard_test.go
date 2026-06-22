@@ -177,25 +177,25 @@ func TestBackendModeAuthGuard(t *testing.T) {
 		{
 			name:       "enabled_allows_login",
 			enabled:    "true",
-			path:       "/api/v1/auth/login",
+			path:       "/user/login",
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "enabled_allows_login_2fa",
 			enabled:    "true",
-			path:       "/api/v1/auth/login/2fa",
+			path:       "/user/login/2fa",
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "enabled_allows_logout",
 			enabled:    "true",
-			path:       "/api/v1/auth/logout",
+			path:       "/user/logout",
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "enabled_allows_refresh",
 			enabled:    "true",
-			path:       "/api/v1/auth/refresh",
+			path:       "/user/refresh",
 			wantStatus: http.StatusOK,
 		},
 		{
@@ -344,6 +344,12 @@ func TestBackendModeAuthGuard(t *testing.T) {
 		},
 		{
 			name:       "enabled_blocks_register",
+			enabled:    "true",
+			path:       "/user/register",
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "enabled_blocks_legacy_register",
 			enabled:    "true",
 			path:       "/api/v1/auth/register",
 			wantStatus: http.StatusForbidden,

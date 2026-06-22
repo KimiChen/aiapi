@@ -31,6 +31,14 @@ func newAuthRoutesTestRouter(redisClient *redis.Client) *gin.Engine {
 		redisClient,
 		nil,
 	)
+	RegisterUserAuthRoutes(
+		router,
+		&handler.Handlers{
+			Auth: &handler.AuthHandler{},
+		},
+		redisClient,
+		nil,
+	)
 
 	return router
 }
@@ -48,9 +56,10 @@ func TestAuthRoutesRateLimitFailCloseWhenRedisUnavailable(t *testing.T) {
 
 	router := newAuthRoutesTestRouter(rdb)
 	paths := []string{
-		"/api/v1/auth/register",
-		"/api/v1/auth/login",
-		"/api/v1/auth/login/2fa",
+		"/user/register",
+		"/user/login",
+		"/user/login/2fa",
+		"/user/refresh",
 		"/api/v1/auth/send-verify-code",
 		"/api/v1/auth/oauth/pending/send-verify-code",
 	}
@@ -65,5 +74,35 @@ func TestAuthRoutesRateLimitFailCloseWhenRedisUnavailable(t *testing.T) {
 
 		require.Equal(t, http.StatusTooManyRequests, w.Code, "path=%s", path)
 		require.Contains(t, w.Body.String(), "rate limit exceeded", "path=%s", path)
+	}
+}
+
+func TestAuthRoutesPublicAuthMovedToUserPrefix(t *testing.T) {
+	router := newAuthRoutesTestRouter(nil)
+
+	tests := []struct {
+		method string
+		path   string
+		want   int
+	}{
+		{method: http.MethodPost, path: "/api/v1/auth/register", want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/api/v1/auth/login", want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/api/v1/auth/login/2fa", want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/api/v1/auth/refresh", want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/api/v1/auth/logout", want: http.StatusNotFound},
+		{method: http.MethodPost, path: "/user/logout", want: http.StatusOK},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.path, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(`{}`))
+			req.Header.Set("Content-Type", "application/json")
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			require.Equal(t, tc.want, w.Code)
+		})
 	}
 }

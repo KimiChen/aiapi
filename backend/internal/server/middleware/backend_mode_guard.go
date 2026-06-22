@@ -29,6 +29,13 @@ func BackendModeUserGuard(settingService *service.SettingService) gin.HandlerFun
 
 func backendModeAllowsAuthPath(path string) bool {
 	path = strings.ToLower(strings.TrimSpace(path))
+	switch path {
+	case "/user/login", "/user/login/2fa", "/user/logout", "/user/refresh":
+		return true
+	case "/user/register":
+		return false
+	}
+
 	for _, suffix := range []string{"/auth/login", "/auth/login/2fa", "/auth/logout", "/auth/refresh"} {
 		if strings.HasSuffix(path, suffix) {
 			return true

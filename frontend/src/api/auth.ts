@@ -3,7 +3,7 @@
  * Handles user login, registration, and logout operations
  */
 
-import { apiClient } from './client'
+import { apiClient, publicAuthClient } from './client'
 import type {
   LoginRequest,
   RegisterRequest,
@@ -89,7 +89,7 @@ export function clearAuthToken(): void {
  * @returns Authentication response with token and user data, or 2FA required response
  */
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const { data } = await apiClient.post<LoginResponse>('/auth/login', credentials)
+  const { data } = await publicAuthClient.post<LoginResponse>('/user/login', credentials)
 
   // Only store token if 2FA is not required
   if (!isTotp2FARequired(data)) {
@@ -112,7 +112,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
  * @returns Authentication response with token and user data
  */
 export async function login2FA(request: TotpLogin2FARequest): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>('/auth/login/2fa', request)
+  const { data } = await publicAuthClient.post<AuthResponse>('/user/login/2fa', request)
 
   // Store token and user data
   setAuthToken(data.access_token)
@@ -133,7 +133,7 @@ export async function login2FA(request: TotpLogin2FARequest): Promise<AuthRespon
  * @returns Authentication response with token and user data
  */
 export async function register(userData: RegisterRequest): Promise<AuthResponse> {
-  const { data } = await apiClient.post<AuthResponse>('/auth/register', userData)
+  const { data } = await publicAuthClient.post<AuthResponse>('/user/register', userData)
 
   // Store token and user data
   setAuthToken(data.access_token)
@@ -167,7 +167,7 @@ export async function logout(): Promise<void> {
   // Try to revoke the refresh token on the server
   if (refreshToken) {
     try {
-      await apiClient.post('/auth/logout', { refresh_token: refreshToken })
+      await publicAuthClient.post('/user/logout', { refresh_token: refreshToken })
     } catch {
       // Ignore errors - we still want to clear local state
     }
@@ -298,7 +298,7 @@ export async function refreshToken(): Promise<RefreshTokenResponse> {
     throw new Error('No refresh token available')
   }
 
-  const { data } = await apiClient.post<RefreshTokenResponse>('/auth/refresh', {
+  const { data } = await publicAuthClient.post<RefreshTokenResponse>('/user/refresh', {
     refresh_token: currentRefreshToken
   })
 
