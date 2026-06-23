@@ -1201,20 +1201,27 @@ func (s *SettingService) SetVersion(version string) {
 // feature names. Frontend code must treat missing flags as false.
 type PublicSettingsInjectionPayload map[string]any
 
-// GetGuestPublicSettingsForInjection returns the minimal settings needed by the
-// unauthenticated portal pages. Keep this payload narrow so page source does
-// not advertise logged-in feature flags.
-func (s *SettingService) GetGuestPublicSettingsForInjection(ctx context.Context) (any, error) {
+// GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
+// This implements the web.PublicSettingsProvider interface.
+func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any, error) {
 	settings, err := s.GetPublicSettings(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	payload := PublicSettingsInjectionPayload{}
+	addStringSettingUnless(payload, "site_name", settings.SiteName, legacyDefaultSiteName())
+	addStringSetting(payload, "site_logo", settings.SiteLogo)
+	addStringSettingUnless(payload, "site_subtitle", settings.SiteSubtitle, legacyDefaultSiteSubtitle())
+	addStringSetting(payload, "contact_info", settings.ContactInfo)
+	addStringSetting(payload, "doc_url", settings.DocURL)
+	addStringSetting(payload, "home_content", settings.HomeContent)
+
 	addTrueSetting(payload, "registration_enabled", settings.RegistrationEnabled)
 	if settings.RegistrationEnabled {
 		addTrueSetting(payload, "email_verify_enabled", settings.EmailVerifyEnabled)
 		addNonEmptyStringSliceSetting(payload, "registration_email_suffix_whitelist", settings.RegistrationEmailSuffixWhitelist)
+		addTrueSetting(payload, "promo_code_enabled", settings.PromoCodeEnabled)
 		addTrueSetting(payload, "invitation_code_enabled", settings.InvitationCodeEnabled)
 	}
 	if settings.LoginAgreementEnabled && len(settings.LoginAgreementDocuments) > 0 {
@@ -1233,70 +1240,6 @@ func (s *SettingService) GetGuestPublicSettingsForInjection(ctx context.Context)
 	addTrueSetting(payload, "backend_mode_enabled", settings.BackendModeEnabled)
 
 	return payload, nil
-}
-
-// GetPublicSettingsForInjection returns the full public settings payload used by
-// the authenticated app entry.
-func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any, error) {
-	settings, err := s.GetPublicSettings(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return PublicSettingsInjectionPayload{
-		"registration_enabled":                    settings.RegistrationEnabled,
-		"email_verify_enabled":                     settings.EmailVerifyEnabled,
-		"force_email_on_third_party_signup":        settings.ForceEmailOnThirdPartySignup,
-		"registration_email_suffix_whitelist":      settings.RegistrationEmailSuffixWhitelist,
-		"promo_code_enabled":                       settings.PromoCodeEnabled,
-		"password_reset_enabled":                   settings.PasswordResetEnabled,
-		"invitation_code_enabled":                  settings.InvitationCodeEnabled,
-		"totp_enabled":                             settings.TotpEnabled,
-		"login_agreement_enabled":                  settings.LoginAgreementEnabled,
-		"login_agreement_mode":                     settings.LoginAgreementMode,
-		"login_agreement_updated_at":               settings.LoginAgreementUpdatedAt,
-		"login_agreement_revision":                 settings.LoginAgreementRevision,
-		"login_agreement_documents":                settings.LoginAgreementDocuments,
-		"turnstile_enabled":                        settings.TurnstileEnabled,
-		"turnstile_site_key":                       settings.TurnstileSiteKey,
-		"site_name":                                settings.SiteName,
-		"site_logo":                                settings.SiteLogo,
-		"site_subtitle":                            settings.SiteSubtitle,
-		"api_base_url":                             settings.APIBaseURL,
-		"contact_info":                             settings.ContactInfo,
-		"doc_url":                                  settings.DocURL,
-		"home_content":                             settings.HomeContent,
-		"hide_ccs_import_button":                   settings.HideCcsImportButton,
-		"purchase_subscription_enabled":            settings.PurchaseSubscriptionEnabled,
-		"purchase_subscription_url":                settings.PurchaseSubscriptionURL,
-		"table_default_page_size":                  settings.TableDefaultPageSize,
-		"table_page_size_options":                  settings.TablePageSizeOptions,
-		"custom_menu_items":                        parsePublicMenuItems(settings.CustomMenuItems),
-		"custom_endpoints":                         parsePublicEndpoints(settings.CustomEndpoints),
-		"dingtalk_oauth_enabled":                   settings.DingTalkOAuthEnabled,
-		"linuxdo_oauth_enabled":                    settings.LinuxDoOAuthEnabled,
-		"wechat_oauth_enabled":                     settings.WeChatOAuthEnabled,
-		"wechat_oauth_open_enabled":                settings.WeChatOAuthOpenEnabled,
-		"wechat_oauth_mp_enabled":                  settings.WeChatOAuthMPEnabled,
-		"wechat_oauth_mobile_enabled":              settings.WeChatOAuthMobileEnabled,
-		"oidc_oauth_enabled":                       settings.OIDCOAuthEnabled,
-		"oidc_oauth_provider_name":                 settings.OIDCOAuthProviderName,
-		"github_oauth_enabled":                     settings.GitHubOAuthEnabled,
-		"google_oauth_enabled":                     settings.GoogleOAuthEnabled,
-		"backend_mode_enabled":                     settings.BackendModeEnabled,
-		"payment_enabled":                          settings.PaymentEnabled,
-		"version":                                  s.version,
-		"balance_low_notify_enabled":               settings.BalanceLowNotifyEnabled,
-		"account_quota_notify_enabled":             settings.AccountQuotaNotifyEnabled,
-		"balance_low_notify_threshold":             settings.BalanceLowNotifyThreshold,
-		"balance_low_notify_recharge_url":          settings.BalanceLowNotifyRechargeURL,
-		"channel_monitor_enabled":                  settings.ChannelMonitorEnabled,
-		"channel_monitor_default_interval_seconds": settings.ChannelMonitorDefaultIntervalSeconds,
-		"available_channels_enabled":               settings.AvailableChannelsEnabled,
-		"affiliate_enabled":                        settings.AffiliateEnabled,
-		"risk_control_enabled":                     settings.RiskControlEnabled,
-		"allow_user_view_error_requests":           settings.AllowUserViewErrorRequests,
-	}, nil
 }
 
 func addTrueSetting(payload PublicSettingsInjectionPayload, key string, value bool) {
@@ -1329,34 +1272,6 @@ func addNonEmptyStringSliceSetting(payload PublicSettingsInjectionPayload, key s
 	if len(values) > 0 {
 		payload[key] = values
 	}
-}
-
-func parsePublicMenuItems(raw string) []map[string]any {
-	items := parseJSONArraySetting(raw)
-	filtered := make([]map[string]any, 0, len(items))
-	for _, item := range items {
-		if visibility, ok := item["visibility"].(string); ok && visibility == "admin" {
-			continue
-		}
-		filtered = append(filtered, item)
-	}
-	return filtered
-}
-
-func parsePublicEndpoints(raw string) []map[string]any {
-	return parseJSONArraySetting(raw)
-}
-
-func parseJSONArraySetting(raw string) []map[string]any {
-	raw = strings.TrimSpace(raw)
-	if raw == "" || raw == "[]" {
-		return []map[string]any{}
-	}
-	var items []map[string]any
-	if err := json.Unmarshal([]byte(raw), &items); err != nil {
-		return []map[string]any{}
-	}
-	return items
 }
 
 func legacyDefaultSiteName() string {

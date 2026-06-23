@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
-  navigateToFullApp: vi.fn(),
+  enterFullApp: vi.fn(),
   isReady: vi.fn(),
   mount: vi.fn(),
+  setPublicApp: vi.fn(),
 }))
 
 vi.mock('vue', () => ({
@@ -28,9 +29,9 @@ vi.mock('./router/guest', () => ({
   isGuestPublicPath: (path: string) => ['/', '/login', '/register'].includes(path),
 }))
 
-vi.mock('@/public/appNavigation', () => ({
-  currentBrowserPath: () => `${window.location.pathname}${window.location.search}${window.location.hash}`,
-  navigateToFullApp: mocks.navigateToFullApp,
+vi.mock('@/public/fullAppBridge', () => ({
+  enterFullApp: mocks.enterFullApp,
+  setPublicApp: mocks.setPublicApp,
 }))
 
 describe('index-main bootstrap auth routing', () => {
@@ -52,17 +53,17 @@ describe('index-main bootstrap auth routing', () => {
     await vi.waitFor(() => expect(mocks.mount).toHaveBeenCalledWith('#app'))
     expect(window.location.pathname).toBe('/login')
     expect(new URLSearchParams(window.location.search).get('redirect')).toBe('/admin/accounts')
-    expect(mocks.navigateToFullApp).not.toHaveBeenCalled()
+    expect(mocks.enterFullApp).not.toHaveBeenCalled()
   })
 
-  it('redirects to the full app shell for protected startup URLs with a complete session', async () => {
+  it('enters the full app for protected startup URLs with a complete session', async () => {
     localStorage.setItem('auth_token', 'valid-token')
     localStorage.setItem('auth_user', JSON.stringify({ id: 1, role: 'admin' }))
     window.history.replaceState(null, '', '/admin/accounts')
 
     await import('./index-main')
 
-    await vi.waitFor(() => expect(mocks.navigateToFullApp).toHaveBeenCalledWith('/admin/accounts', true))
+    await vi.waitFor(() => expect(mocks.enterFullApp).toHaveBeenCalledWith('/admin/accounts'))
     expect(mocks.mount).not.toHaveBeenCalled()
   })
 })

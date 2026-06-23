@@ -123,6 +123,48 @@
           </transition>
         </div>
 
+        <div v-if="settings.promo_code_enabled">
+          <label for="promo_code" class="mb-1.5 block text-sm font-semibold text-slate-700">
+            优惠码
+            <span class="ml-1 text-xs font-normal text-slate-400">可选</span>
+          </label>
+          <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Icon name="gift" size="md" :class="promoValidation.valid ? 'text-green-500' : 'text-slate-400'" />
+            </div>
+            <input
+              id="promo_code"
+              v-model="formData.promo_code"
+              type="text"
+              :disabled="registrationActionDisabled"
+              class="guest-input pl-11 pr-10"
+              :class="{
+                'guest-input-valid': promoValidation.valid,
+                'guest-input-error': promoValidation.invalid,
+              }"
+              placeholder="请输入优惠码"
+              @input="handlePromoCodeInput"
+            />
+            <div v-if="promoValidating" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-500"></span>
+            </div>
+            <div v-else-if="promoValidation.valid" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
+              <Icon name="checkCircle" size="md" class="text-green-500" />
+            </div>
+            <div v-else-if="promoValidation.invalid" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
+              <Icon name="exclamationCircle" size="md" class="text-red-500" />
+            </div>
+          </div>
+          <transition name="fade">
+            <div v-if="promoValidation.valid" class="mt-2 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
+              <Icon name="gift" size="sm" class="text-green-600" />
+              <span class="text-sm text-green-700">
+                优惠码有效，奖励 {{ promoValidation.bonusAmount?.toFixed(2) }}
+              </span>
+            </div>
+          </transition>
+        </div>
+
         <div v-if="settings.turnstile_enabled && settings.turnstile_site_key">
           <TurnstileWidget
             ref="turnstileRef"
@@ -196,8 +238,9 @@ import {
   registerGuest,
   resolveGuestAffiliateCode,
   validateGuestInvitationCode,
+  validateGuestPromoCode,
 } from '@/api/guestAuth'
-import { navigateToFullApp } from '@/public/appNavigation'
+import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
 import {
   formatRegistrationEmailSuffixWhitelistForMessage,
   isRegistrationEmailSuffixAllowed,
@@ -218,6 +261,7 @@ interface GuestRegisterSettings {
   registration_enabled: boolean
   email_verify_enabled: boolean
   registration_email_suffix_whitelist: string[]
+  promo_code_enabled: boolean
   invitation_code_enabled: boolean
   turnstile_enabled: boolean
   turnstile_site_key: string
@@ -261,6 +305,7 @@ function getGuestRegisterSettings(): GuestRegisterSettings {
     registration_enabled: payload.registration_enabled === true,
     email_verify_enabled: payload.email_verify_enabled === true,
     registration_email_suffix_whitelist: stringArrayValue(payload.registration_email_suffix_whitelist),
+    promo_code_enabled: payload.promo_code_enabled === true,
     invitation_code_enabled: payload.invitation_code_enabled === true,
     turnstile_enabled: payload.turnstile_enabled === true,
     turnstile_site_key: stringValue(payload.turnstile_site_key),
@@ -284,16 +329,19 @@ const turnstileRef = ref<InstanceType<typeof TurnstileWidget> | null>(null)
 const turnstileToken = ref('')
 const agreementAccepted = ref(false)
 const showAgreementModal = ref(false)
+const promoValidating = ref(false)
 const invitationValidating = ref(false)
 const registrationEmailSuffixWhitelist = normalizeRegistrationEmailSuffixWhitelist(
   settings.registration_email_suffix_whitelist,
 )
 
+let promoValidateTimeout: ReturnType<typeof setTimeout> | null = null
 let invitationValidateTimeout: ReturnType<typeof setTimeout> | null = null
 
 const formData = reactive({
   email: '',
   password: '',
+  promo_code: '',
   invitation_code: '',
   aff_code: '',
 })
@@ -303,6 +351,13 @@ const errors = reactive({
   password: '',
   turnstile: '',
   invitation_code: '',
+})
+
+const promoValidation = reactive({
+  valid: false,
+  invalid: false,
+  bonusAmount: null as number | null,
+  message: '',
 })
 
 const invitationValidation = reactive({
@@ -329,6 +384,7 @@ const validationToastMessage = computed(
     errors.password ||
     (invitationValidation.invalid ? invitationValidation.message : '') ||
     errors.invitation_code ||
+    (promoValidation.invalid ? promoValidation.message : '') ||
     errors.turnstile ||
     '',
 )
@@ -344,6 +400,11 @@ showAgreementModal.value =
   loginAgreementEnabled.value && !agreementAccepted.value && settings.login_agreement_mode !== 'checkbox'
 formData.aff_code = resolveGuestAffiliateCode(route.query.aff, route.query.aff_code)
 
+if (settings.promo_code_enabled && typeof route.query.promo === 'string' && route.query.promo.trim()) {
+  formData.promo_code = route.query.promo.trim()
+  void validatePromoCodeDebounced(formData.promo_code)
+}
+
 watch(
   () => [route.query.aff, route.query.aff_code],
   () => {
@@ -352,6 +413,7 @@ watch(
 )
 
 onUnmounted(() => {
+  if (promoValidateTimeout) clearTimeout(promoValidateTimeout)
   if (invitationValidateTimeout) clearTimeout(invitationValidateTimeout)
 })
 
@@ -383,6 +445,56 @@ function rejectLoginAgreement(): void {
   agreementAccepted.value = false
   showAgreementModal.value = false
   toast.showWarning('未同意最新条款前，无法注册。')
+}
+
+function handlePromoCodeInput(): void {
+  const code = formData.promo_code.trim()
+  promoValidation.valid = false
+  promoValidation.invalid = false
+  promoValidation.bonusAmount = null
+  promoValidation.message = ''
+  if (!code) {
+    promoValidating.value = false
+    return
+  }
+  if (promoValidateTimeout) clearTimeout(promoValidateTimeout)
+  promoValidateTimeout = setTimeout(() => {
+    void validatePromoCodeDebounced(code)
+  }, 500)
+}
+
+async function validatePromoCodeDebounced(code: string): Promise<void> {
+  if (!code.trim()) return
+  promoValidating.value = true
+  try {
+    const result = await validateGuestPromoCode(code)
+    if (result.valid) {
+      promoValidation.valid = true
+      promoValidation.invalid = false
+      promoValidation.bonusAmount = result.bonus_amount || 0
+      promoValidation.message = ''
+    } else {
+      promoValidation.valid = false
+      promoValidation.invalid = true
+      promoValidation.bonusAmount = null
+      promoValidation.message = getPromoErrorMessage(result.error_code)
+    }
+  } catch {
+    promoValidation.valid = false
+    promoValidation.invalid = true
+    promoValidation.message = '优惠码无效'
+  } finally {
+    promoValidating.value = false
+  }
+}
+
+function getPromoErrorMessage(errorCode?: string): string {
+  if (errorCode === 'PROMO_CODE_NOT_FOUND') return '优惠码不存在'
+  if (errorCode === 'PROMO_CODE_EXPIRED') return '优惠码已过期'
+  if (errorCode === 'PROMO_CODE_DISABLED') return '优惠码已停用'
+  if (errorCode === 'PROMO_CODE_MAX_USED') return '优惠码已达使用上限'
+  if (errorCode === 'PROMO_CODE_ALREADY_USED') return '优惠码已使用'
+  return '优惠码无效'
 }
 
 function handleInvitationCodeInput(): void {
@@ -483,6 +595,17 @@ async function handleRegister(): Promise<void> {
   errorMessage.value = ''
   if (!validateForm()) return
 
+  if (formData.promo_code.trim()) {
+    if (promoValidating.value) {
+      errorMessage.value = '优惠码校验中，请稍候'
+      return
+    }
+    if (promoValidation.invalid) {
+      errorMessage.value = '优惠码无效，无法注册'
+      return
+    }
+  }
+
   if (settings.invitation_code_enabled) {
     if (invitationValidating.value) {
       errorMessage.value = '邀请码校验中，请稍候'
@@ -513,6 +636,7 @@ async function handleRegister(): Promise<void> {
           email: formData.email,
           password: formData.password,
           turnstile_token: turnstileToken.value,
+          promo_code: formData.promo_code || undefined,
           invitation_code: formData.invitation_code || undefined,
           ...(affCode ? { aff_code: affCode } : {}),
         }),
@@ -525,12 +649,13 @@ async function handleRegister(): Promise<void> {
       email: formData.email,
       password: formData.password,
       turnstile_token: settings.turnstile_enabled ? turnstileToken.value : undefined,
+      promo_code: formData.promo_code || undefined,
       invitation_code: formData.invitation_code || undefined,
       ...(affCode ? { aff_code: affCode } : {}),
     })
     clearGuestAffiliateCode()
     toast.showSuccess(`账号创建成功，欢迎使用 ${GUEST_SITE_NAME}`)
-    navigateToFullApp(`/${'dashboard'}`, true)
+    await navigateToAuthenticatedApp(router, `/${'dashboard'}`)
   } catch (error) {
     turnstileRef.value?.reset()
     turnstileToken.value = ''

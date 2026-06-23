@@ -30,17 +30,11 @@ const (
 	AirwallexDemoCheckoutDomain = "https://checkout-demo.airwallex.com"
 )
 
-var baseCSPDirectiveValues = []struct {
+var requiredCSPDirectiveValues = []struct {
 	directive string
 	value     string
 }{
 	{"script-src", CloudflareInsightsDomain},
-}
-
-var paymentCSPDirectiveValues = []struct {
-	directive string
-	value     string
-}{
 	{"script-src", StripeDomain},
 	{"frame-src", StripeDomain},
 	{"script-src", AirwallexStaticDomain},
@@ -84,14 +78,11 @@ func SecurityHeaders(cfg config.CSPConfig, getFrameSrcOrigins func() []string) g
 		policy = config.DefaultCSPPolicy
 	}
 
-	// Enhance policy with nonce placeholder and public-page-safe required directives.
+	// Enhance policy with required directives (nonce placeholder and Cloudflare Insights)
 	policy = enhanceCSPPolicy(policy)
 
 	return func(c *gin.Context) {
 		finalPolicy := policy
-		if isAuthenticatedAppShellPath(c) {
-			finalPolicy = enhancePaymentCSPPolicy(finalPolicy)
-		}
 		if getFrameSrcOrigins != nil {
 			for _, origin := range getFrameSrcOrigins() {
 				if origin != "" {
@@ -136,37 +127,21 @@ func isAPIRoutePath(c *gin.Context) bool {
 		strings.HasPrefix(path, "/images")
 }
 
-// enhanceCSPPolicy 确保 CSP 策略包含 nonce 支持和公共页所需域名。
+// enhanceCSPPolicy 确保 CSP 策略包含 nonce 支持和支付 SDK 必需域名。
+// 这样旧配置文件没有及时补域名时，前端支付组件仍能正常加载。
 func enhanceCSPPolicy(policy string) string {
 	// Add nonce placeholder to script-src if not present
 	if !strings.Contains(policy, NonceTemplate) && !strings.Contains(policy, "'nonce-") {
 		policy = addToDirective(policy, "script-src", NonceTemplate)
 	}
 
-	for _, required := range baseCSPDirectiveValues {
+	for _, required := range requiredCSPDirectiveValues {
 		if !directiveHasValue(policy, required.directive, required.value) {
 			policy = addToDirective(policy, required.directive, required.value)
 		}
 	}
 
 	return policy
-}
-
-func enhancePaymentCSPPolicy(policy string) string {
-	for _, required := range paymentCSPDirectiveValues {
-		if !directiveHasValue(policy, required.directive, required.value) {
-			policy = addToDirective(policy, required.directive, required.value)
-		}
-	}
-	return policy
-}
-
-func isAuthenticatedAppShellPath(c *gin.Context) bool {
-	if c == nil || c.Request == nil || c.Request.URL == nil {
-		return false
-	}
-	path := strings.TrimSuffix(c.Request.URL.Path, "/")
-	return path == "/app.html" || path == "/static/app/app.html"
 }
 
 func directiveHasValue(policy, directive, value string) bool {

@@ -69,7 +69,7 @@ import Icon from '@/components/icons/Icon.vue'
 
 const catalogRows = [
   { domain: '客户主数据', sources: 'CRM / 会员中心', output: '18.2M 行', work: 'CDC 实时', latency: '2 分钟前', sla: '核心' },
-  { domain: '交易明细', sources: '交易库 / 明细库', output: '42.6M 行', work: '准实时', latency: '1 分钟前', sla: '核心' },
+  { domain: '交易明细', sources: '订单库 / 支付库', output: '42.6M 行', work: '准实时', latency: '1 分钟前', sla: '核心' },
   { domain: '库存与供应链', sources: 'ERP / WMS', output: '7.4M 行', work: '15 分钟批', latency: '通过', sla: '重要' },
   { domain: '经营指标', sources: '财务 / BI', output: '864 张宽表', work: '小时级', latency: '通过', sla: '重要' },
   { domain: '风控标签', sources: '规则引擎 / 日志', output: '2,318 标签', work: '事件驱动', latency: '通过', sla: '敏感' }

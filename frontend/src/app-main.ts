@@ -5,9 +5,8 @@ import App from './App.vue'
 import router from './router'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
-import { consumeFullAppEntryRedirect } from '@/public/appNavigation'
+import { markFullAppActive } from '@/public/fullAppBridge'
 import './style.css'
-import './payment-style.css'
 
 function initThemeClass() {
   const savedTheme = localStorage.getItem('theme')
@@ -25,7 +24,7 @@ export async function mountFullApp(selector = '#app'): Promise<VueApp<Element>> 
   }
 
   initThemeClass()
-  consumeFullAppEntryRedirect()
+  markFullAppActive()
 
   const app = createApp(App)
   const pinia = createPinia()

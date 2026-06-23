@@ -5,7 +5,7 @@ import publicRouter, {
   isFullAppPublicPath,
   isGuestPublicPath,
 } from './router/guest'
-import { currentBrowserPath, navigateToFullApp } from '@/public/appNavigation'
+import { enterFullApp, setPublicApp } from '@/public/fullAppBridge'
 import './style.css'
 
 const GUEST_SITE_NAME = '企业数据中台'
@@ -19,7 +19,7 @@ function initThemeClass() {
 }
 
 function currentPath(): string {
-  return currentBrowserPath()
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`
 }
 
 function hasPersistedAuthSession(): boolean {
@@ -53,6 +53,7 @@ async function mountPublicApp(): Promise<VueApp<Element>> {
   document.title = `${GUEST_SITE_NAME} - Secure Portal`
 
   app.use(publicRouter)
+  setPublicApp(app)
 
   await publicRouter.isReady()
   app.mount('#app')
@@ -64,7 +65,7 @@ async function bootstrap() {
 
   if (!isGuestPublicPath(pathname)) {
     if (hasPersistedAuthSession() || isFullAppPublicPath(pathname)) {
-      navigateToFullApp(currentPath(), true)
+      await enterFullApp(currentPath())
       return
     }
 
