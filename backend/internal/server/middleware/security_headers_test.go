@@ -331,22 +331,34 @@ func TestEnhanceCSPPolicy(t *testing.T) {
 		assert.Contains(t, enhanced, "'nonce-existing'")
 	})
 
-	t.Run("adds_airwallex_domains_for_payment_sdk", func(t *testing.T) {
+	t.Run("does_not_add_payment_domains_to_public_policy", func(t *testing.T) {
 		policy := "default-src 'self'; script-src 'self' __CSP_NONCE__; style-src 'self'; frame-src 'self'"
 		enhanced := enhanceCSPPolicy(policy)
 
 		assert.Contains(t, enhanced, "script-src 'self' __CSP_NONCE__")
-		assert.Contains(t, enhanced, AirwallexStaticDomain)
-		assert.Contains(t, enhanced, AirwallexCheckoutDomain)
-		assert.Contains(t, enhanced, AirwallexDemoStaticDomain)
-		assert.Contains(t, enhanced, AirwallexDemoCheckoutDomain)
+		assert.NotContains(t, enhanced, StripeDomain)
+		assert.NotContains(t, enhanced, AirwallexStaticDomain)
+		assert.NotContains(t, enhanced, AirwallexCheckoutDomain)
+		assert.NotContains(t, enhanced, AirwallexDemoStaticDomain)
+		assert.NotContains(t, enhanced, AirwallexDemoCheckoutDomain)
 		assert.Contains(t, enhanced, "style-src 'self'")
 		assert.Contains(t, enhanced, "frame-src 'self'")
 	})
 
-	t.Run("does_not_duplicate_airwallex_domains", func(t *testing.T) {
+	t.Run("adds_payment_domains_for_authenticated_app_shell", func(t *testing.T) {
+		policy := "default-src 'self'; script-src 'self' __CSP_NONCE__; style-src 'self'; frame-src 'self'"
+		enhanced := enhancePaymentCSPPolicy(enhanceCSPPolicy(policy))
+
+		assert.Contains(t, enhanced, StripeDomain)
+		assert.Contains(t, enhanced, AirwallexStaticDomain)
+		assert.Contains(t, enhanced, AirwallexCheckoutDomain)
+		assert.Contains(t, enhanced, AirwallexDemoStaticDomain)
+		assert.Contains(t, enhanced, AirwallexDemoCheckoutDomain)
+	})
+
+	t.Run("does_not_duplicate_payment_domains", func(t *testing.T) {
 		policy := "default-src 'self'; script-src 'self' https://static.airwallex.com https://static-demo.airwallex.com; frame-src https://checkout.airwallex.com https://checkout-demo.airwallex.com"
-		enhanced := enhanceCSPPolicy(policy)
+		enhanced := enhancePaymentCSPPolicy(enhanceCSPPolicy(policy))
 
 		assert.Equal(t, 1, countDirectiveValue(enhanced, "script-src", AirwallexStaticDomain))
 		assert.Equal(t, 1, countDirectiveValue(enhanced, "script-src", AirwallexCheckoutDomain))

@@ -65,6 +65,10 @@ export default defineConfig(({ mode }) => {
     outDir: '../backend/internal/web/dist',
     emptyOutDir: true,
     rollupOptions: {
+      input: {
+        index: resolve(__dirname, 'index.html'),
+        app: resolve(__dirname, 'app.html'),
+      },
       output: {
         entryFileNames: 'res/[hash].js',
         chunkFileNames: 'res/[hash].js',

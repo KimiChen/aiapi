@@ -23,16 +23,8 @@ export interface GuestRegisterRequest {
   password: string
   verify_code?: string
   turnstile_token?: string
-  promo_code?: string
   invitation_code?: string
   aff_code?: string
-}
-
-export interface GuestValidatePromoCodeResponse {
-  valid: boolean
-  bonus_amount?: number
-  error_code?: string
-  message?: string
 }
 
 export interface GuestValidateInvitationCodeResponse {
@@ -150,10 +142,6 @@ export async function registerGuest(userData: GuestRegisterRequest): Promise<Gue
   const data = await guestPost<GuestAuthResponse>('/user/register', userData)
   persistAuthResponse(data)
   return data
-}
-
-export async function validateGuestPromoCode(code: string): Promise<GuestValidatePromoCodeResponse> {
-  return guestPost<GuestValidatePromoCodeResponse>('/api/v1/auth/validate-promo-code', { code })
 }
 
 export async function validateGuestInvitationCode(code: string): Promise<GuestValidateInvitationCodeResponse> {

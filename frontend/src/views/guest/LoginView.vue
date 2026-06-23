@@ -147,7 +147,7 @@ import {
   isGuestAdditionalVerificationRequired,
   loginGuest,
 } from '@/api/guestAuth'
-import { navigateToAuthenticatedApp } from '@/public/fullAppBridge'
+import { navigateToFullApp } from '@/public/appNavigation'
 import { useGuestToast } from '@/composables/useGuestToast'
 
 const LOGIN_AGREEMENT_STORAGE_KEY = 'portal_login_agreement_consent'
@@ -359,7 +359,7 @@ async function handleLogin(): Promise<void> {
     clearGuestAffiliateCode()
     toast.showSuccess('登录成功')
     const redirectTo = (router.currentRoute.value.query.redirect as string) || `/${'dashboard'}`
-    await navigateToAuthenticatedApp(router, redirectTo)
+    navigateToFullApp(redirectTo, true)
   } catch (error) {
     turnstileRef.value?.reset()
     turnstileToken.value = ''

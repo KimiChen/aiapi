@@ -159,6 +159,11 @@ func (m *mockSettingsProvider) GetPublicSettingsForInjection(ctx context.Context
 	return m.settings, m.err
 }
 
+func (m *mockSettingsProvider) GetGuestPublicSettingsForInjection(ctx context.Context) (any, error) {
+	m.called++
+	return m.settings, m.err
+}
+
 func TestFrontendServer_InjectSettings(t *testing.T) {
 	t.Run("injects_settings_with_nonce_placeholder", func(t *testing.T) {
 		provider := &mockSettingsProvider{

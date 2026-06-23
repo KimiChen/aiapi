@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized, type RouteRecordRaw } from 'vue-router'
 import { useNavigationLoadingState } from '@/composables/useNavigationLoading'
-import { enterFullApp, navigateToAuthenticatedApp } from '@/public/fullAppBridge'
+import { navigateToFullApp } from '@/public/appNavigation'
 
 const GUEST_SITE_NAME = '企业数据中台'
 
@@ -157,7 +157,7 @@ router.beforeEach(async (to, _from, next) => {
   const isAuthenticated = hasGuestAuthSession()
 
   if (!isGuestPublicPath(to.path)) {
-    await enterFullApp(to.fullPath)
+    navigateToFullApp(to.fullPath, true)
     next(false)
     return
   }
@@ -168,7 +168,7 @@ router.beforeEach(async (to, _from, next) => {
       return
     }
 
-    await navigateToAuthenticatedApp(router, redirectTarget(to))
+    navigateToFullApp(redirectTarget(to), true)
     next(false)
     return
   }
