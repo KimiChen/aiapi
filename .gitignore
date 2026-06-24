@@ -118,6 +118,7 @@ backend/.installed
 tests
 CLAUDE.md
 todo.md
+todo/
 .claude
 scripts
 .code-review-state
