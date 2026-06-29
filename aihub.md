@@ -73,6 +73,13 @@ aihub 回滚方式:
  - 确认健康检查使用当前版本支持的路径；本次部署和备份版本均支持 `/health`
  - `docker compose up -d --no-deps --force-recreate sub2api`
 aihub 数据结构同步记录:
+ - 2026-06-29 已从 aihub PostgreSQL 容器在线导出逻辑备份给 racknerd 迁移使用；未停止 aihub 应用，因此 dump 后的新写入不会包含在本次 racknerd 快照中
+ - 源备份文件: /opt/compose/sub2api-deploy/backups/sub2api-online-20260629-003850.dump
+ - 备份 SHA256: ce761c48b1ea989e8708222bf9da0d841f8df93539cb8d546caa996482cc8ac6
+ - 导出源: sub2api-postgres 容器内 PostgreSQL 18.4，数据库 sub2api
+ - 导出前观测: 数据库约 4508 MB，schema_migrations=190，public_tables=74
+ - 已给 racknerd 增加专用 SSH 公钥用于从 aihub 直接拉取该备份；authorized_keys 使用来源限制，不记录私钥
+ - 同步给 racknerd 的运行数据: /opt/compose/sub2api-deploy/data/public-route-blocklist.yaml 和 data/pages/
  - 2026-06-22 已确认本地与 aihub 的 `schema_migrations` 均为 190 条，缺失/额外/checksum mismatch 均为 0
  - 最新迁移: `155_add_usage_log_upstream_traffic_bytes.sql`
  - 155 迁移 checksum: 65ae40e173eb1ce15142666c3e1672d9c1341ecea62425c998f27dee7a819941
