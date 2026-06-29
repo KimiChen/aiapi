@@ -1,5 +1,27 @@
 # Racknerd Change Log
 
+## 2026-06-30
+
+- Refreshed racknerd PostgreSQL from a new aihub online snapshot.
+  - Source dump: `/opt/compose/sub2api-deploy/backups/sub2api-online-20260629-163442.dump` on aihub.
+  - Target dump: `/opt/sub2api/backups/sub2api-online-20260629-163442.dump` on racknerd.
+  - Dump SHA256: `0d90eec791a31abd32894c8495fe16756381a23386e411d35967645c33357d3e`.
+  - racknerd pulled the dump directly from aihub with the existing dedicated SSH key; no local-machine transfer was used.
+  - Source observation before dump: `schema_migrations=190`, `public_tables=74`, `accounts=1037`, `settings=225`, `usage_logs=662608`, `usage_billing_dedup=662667`, `ops_system_logs=3050859`, `source_db_size=4605 MB`.
+- Restored the new dump into racknerd local BaoTa PostgreSQL.
+  - Stopped `sub2api.service` during restore, dropped/recreated database `sub2api`, and restored with `/www/server/pgsql/bin/pg_restore`.
+  - Fixed restored object ownership and privileges for role `sub2api`.
+  - `pg_restore` log: `/opt/sub2api/backups/pg_restore-20260629-163442.log`; the log was empty after successful restore.
+  - Post-start verification: `schema_migrations=190`, `public_tables=74`, `accounts=1037`, `settings=225`, `usage_logs=662610`, `usage_billing_dedup=662669`, `ops_system_logs=3050874`, `target_db_size=3508 MB`, `non_sub2api_owned_tables=0`.
+  - The small post-start count increase came from racknerd application activity after service restart.
+- Verification after refresh:
+  - `systemctl is-active sub2api` => `active`.
+  - `systemctl is-enabled sub2api` => `enabled`.
+  - `systemctl --failed` reports zero failed units.
+  - `http://127.0.0.1:8080/status` returns `{"status":"perfectly nice"}`.
+  - `https://wu.ci/status` returns `{"status":"perfectly nice"}`.
+  - `https://wu.ci/login` returns 200.
+
 ## 2026-06-29
 
 - Migrated aihub PostgreSQL data to racknerd with an online snapshot.
