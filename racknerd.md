@@ -2,6 +2,13 @@
 
 ## 2026-06-29
 
+- Updated racknerd Sub2API port 8080 access for loopback and WireGuard LAN use.
+  - Target server: `155.94.192.174` (`racknerdOffice`), WireGuard address `10.111.0.103`.
+  - Backed up `/etc/systemd/system/sub2api.service` and `/etc/sub2api/config.yaml` with suffix `bak-8080-lan-20260629-083030`.
+  - Changed Sub2API listen host from `127.0.0.1` to `0.0.0.0` while keeping `SERVER_PORT=8080`.
+  - Added `/usr/local/sbin/sub2api-8080-firewall` and wired it through `ExecStartPre` to allow TCP 8080 from loopback and `10.111.0.0/24`, then drop other IPv4 and all IPv6 8080 traffic.
+  - Verification: `127.0.0.1:8080/status`, `10.111.0.103:8080/status`, and a remote WireGuard probe from `64.186.228.84` all return `{"status":"perfectly nice"}`.
+  - Verification: external public access to `155.94.192.174:8080/status` times out, while `https://wu.ci/status` remains healthy.
 - Migrated aihub PostgreSQL data to racknerd with an online snapshot.
   - Source dump: `/opt/compose/sub2api-deploy/backups/sub2api-online-20260629-003850.dump` on aihub.
   - Target dump: `/opt/sub2api/backups/sub2api-online-20260629-003850.dump` on racknerd.
