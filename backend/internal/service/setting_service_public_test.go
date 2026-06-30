@@ -65,6 +65,9 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFiel
 			SettingKeyCustomEndpoints:                      `[{"name":"HK","endpoint":"https://hk.example.test","description":"Hong Kong"}]`,
 			SettingKeyChannelMonitorEnabled:                "false",
 			SettingKeyChannelMonitorDefaultIntervalSeconds: "60",
+			SettingKeyAvailableChannelsEnabled:             "false",
+			SettingKeyAffiliateEnabled:                     "false",
+			SettingKeyRiskControlEnabled:                   "false",
 			SettingKeyAllowUserViewErrorRequests:           "false",
 		},
 	}, &config.Config{})
@@ -89,7 +92,36 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFiel
 	require.NotContains(t, out, "custom_menu_items")
 	require.NotContains(t, out, "custom_endpoints")
 	require.NotContains(t, out, "channel_monitor_enabled")
+	require.NotContains(t, out, "available_channels_enabled")
+	require.NotContains(t, out, "affiliate_enabled")
+	require.NotContains(t, out, "risk_control_enabled")
 	require.NotContains(t, out, "allow_user_view_error_requests")
+}
+
+func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationFeatureFlags(t *testing.T) {
+	svc := NewSettingService(&settingPublicRepoStub{
+		values: map[string]string{
+			SettingPaymentEnabled:              "true",
+			SettingKeyChannelMonitorEnabled:   "true",
+			SettingKeyAvailableChannelsEnabled: "true",
+			SettingKeyAffiliateEnabled:        "true",
+			SettingKeyRiskControlEnabled:      "true",
+		},
+	}, &config.Config{})
+
+	payload, err := svc.GetPublicSettingsForInjection(context.Background())
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	var out map[string]any
+	require.NoError(t, json.Unmarshal(raw, &out))
+	require.Equal(t, true, out["payment_enabled"])
+	require.Equal(t, true, out["channel_monitor_enabled"])
+	require.Equal(t, true, out["available_channels_enabled"])
+	require.Equal(t, true, out["affiliate_enabled"])
+	require.Equal(t, true, out["risk_control_enabled"])
 }
 
 func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatures(t *testing.T) {

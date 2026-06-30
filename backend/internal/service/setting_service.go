@@ -1448,6 +1448,11 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 	}
 
 	addTrueSetting(payload, "backend_mode_enabled", settings.BackendModeEnabled)
+	addTrueSetting(payload, "payment_enabled", settings.PaymentEnabled)
+	addTrueSetting(payload, "channel_monitor_enabled", settings.ChannelMonitorEnabled)
+	addTrueSetting(payload, "available_channels_enabled", settings.AvailableChannelsEnabled)
+	addTrueSetting(payload, "affiliate_enabled", settings.AffiliateEnabled)
+	addTrueSetting(payload, "risk_control_enabled", settings.RiskControlEnabled)
 
 	return payload, nil
 }

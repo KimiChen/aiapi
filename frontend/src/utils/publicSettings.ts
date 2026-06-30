@@ -165,6 +165,11 @@ export const compactPublicSettingsConfig = (
   addTrueSetting(out, 'github_oauth_enabled', normalized.github_oauth_enabled)
   addTrueSetting(out, 'google_oauth_enabled', normalized.google_oauth_enabled)
   addTrueSetting(out, 'backend_mode_enabled', normalized.backend_mode_enabled)
+  addTrueSetting(out, 'payment_enabled', normalized.payment_enabled)
+  addTrueSetting(out, 'channel_monitor_enabled', normalized.channel_monitor_enabled)
+  addTrueSetting(out, 'available_channels_enabled', normalized.available_channels_enabled)
+  addTrueSetting(out, 'affiliate_enabled', normalized.affiliate_enabled)
+  addTrueSetting(out, 'risk_control_enabled', normalized.risk_control_enabled)
 
   return out
 }

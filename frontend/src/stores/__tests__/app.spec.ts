@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAppStore } from '@/stores/app'
-import { getPublicSettings } from '@/api/auth'
+import { getPublicSettings } from '@/api/publicAuth'
 
 // Mock API 模块
 vi.mock('@/api/admin/system', () => ({
   checkUpdates: vi.fn(),
 }))
 
-vi.mock('@/api/auth', () => ({
+vi.mock('@/api/publicAuth', () => ({
   getPublicSettings: vi.fn(),
 }))
 
@@ -321,6 +321,11 @@ describe('useAppStore', () => {
         custom_endpoints: [],
         linuxdo_oauth_enabled: false,
         backend_mode_enabled: false,
+        payment_enabled: true,
+        channel_monitor_enabled: true,
+        available_channels_enabled: true,
+        affiliate_enabled: true,
+        risk_control_enabled: true,
         version: '1.0.0'
       })
 
@@ -331,6 +336,11 @@ describe('useAppStore', () => {
       expect(store.cachedPublicSettings?.table_page_size_options).toEqual([20, 100, 1000])
       expect((window as any).__STATIC_APP__.table_default_page_size).toBeUndefined()
       expect((window as any).__STATIC_APP__.table_page_size_options).toBeUndefined()
+      expect((window as any).__STATIC_APP__.payment_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.channel_monitor_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.available_channels_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.affiliate_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.risk_control_enabled).toBe(true)
       expect(localStorage.getItem('table-page-size')).toBeNull()
       expect(localStorage.getItem('table-page-size-source')).toBeNull()
     })
