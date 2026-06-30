@@ -72,6 +72,9 @@ aihub 回滚方式:
  - `docker tag weishaw/sub2api:backup-20260623-032802 weishaw/sub2api:latest`
  - 确认健康检查使用当前版本支持的路径；本次部署和备份版本均支持 `/health`
  - `docker compose up -d --no-deps --force-recreate sub2api`
+aihub 服务状态记录:
+ - 2026-06-30 已再次执行 `docker compose stop sub2api` 关闭 aihub 的 `sub2api` 应用容器
+ - 验证结果: `sub2api` 应用容器未运行，`sub2api-postgres` 和 `sub2api-redis` 继续运行且 healthy
 aihub 数据结构同步记录:
  - 2026-06-30 已停止 aihub 的 `sub2api` 应用容器后，从 aihub PostgreSQL 容器导出逻辑备份给 racknerd 刷新使用；导出完成后 `sub2api` 应用容器保持停止，`sub2api-postgres` 和 `sub2api-redis` 继续运行且 healthy
  - 源备份文件: /opt/compose/sub2api-deploy/backups/sub2api-stopped-20260630-004051.dump

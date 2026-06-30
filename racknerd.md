@@ -2,6 +2,12 @@
 
 ## 2026-06-30
 
+- Restarted `sub2api.service` on racknerd after ensuring the aihub `sub2api` application container was stopped.
+  - Verification: `systemctl is-active sub2api` => `active`.
+  - Verification: `systemctl is-enabled sub2api` => `enabled`.
+  - `systemctl --failed` reports zero failed units.
+  - `http://127.0.0.1:8080/status` and `https://wu.ci/status` returned the expected status JSON.
+
 - Refreshed racknerd PostgreSQL from an aihub snapshot taken after stopping the aihub `sub2api` application container.
   - Source dump: `/opt/compose/sub2api-deploy/backups/sub2api-stopped-20260630-004051.dump` on aihub.
   - Target dump: `/opt/sub2api/backups/sub2api-stopped-20260630-004051.dump` on racknerd.
