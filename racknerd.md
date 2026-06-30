@@ -2,6 +2,27 @@
 
 ## 2026-06-30
 
+- Refreshed racknerd PostgreSQL from an aihub snapshot taken after stopping the aihub `sub2api` application container.
+  - Source dump: `/opt/compose/sub2api-deploy/backups/sub2api-stopped-20260630-004051.dump` on aihub.
+  - Target dump: `/opt/sub2api/backups/sub2api-stopped-20260630-004051.dump` on racknerd.
+  - Dump SHA256: `16e47e05a0b543ab25cf080f0309bfafc3900f3feae8af0923bcb9a2ea31e7b6`.
+  - racknerd pulled the dump directly from aihub with the existing dedicated SSH key; no local-machine transfer was used.
+  - Source observation after stopping aihub app: `schema_migrations=190`, `public_tables=74`, `accounts=1037`, `settings=225`, `usage_logs=663743`, `usage_billing_dedup=663802`, `ops_system_logs=3066807`, `source_db_size=4615 MB`.
+- Restored the stopped-source dump into racknerd local BaoTa PostgreSQL.
+  - Stopped `sub2api.service` during restore, dropped/recreated database `sub2api`, and restored with `/www/server/pgsql/bin/pg_restore`.
+  - Fixed restored object ownership and privileges for role `sub2api`.
+  - `pg_restore` log: `/opt/sub2api/backups/pg_restore-20260630-004051.log`; the log was empty after successful restore.
+  - Verification before restarting racknerd app matched source counts exactly: `schema_migrations=190`, `public_tables=74`, `accounts=1037`, `settings=225`, `usage_logs=663743`, `usage_billing_dedup=663802`, `ops_system_logs=3066807`, `target_db_size=3522 MB`, `non_sub2api_owned_tables=0`.
+  - Post-start verification: `schema_migrations=190`, `public_tables=74`, `accounts=1037`, `settings=226`, `usage_logs=663743`, `usage_billing_dedup=663802`, `ops_system_logs=3066816`, `target_db_size=3522 MB`, `non_sub2api_owned_tables=0`.
+  - aihub `sub2api` application container remained stopped after the migration; `sub2api-postgres` and `sub2api-redis` remained running.
+- Verification after stopped-source refresh:
+  - `systemctl is-active sub2api` => `active`.
+  - `systemctl is-enabled sub2api` => `enabled`.
+  - `systemctl --failed` reports zero failed units.
+  - `http://127.0.0.1:8080/status` returns the expected status JSON.
+  - `https://wu.ci/status` returns the expected status JSON.
+  - `https://wu.ci/login` returns 200.
+
 - Refreshed racknerd PostgreSQL from a new aihub online snapshot.
   - Source dump: `/opt/compose/sub2api-deploy/backups/sub2api-online-20260629-163442.dump` on aihub.
   - Target dump: `/opt/sub2api/backups/sub2api-online-20260629-163442.dump` on racknerd.
