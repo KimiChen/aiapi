@@ -35,6 +35,46 @@ aipick 部署记录:
  - 验证结果: 本机 `http://127.0.0.1:8080/status` 返回 `{"status":"perfectly nice"}`；所有反向代理 HTTPS 入口 `/status` 与 `/` 均返回 200；`systemctl show sub2api` 显示 ActiveState=active、SubState=running、NRestarts=0
  - 备注: 尝试 SSH 到部分反向代理服务器做源端直连探测时，22 端口会话被对端关闭；本次以 aipick 端 iptables 白名单和各反代入口 200 作为验证依据
 
+aipick 反向代理真实客户端 IP 修复记录:
+ - 修复时间: 2026-07-01 10:38 Asia/Shanghai
+ - 问题现象: aipick/sub2api 使用记录里部分请求的 `client_ip` 记录为 `127.0.0.1`
+ - 原因: 非主站反向代理服务器的 nginx stream 层把公网 443 按 SNI 转发到本机 `127.0.0.1:8443`，内层 HTTPS vhost 看到的 `$remote_addr` 是本机 loopback，并继续把 `X-Real-IP: 127.0.0.1` 传给 aipick；sub2api 的客户端 IP 解析顺序会优先采用 `X-Real-IP`
+ - 修复方式: 在非主站反向代理服务器上用 nginx PROXY protocol 把 stream 层看到的真实公网客户端地址传给内层 HTTPS vhost，再由 vhost 继续传给 aipick/sub2api
+ - 修改的远端 stream 配置路径:
+   - `64.186.228.84:/www/server/panel/vhost/nginx/tcp/remnawave-sni.conf`
+   - `69.63.200.39:/www/server/panel/vhost/nginx/tcp/remnawave-sni.conf`
+   - `154.26.183.236:/www/server/panel/vhost/nginx/tcp/remnawave-sni.conf`
+   - `23.148.204.176:/www/server/panel/vhost/nginx/tcp/remnawave-sni.conf`
+   - `103.117.102.195:/www/server/panel/vhost/nginx/tcp/remnawave-sni.conf`
+ - stream 配置修改内容:
+   - 新增 `upstream aihub_proxy_backend { server 127.0.0.1:9443; }`
+   - 保留 `aws.amazon.com` 到 `reality_backend` 的既有分流
+   - 将 aipick 相关 SNI 单独分流到 `aihub_proxy_backend`
+   - 在 aipick 相关 SNI 的 stream `server` 块里增加 `proxy_protocol on;`
+   - 保留默认流量到 `web_backend`
+ - 修改的远端 HTTPS vhost 配置路径:
+   - `64.186.228.84:/www/server/panel/vhost/nginx/www.aihub.pick.art.conf`
+   - `69.63.200.39:/www/server/panel/vhost/nginx/uscu.aihub.pick.art.conf`
+   - `154.26.183.236:/www/server/panel/vhost/nginx/usct.aihub.pick.art.conf`
+   - `23.148.204.176:/www/server/panel/vhost/nginx/usall.aihub.pick.art.conf`
+   - `103.117.102.195:/www/server/panel/vhost/nginx/jpct.aihub.pick.art.conf`
+ - HTTPS vhost 配置修改内容:
+   - 将 `listen 127.0.0.1:8443 ssl;` 改为 `listen 127.0.0.1:9443 ssl proxy_protocol;`
+   - 新增 `real_ip_header proxy_protocol;`
+   - 新增 `set_real_ip_from 127.0.0.1;`
+   - 其它代理到 aipick 8080 的规则保持不变
+ - 远端备份文件:
+   - `64.186.228.84`: `remnawave-sni.conf.bak.codex-proxyproto-20260701023831`, `www.aihub.pick.art.conf.bak.codex-proxyproto-20260701023831`
+   - `69.63.200.39`: `remnawave-sni.conf.bak.codex-proxyproto-20260701023833`, `uscu.aihub.pick.art.conf.bak.codex-proxyproto-20260701023833`
+   - `154.26.183.236`: `remnawave-sni.conf.bak.codex-proxyproto-20260701023835`, `usct.aihub.pick.art.conf.bak.codex-proxyproto-20260701023835`
+   - `23.148.204.176`: `remnawave-sni.conf.bak.codex-proxyproto-20260701060837`, `usall.aihub.pick.art.conf.bak.codex-proxyproto-20260701060837`
+   - `103.117.102.195`: `remnawave-sni.conf.bak.codex-proxyproto-20260701023838`, `jpct.aihub.pick.art.conf.bak.codex-proxyproto-20260701023838`
+ - 验证结果:
+   - 五台非主站反向代理服务器执行 `nginx -t -q -c /www/server/nginx/conf/nginx.conf` 均通过
+   - 五台非主站反向代理服务器均已 reload nginx
+   - 所有非主站 HTTPS 入口 `/status` 返回 200
+   - 通过各非主站 HTTPS 入口访问探测路径后，aipick 日志中的 `client_ip` 已记录为真实公网出口 IP，不再是 `127.0.0.1`
+
 aipick 回滚方式:
  - 确认要回滚的 release 目录，例如 `/opt/sub2api/releases/20260628-173811`
  - 执行 `ln -sfn /opt/sub2api/releases/20260628-173811/sub2api /opt/sub2api/sub2api`
