@@ -21,6 +21,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/antigravity"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/openai"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 	"github.com/imroc/req/v3"
 	"golang.org/x/sync/singleflight"
 )
@@ -1427,6 +1428,8 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 	addStringSetting(payload, "contact_info", settings.ContactInfo)
 	addStringSetting(payload, "doc_url", settings.DocURL)
 	addStringSetting(payload, "home_content", settings.HomeContent)
+	addStringSetting(payload, "server_timezone", timezone.Name())
+	addStringSetting(payload, "server_utc_offset", timezone.UTCOffset())
 
 	addTrueSetting(payload, "registration_enabled", settings.RegistrationEnabled)
 	if settings.RegistrationEnabled {

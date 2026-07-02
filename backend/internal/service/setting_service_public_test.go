@@ -81,7 +81,10 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFiel
 	var out map[string]json.RawMessage
 	require.NoError(t, json.Unmarshal(raw, &out))
 
-	require.JSONEq(t, `{"site_name":"企业数据中台","site_subtitle":"统一数据目录、治理与服务编排入口"}`, string(raw))
+	require.JSONEq(t, `"企业数据中台"`, string(out["site_name"]))
+	require.JSONEq(t, `"统一数据目录、治理与服务编排入口"`, string(out["site_subtitle"]))
+	require.Contains(t, out, "server_timezone")
+	require.Contains(t, out, "server_utc_offset")
 	require.NotContains(t, out, "registration_enabled")
 	require.NotContains(t, out, "promo_code_enabled")
 	require.NotContains(t, out, "google_oauth_enabled")
@@ -102,10 +105,10 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 	svc := NewSettingService(&settingPublicRepoStub{
 		values: map[string]string{
 			SettingPaymentEnabled:              "true",
-			SettingKeyChannelMonitorEnabled:   "true",
+			SettingKeyChannelMonitorEnabled:    "true",
 			SettingKeyAvailableChannelsEnabled: "true",
-			SettingKeyAffiliateEnabled:        "true",
-			SettingKeyRiskControlEnabled:      "true",
+			SettingKeyAffiliateEnabled:         "true",
+			SettingKeyRiskControlEnabled:       "true",
 		},
 	}, &config.Config{})
 
