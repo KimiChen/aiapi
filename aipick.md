@@ -1,7 +1,7 @@
 aipick 是 systemd 二进制部署形态：应用监听 0.0.0.0:8080，公网入口由多台反向代理服务器转发到该端口。
 aipick 服务名: sub2api
 aipick 安装目录: /opt/sub2api
-aipick 当前二进制: /opt/sub2api/sub2api -> /opt/sub2api/releases/20260706-003502/sub2api
+aipick 当前二进制: /opt/sub2api/sub2api -> /opt/sub2api/releases/20260707-011442/sub2api
 aipick 资源目录: /opt/sub2api/resources
 aipick 配置目录: /etc/sub2api
 aipick 查看服务状态: systemctl status sub2api --no-pager -l
@@ -24,6 +24,17 @@ aipick 8080 访问控制:
  - 其它 IPv4 来源访问 8080 会被 DROP，IPv6 访问 8080 会被 DROP
 
 aipick 部署记录:
+ - 部署时间: 2026-07-07 01:14 Asia/Shanghai
+ - Git HEAD: 9bb775198b01565e6f7a8419938f5b0bb4853386
+ - 版本号: 0.1.145.kim
+ - 发布目录: /opt/sub2api/releases/20260707-011442
+ - 当前二进制 SHA256: e7fc8345faf1ecea9081dcaf1e92b43ff9480c0b3f259c0304edd365a58299bb
+ - 上一版发布目录: /opt/sub2api/releases/20260706-003502
+ - 上一版二进制 SHA256: 3cc44cfa54b6334650d0341c2876f0470879f3b817e6a1889adc71248fe367f3
+ - 部署动作: 确认本地 HEAD 同时包含 `origin/main` 与 `upstream/main` 最新提交，构建前端，编译 linux/amd64 `-tags embed` 后端，压缩部署包并按 2 MiB 分块上传，远端合并校验归档 SHA256 `589600c868a62d5d5bb41fea8ff5157e5c49206a559178520c900451f88e3d0b` 和二进制 SHA256，同步 resources，切换 symlink，重启 `sub2api`
+ - 验证结果: 本机 `http://127.0.0.1:8080/status` 返回 `{"status":"perfectly nice"}`；所有反向代理 HTTPS 入口 `/status` 与 `/` 均返回 200；`systemctl show sub2api` 显示 ActiveState=active、SubState=running、NRestarts=0
+ - 备注: 部署前远端运行版本为 `0.1.144.kim`，指向 `/opt/sub2api/releases/20260706-003502/sub2api`。重启后首次 8080 探测命中启动窗口，随后本机与所有反向代理入口验证正常。
+
  - 部署时间: 2026-07-06 00:39 Asia/Shanghai
  - Git HEAD: edde82f159441e1cfc6ec5482b41a7f26275a4fb
  - 版本号: 0.1.144.kim
