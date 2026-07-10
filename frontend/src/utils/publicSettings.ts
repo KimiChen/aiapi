@@ -176,5 +176,13 @@ export const compactPublicSettingsConfig = (
 
 export const getInjectedPublicSettings = (): PublicSettingsConfig | null => {
   if (typeof window === 'undefined') return null
-  return window.__STATIC_APP__ ?? null
+  return window.__STATIC_APP__ ?? window.__APP_CONFIG__ ?? null
+}
+
+export const writeInjectedPublicSettings = (
+  config: PublicSettingsConfig | null | undefined,
+): void => {
+  if (typeof window === 'undefined') return
+  window.__STATIC_APP__ = compactPublicSettingsConfig(config)
+  delete window.__APP_CONFIG__
 }

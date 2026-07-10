@@ -11,9 +11,10 @@ import type { VersionInfo, ReleaseInfo } from '@/api/admin/system'
 import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/publicAuth'
 import {
   DEFAULT_PUBLIC_SITE_NAME,
-  compactPublicSettingsConfig,
   createDefaultPublicSettings,
+  getInjectedPublicSettings,
   normalizePublicSettings,
+  writeInjectedPublicSettings,
 } from '@/utils/publicSettings'
 
 export const useAppStore = defineStore('app', () => {
@@ -35,6 +36,7 @@ export const useAppStore = defineStore('app', () => {
   const apiBaseUrl = ref<string>('')
   const docUrl = ref<string>('')
   const cachedPublicSettings = ref<PublicSettings | null>(null)
+  let publicSettingsRequest: Promise<PublicSettings | null> | null = null
 
   // Version cache state
   const versionLoaded = ref<boolean>(false)
@@ -299,9 +301,7 @@ export const useAppStore = defineStore('app', () => {
    */
   function applySettings(config: PublicSettingsConfig): PublicSettings {
     const normalized = normalizePublicSettings(config)
-    if (typeof window !== 'undefined') {
-      window.__STATIC_APP__ = compactPublicSettingsConfig(config)
-    }
+    writeInjectedPublicSettings(config)
     cachedPublicSettings.value = normalized
     siteName.value = normalized.site_name || DEFAULT_PUBLIC_SITE_NAME
     siteLogo.value = normalized.site_logo || ''
@@ -317,18 +317,24 @@ export const useAppStore = defineStore('app', () => {
    * Fetch public settings (uses cache unless force=true)
    * @param force - Force refresh from API
    */
-  async function fetchPublicSettings(force = false): Promise<PublicSettings | null> {
-    // Check for injected config from server (eliminates flash)
-    if (!publicSettingsLoaded.value && !force && window.__STATIC_APP__) {
-      return applySettings(window.__STATIC_APP__)
+  function fetchPublicSettings(force = false): Promise<PublicSettings | null> {
+    // An active request always wins over cache/force semantics so every caller observes
+    // the same refresh result and no older request can overwrite a newer one.
+    if (publicSettingsRequest) {
+      return publicSettingsRequest
+    }
+
+    const injectedConfig = getInjectedPublicSettings()
+    if (!publicSettingsLoaded.value && !force && injectedConfig) {
+      return Promise.resolve(applySettings(injectedConfig))
     }
 
     // Return cached data if available and not forcing refresh
     if (publicSettingsLoaded.value && !force) {
       if (cachedPublicSettings.value) {
-        return { ...cachedPublicSettings.value }
+        return Promise.resolve({ ...cachedPublicSettings.value })
       }
-      return {
+      return Promise.resolve({
         ...createDefaultPublicSettings(),
         site_name: siteName.value,
         site_logo: siteLogo.value,
@@ -336,25 +342,36 @@ export const useAppStore = defineStore('app', () => {
         contact_info: contactInfo.value,
         doc_url: docUrl.value,
         version: siteVersion.value,
-      }
-    }
-
-    // Prevent duplicate requests
-    if (publicSettingsLoading.value) {
-      return null
+      })
     }
 
     publicSettingsLoading.value = true
+    let apiRequest: Promise<PublicSettings>
     try {
-      const data = await fetchPublicSettingsAPI()
-      applySettings(data)
-      return data
+      apiRequest = fetchPublicSettingsAPI()
     } catch (error) {
       console.error('Failed to fetch public settings:', error)
-      return null
-    } finally {
       publicSettingsLoading.value = false
+      return Promise.resolve(null)
     }
+
+    const request = apiRequest
+      .then((data) => {
+        return applySettings(data)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch public settings:', error)
+        return null
+      })
+      .finally(() => {
+        if (publicSettingsRequest === request) {
+          publicSettingsRequest = null
+          publicSettingsLoading.value = false
+        }
+      })
+
+    publicSettingsRequest = request
+    return request
   }
 
   /**
@@ -371,8 +388,9 @@ export const useAppStore = defineStore('app', () => {
    * @returns true if config was found and applied, false otherwise
    */
   function initFromInjectedConfig(): boolean {
-    if (window.__STATIC_APP__) {
-      applySettings(window.__STATIC_APP__)
+    const injectedConfig = getInjectedPublicSettings()
+    if (injectedConfig) {
+      applySettings(injectedConfig)
       return true
     }
     return false

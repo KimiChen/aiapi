@@ -13,6 +13,7 @@ import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
+import { isBackendModePublicRouteAllowed } from './backendMode'
 
 /**
  * Route definitions with lazy loading
@@ -744,33 +745,6 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal']
-const BACKEND_MODE_CALLBACK_PATHS = [
-  '/auth/callback',
-  '/auth/linuxdo/callback',
-  '/auth/dingtalk/callback',
-  '/auth/dingtalk/email-completion',
-  '/auth/oidc/callback',
-  '/auth/wechat/callback',
-  '/auth/wechat/payment/callback',
-]
-const BACKEND_MODE_PENDING_AUTH_PATHS = ['/register', '/email-verify']
-
-function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: boolean): boolean {
-  if (BACKEND_MODE_ALLOWED_PATHS.some((allowedPath) => path === allowedPath || path.startsWith(allowedPath))) {
-    return true
-  }
-
-  if (BACKEND_MODE_CALLBACK_PATHS.some((callbackPath) => path === callbackPath)) {
-    return true
-  }
-
-  if (hasPendingAuthSession && BACKEND_MODE_PENDING_AUTH_PATHS.some((allowedPath) => path === allowedPath)) {
-    return true
-  }
-
-  return false
-}
 
 router.beforeEach(async (to, _from, next) => {
   // 开始导航加载状态
@@ -878,21 +852,24 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
 
-  // Check payment requirement (internal payment system only)
-  if (to.meta.requiresPayment) {
-    const paymentEnabled = appStore.cachedPublicSettings?.payment_enabled
-    if (!paymentEnabled) {
-      next(authStore.isAdmin ? '/admin/dashboard' : '/dashboard')
-      return
-    }
+  // Only an explicit value from successfully loaded settings can disable a route.
+  // A transient settings failure is unknown state, not a confirmed feature toggle.
+  if (
+    to.meta.requiresPayment &&
+    appStore.publicSettingsLoaded &&
+    appStore.cachedPublicSettings?.payment_enabled === false
+  ) {
+    next(authStore.isAdmin ? '/admin/dashboard' : '/dashboard')
+    return
   }
 
-  if (to.meta.requiresRiskControl) {
-    const riskControlEnabled = appStore.cachedPublicSettings?.risk_control_enabled === true
-    if (!riskControlEnabled) {
-      next(authStore.isAdmin ? '/admin/settings' : '/dashboard')
-      return
-    }
+  if (
+    to.meta.requiresRiskControl &&
+    appStore.publicSettingsLoaded &&
+    appStore.cachedPublicSettings?.risk_control_enabled === false
+  ) {
+    next(authStore.isAdmin ? '/admin/settings' : '/dashboard')
+    return
   }
 
   // 简易模式下限制访问某些页面
