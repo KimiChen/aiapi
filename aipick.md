@@ -1,7 +1,7 @@
 aipick 是 systemd 二进制部署形态：应用监听 0.0.0.0:8080，公网入口由多台反向代理服务器转发到该端口。
 aipick 服务名: sub2api
 aipick 安装目录: /opt/sub2api
-aipick 当前二进制: /opt/sub2api/sub2api -> /opt/sub2api/releases/20260711-081909/sub2api
+aipick 当前二进制: /opt/sub2api/sub2api -> /opt/sub2api/releases/20260713-214410/sub2api
 aipick 资源目录: /opt/sub2api/resources
 aipick 配置目录: /etc/sub2api
 aipick 查看服务状态: systemctl status sub2api --no-pager -l
@@ -24,6 +24,20 @@ aipick 8080 访问控制:
  - 其它 IPv4 来源访问 8080 会被 DROP，IPv6 访问 8080 会被 DROP
 
 aipick 部署记录:
+ - 部署时间: 2026-07-13 21:49 Asia/Shanghai
+ - Git HEAD: 03e2e6c0a1c2f6979fce8b6832c66f84f87fbff4
+ - 上游基线: upstream/main 7d239d62e8f1c6aea79164f88903f4158cbf2f98
+ - 版本号: 0.1.153.kim
+ - 发布目录: /opt/sub2api/releases/20260713-214410
+ - 当前二进制 SHA256: 3ae48b57039e17f933218d94e558d26f855045522ea1416e62f8678a4941b6ec
+ - 上一版发布目录: /opt/sub2api/releases/20260711-081909
+ - 上一版二进制 SHA256: d52909a7ec32a24ddc0d85829c577ed23bb992dbdcf3e3fb71dcecc31c1e5ca0
+ - 数据库备份: `/opt/sub2api/backups/20260713-214303/sub2api.dump`，517689290 字节，SHA256 `9e63ebd99ff39b5e7fe945e41e2331fcacb7ac407a6af72951481070d878c40c`，`pg_restore -l` 校验得到 971 个目录项
+ - 部署动作: 在干净 Git HEAD 上构建前端并重新编译 linux/amd64 `-tags embed` 后端；确认 Go 构建元数据为 `vcs.modified=false` 且包含当前 Git revision；制作 16 个 2 MiB 分片，远端重组校验归档 SHA256 `edb0bbf7d1c1785bb67b001b2a2e7420ec48c6005cfb88b91e8404ea02443a6e` 与二进制 SHA256，同步 resources，切换 symlink 并重启 `sub2api`
+ - 数据库迁移: `174_add_usage_logs_api_key_latest_ip_index_notx.sql` 与 `174_group_web_search_price_per_call.sql` 均执行并登记成功；`groups.web_search_price_per_call` 为 `numeric(20,8)`，`idx_usage_logs_api_key_latest_ip` 状态为 valid/ready、大小约 58 MiB
+ - 验证结果: 本机 `http://127.0.0.1:8080/status` 返回 `{"status":"perfectly nice"}`；所有反向代理 HTTPS 入口 `/status` 与 `/` 均返回 200；`/responses`、`/alpha/search`、`/videos/edits`、`/videos/extensions` 及对应 `/v1` 路由在无密钥烟测中均返回 401 JSON，未被 SPA 接管；运行版本为 `0.1.153.kim`；`systemctl show sub2api` 显示 ActiveState=active、SubState=running、NRestarts=0；启动后日志中已有真实 Responses 请求返回 200
+ - 备注: 部署前远端运行版本为 `0.1.151.kim`。重启时旧进程因活跃长连接未在 5 秒优雅停机期限内结束，记录一次 `context deadline exceeded` 和 exit status 1；systemd 随即正常启动新版。嵌入式后端对哈希静态资源返回 `public, max-age=31536000, immutable`，现有 Nginx 公网层仍覆盖为 `max-age=60`，本次未改动反向代理缓存配置。
+
  - 部署时间: 2026-07-11 08:22 Asia/Shanghai
  - Git HEAD: 742d8a5110a02128c7531f096b9942b55f469538
  - 版本号: 0.1.151.kim
