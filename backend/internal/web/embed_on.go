@@ -7,6 +7,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	htmlpkg "html"
 	"io"
 	"io/fs"
 	"net/http"
@@ -126,7 +127,8 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		// Serve static files normally
+		// Serve static files normally (hashed assets get long-lived cache headers)
+		applyStaticAssetCacheHeaders(c.Writer.Header(), cleanPath)
 		serveFrontendFile(c, s.fileServer, cleanPath)
 		c.Abort()
 	}
@@ -152,6 +154,7 @@ func (s *FrontendServer) tryServeOverride(c *gin.Context, cleanPath string) bool
 	if err != nil || info.IsDir() {
 		return false
 	}
+	applyStaticAssetCacheHeaders(c.Writer.Header(), cleanPath)
 	c.File(filePath)
 	c.Abort()
 	return true
@@ -265,7 +268,7 @@ func injectSiteTitle(html, settingsJSON []byte) []byte {
 		return html
 	}
 
-	newTitle := []byte("<title>" + cfg.SiteName + " - Secure Portal</title>")
+	newTitle := []byte("<title>" + htmlpkg.EscapeString(cfg.SiteName) + " - Secure Portal</title>")
 	var buf bytes.Buffer
 	buf.Write(html[:titleStart])
 	buf.Write(newTitle)
@@ -307,6 +310,7 @@ func ServeEmbeddedFrontend() gin.HandlerFunc {
 			if tryServeOverrideFile(c, overrideDir, cleanPath) {
 				return
 			}
+			applyStaticAssetCacheHeaders(c.Writer.Header(), cleanPath)
 			serveFrontendFile(c, fileServer, cleanPath)
 			c.Abort()
 			return
@@ -326,6 +330,7 @@ func tryServeOverrideFile(c *gin.Context, overrideDir, cleanPath string) bool {
 	if err != nil || info.IsDir() {
 		return false
 	}
+	applyStaticAssetCacheHeaders(c.Writer.Header(), cleanPath)
 	c.File(filePath)
 	c.Abort()
 	return true
@@ -345,7 +350,9 @@ func shouldBypassEmbeddedFrontend(path string) bool {
 		trimmed == "/health" ||
 		trimmed == "/responses" ||
 		strings.HasPrefix(trimmed, "/responses/") ||
-		strings.HasPrefix(trimmed, "/images/")
+		trimmed == "/alpha/search" ||
+		strings.HasPrefix(trimmed, "/images/") ||
+		strings.HasPrefix(trimmed, "/videos/")
 }
 
 func embeddedFrontendCleanPath(path string) string {
