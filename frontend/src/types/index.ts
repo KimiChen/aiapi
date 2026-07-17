@@ -243,15 +243,6 @@ export interface PublicSettings {
   allow_user_view_error_requests?: boolean
 }
 
-export type PublicSettingsConfig = Partial<PublicSettings>
-
-export interface ClientEndpointSettings {
-  site_name: string
-  api_base_url: string
-  custom_endpoints: CustomEndpoint[]
-  hide_ccs_import_button: boolean
-}
-
 export interface AuthResponse {
   access_token: string
   refresh_token?: string  // New: Refresh Token for token renewal
@@ -2171,3 +2162,6 @@ export type {
   PlatformQuotaWindow,
   PlatformQuotasResponse,
 } from '@/api/admin/users'
+
+// fork 自有类型（独立文件，避免与上游冲突），见 ./fork.ts
+export * from './fork'
