@@ -3,11 +3,60 @@ package middleware
 import (
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/trafficstats"
 	"github.com/gin-gonic/gin"
 )
+
+// gatewayTrafficExactPaths 是直接注册在引擎上的根级网关路由（精确匹配）。
+var gatewayTrafficExactPaths = map[string]struct{}{
+	"/responses":        {},
+	"/alpha/search":     {},
+	"/chat/completions": {},
+	"/embeddings":       {},
+}
+
+// gatewayTrafficPathPrefixes 是网关路由分组及根级通配路由的路径前缀。
+// 与 RegisterGatewayRoutes 中的路由一一对应；上游新增网关路由时需同步补充。
+var gatewayTrafficPathPrefixes = []string{
+	"/v1/",
+	"/v1beta/",
+	"/backend-api/codex/",
+	"/antigravity/v1/",
+	"/antigravity/v1beta/",
+	"/responses/",
+	"/images/",
+	"/videos/",
+}
+
+// IsGatewayTrafficPath 判断请求路径是否属于网关流量统计范围。
+func IsGatewayTrafficPath(path string) bool {
+	if _, ok := gatewayTrafficExactPaths[path]; ok {
+		return true
+	}
+	for _, prefix := range gatewayTrafficPathPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// TrafficStatsGateway 与 TrafficStats 行为一致，但仅对网关路径生效，其他路径直接放行。
+// 在引擎级一次性注册（RegisterGatewayRoutes 顶部 r.Use）后即可覆盖全部网关路由，
+// 避免在每条路由/每个分组上插入中间件，降低与上游代码的冲突面。
+func TrafficStatsGateway(cfg config.TrafficConfig) gin.HandlerFunc {
+	inner := TrafficStats(cfg)
+	return func(c *gin.Context) {
+		if c == nil || c.Request == nil || !IsGatewayTrafficPath(c.Request.URL.Path) {
+			c.Next()
+			return
+		}
+		inner(c)
+	}
+}
 
 // TrafficStats records app-observable HTTP bytes and estimates TLS/TCP/IP overhead.
 func TrafficStats(cfg config.TrafficConfig) gin.HandlerFunc {
