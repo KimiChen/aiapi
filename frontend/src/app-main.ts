@@ -7,6 +7,7 @@ import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
 import { markFullAppActive } from '@/public/fullAppBridge'
 import './style.css'
+import './style-fork.css'
 
 function initThemeClass() {
   const savedTheme = localStorage.getItem('theme')

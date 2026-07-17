@@ -7,6 +7,7 @@ import publicRouter, {
 } from './router/guest'
 import { enterFullApp, setPublicApp } from '@/public/fullAppBridge'
 import './style.css'
+import './style-fork.css'
 
 const GUEST_SITE_NAME = '企业数据中台'
 
