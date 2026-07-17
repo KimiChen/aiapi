@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import checker from 'vite-plugin-checker'
 import { resolve } from 'path'
+import { manualChunks } from './vite.fork'
 
 /**
  * Vite 插件：开发模式下注入公开配置到 index.html
@@ -70,51 +71,10 @@ export default defineConfig(({ mode }) => {
         chunkFileNames: 'res/[hash].js',
         assetFileNames: 'res/[hash][extname]',
         /**
-         * 手动分包配置
+         * 手动分包配置（fork 策略，实现见 vite.fork.ts）
          * 分离第三方库并按功能合并应用代码，避免循环依赖
          */
-        manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            // Pinia 只在完整后台入口使用，不放进未登录首屏的 Vue 核心包。
-            if (id.includes('/pinia/')) {
-              return 'vendor-store'
-            }
-
-            // Vue 核心库
-            if (
-              id.includes('/vue/') ||
-              id.includes('/vue-router/') ||
-              id.includes('/@vue/')
-            ) {
-              return 'vendor-vue'
-            }
-
-            // UI 工具库（较大，单独分离）
-            if (id.includes('/@vueuse/') || id.includes('/xlsx/')) {
-              return 'vendor-ui'
-            }
-
-            // 图表库
-            if (id.includes('/chart.js/') || id.includes('/vue-chartjs/')) {
-              return 'vendor-chart'
-            }
-
-            // 国际化
-            if (id.includes('/vue-i18n/') || id.includes('/@intlify/')) {
-              return 'vendor-i18n'
-            }
-
-            // Stripe 仅在支付流程中按需加载，避免进入首页公共依赖。
-            if (id.includes('/@stripe/stripe-js/')) {
-              return 'vendor-stripe'
-            }
-
-            return undefined
-          }
-
-          // 应用代码：按入口点自动分包，不手动干预
-          // 这样可以避免循环依赖，同时保持合理的 chunk 数量
-        }
+        manualChunks,
       }
     }
   },
