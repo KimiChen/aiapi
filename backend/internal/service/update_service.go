@@ -24,7 +24,6 @@ import (
 
 var (
 	ErrNoUpdateAvailable         = infraerrors.Conflict("ALREADY_UP_TO_DATE", "no update available; current version is latest")
-	ErrManualUpdateRequired      = infraerrors.Conflict("MANUAL_UPDATE_REQUIRED", "fork builds must be synced, rebuilt, and deployed manually")
 	ErrRollbackVersionNotAllowed = infraerrors.BadRequest("ROLLBACK_VERSION_NOT_ALLOWED", "version is not in the allowed rollback list")
 )
 
@@ -676,44 +675,4 @@ func parseVersion(v string) [3]int {
 		}
 	}
 	return result
-}
-
-func upstreamVersionBase(v string) string {
-	v = strings.TrimSpace(strings.TrimPrefix(v, "v"))
-	parts := strings.Split(v, ".")
-	if len(parts) < 3 {
-		if idx := strings.IndexAny(v, "-+"); idx >= 0 {
-			return v[:idx]
-		}
-		return v
-	}
-
-	patch := parts[2]
-	patchEnd := len(patch)
-	for i, r := range patch {
-		if r < '0' || r > '9' {
-			patchEnd = i
-			break
-		}
-	}
-	if patchEnd == 0 {
-		if idx := strings.IndexAny(v, "-+"); idx >= 0 {
-			return v[:idx]
-		}
-		return v
-	}
-	base := strings.Join([]string{parts[0], parts[1], patch[:patchEnd]}, ".")
-	if base != "" {
-		return base
-	}
-	if idx := strings.IndexAny(v, "-+"); idx >= 0 {
-		return v[:idx]
-	}
-	return v
-}
-
-func isForkVersion(v string) bool {
-	trimmed := strings.TrimSpace(strings.TrimPrefix(v, "v"))
-	base := upstreamVersionBase(v)
-	return base != "" && trimmed != base
 }
