@@ -37,6 +37,7 @@ frontend/dist/
 *.local
 *.tsbuildinfo
 vite.config.d.ts
+vite.fork.d.ts
 vite.config.js.timestamp-*
 
 # 日志
@@ -133,6 +134,7 @@ backend/cmd/server/server
 deploy/docker-compose.override.yml
 .gocache/
 vite.config.js
+vite.fork.js
 docs/*
 !docs/PAYMENT.md
 !docs/PAYMENT_CN.md
