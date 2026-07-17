@@ -60,6 +60,7 @@ func SetupRouter(
 		}
 		return nil
 	}))
+	r.Use(middleware2.ServerTiming(cfg.Server.EnableServerTiming))
 	publicRouteBlocklist, err := middleware2.LoadPublicRouteBlocklist()
 	if err != nil {
 		log.Fatalf("Failed to load public route blocklist: %v", err)

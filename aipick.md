@@ -71,6 +71,17 @@ aipick 部署记录:
  - 验证结果: 本机 `http://127.0.0.1:8080/status` 返回 `{"status":"perfectly nice"}`；所有反向代理 HTTPS 入口 `/status` 与 `/` 均返回 200；`systemctl show sub2api` 显示 ActiveState=active、SubState=running、NRestarts=0
  - 备注: 部署前远端实际运行版本为 `0.1.146.kim`，指向 `/opt/sub2api/releases/20260708-073913/sub2api`；该次发布未在本地 `aipick.md` 顶部记录，本次按远端实际状态作为上一版。重启后首次 8080 探测命中启动窗口，随后本机与所有反向代理入口验证正常。
 
+ - 部署时间: 2026-07-08 07:41 Asia/Shanghai
+ - Git HEAD: 9925f9dd30580aee2454ed73114a6b56cdf4de83
+ - 版本号: 0.1.146.kim
+ - 发布目录: /opt/sub2api/releases/20260708-073913
+ - 当前二进制 SHA256: e8065212c3601344dadbd02ed3de36c7383e43e254521d1c024a115af1f23ed2
+ - 上一版发布目录: /opt/sub2api/releases/20260707-011442
+ - 上一版二进制 SHA256: e7fc8345faf1ecea9081dcaf1e92b43ff9480c0b3f259c0304edd365a58299bb
+ - 部署动作: 构建前端，编译 linux/amd64 `-tags embed` 后端，压缩部署包并按 2 MiB 分块上传，远端合并校验归档 SHA256 `69d2c2bfb0794d1534682e72ff597312c4771cbfb1f4be501c07a63339810479` 和二进制 SHA256，同步 resources，切换 symlink，重启 `sub2api`
+ - 验证结果: 本机 `http://127.0.0.1:8080/status` 返回 `{"status":"perfectly nice"}`；所有反向代理 HTTPS 入口 `/status` 与 `/` 均返回 200；`systemctl show sub2api` 显示 ActiveState=active、SubState=running、NRestarts=0
+ - 备注: 部署前远端实际运行版本为 `0.1.145.kim`，指向 `/opt/sub2api/releases/20260707-011442/sub2api`。
+
  - 部署时间: 2026-07-07 01:14 Asia/Shanghai
  - Git HEAD: 9bb775198b01565e6f7a8419938f5b0bb4853386
  - 版本号: 0.1.145.kim
