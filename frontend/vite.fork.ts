@@ -1,3 +1,5 @@
+import type { Plugin, UserConfig } from 'vite'
+
 /**
  * fork 手动分包配置（从 vite.config.ts 抽离）。
  * 抽离目的：分包策略是 fork 与上游的持续分歧点，独立成文件后
@@ -49,4 +51,44 @@ export function manualChunks(id: string): string | undefined {
   // 应用代码：按入口点自动分包，不手动干预
   // 这样可以避免循环依赖，同时保持合理的 chunk 数量
   return undefined
+}
+
+export function forkPublicSettingsPlugin(): Plugin {
+  return {
+    name: 'fork-public-settings-compat',
+    apply: 'serve',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        return html
+          .replace('window.__APP_CONFIG__=', 'window.__STATIC_APP__=')
+          .replace(/ - AI API Gateway<\/title>/i, ' - Secure Portal</title>')
+      }
+    }
+  }
+}
+
+export function createForkViteConfig(backendUrl: string): UserConfig {
+  return {
+    base: '/static/app/',
+    plugins: [forkPublicSettingsPlugin()],
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'res/[hash].js',
+          chunkFileNames: 'res/[hash].js',
+          assetFileNames: 'res/[hash][extname]',
+          manualChunks
+        }
+      }
+    },
+    server: {
+      proxy: {
+        '/user': {
+          target: backendUrl,
+          changeOrigin: true
+        }
+      }
+    }
+  }
 }

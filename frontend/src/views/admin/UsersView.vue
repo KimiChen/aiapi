@@ -273,7 +273,7 @@
           :selection-label="getUserSelectionLabel"
           :actions-count="7"
           :server-side-sort="true"
-          :virtualized="false"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="created_at"
           default-sort-order="desc"
           :sort-storage-key="USER_SORT_STORAGE_KEY"

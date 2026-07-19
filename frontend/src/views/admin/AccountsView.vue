@@ -191,14 +191,13 @@
           :loading="loading"
           row-key="id"
           :server-side-sort="true"
-          :virtualized="false"
           @sort="handleSort"
           default-sort-key="name"
           default-sort-order="asc"
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
           :estimate-row-height="156"
           :overscan="5"
-          :virtualize-threshold="50"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
         >
           <template #header-select>
             <input

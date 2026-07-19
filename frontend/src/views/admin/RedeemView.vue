@@ -61,7 +61,7 @@
           :data="codes"
           :loading="loading"
           :server-side-sort="true"
-          :virtualized="false"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="id"
           default-sort-order="desc"
           @sort="handleSort"

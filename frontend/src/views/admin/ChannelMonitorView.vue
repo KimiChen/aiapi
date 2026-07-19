@@ -15,7 +15,12 @@
       </template>
 
       <template #table>
-        <DataTable :columns="columns" :data="monitors" :loading="loading" :virtualized="false">
+        <DataTable
+          :columns="columns"
+          :data="monitors"
+          :loading="loading"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
+        >
           <template #cell-name="{ row, value }">
             <div class="flex items-center gap-1.5">
               <span class="font-medium text-gray-900 dark:text-white">{{ value }}</span>

@@ -118,7 +118,7 @@
           :data="groups"
           :loading="loading"
           :server-side-sort="true"
-          :virtualized="false"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="sort_order"
           default-sort-order="asc"
           @sort="handleSort"

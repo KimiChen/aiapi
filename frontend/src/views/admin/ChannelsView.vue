@@ -53,7 +53,7 @@
           :data="channels"
           :loading="loading"
           :server-side-sort="true"
-          :virtualized="false"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"
