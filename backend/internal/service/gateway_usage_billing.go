@@ -10,6 +10,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/ctxkey"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/trafficstats"
 )
 
 func (s *GatewayService) getUserGroupRateMultiplier(ctx context.Context, userID, groupID int64, groupDefaultMultiplier float64) float64 {
@@ -516,6 +517,7 @@ func writeUsageLogBestEffort(ctx context.Context, repo UsageLogRepository, usage
 	if repo == nil || usageLog == nil {
 		return
 	}
+	applyUsageLogTrafficStats(ctx, usageLog)
 	usageCtx, cancel := detachedBillingContext(ctx)
 	defer cancel()
 
@@ -541,6 +543,24 @@ func writeUsageLogBestEffort(ctx context.Context, repo UsageLogRepository, usage
 
 	if _, err := repo.Create(usageCtx, usageLog); err != nil {
 		logger.LegacyPrintf(logKey, "Create usage log failed: %v", err)
+	}
+}
+
+func applyUsageLogTrafficStats(ctx context.Context, usageLog *UsageLog) {
+	if usageLog == nil {
+		return
+	}
+	snapshot, ok := trafficstats.SnapshotFromContext(ctx)
+	if !ok {
+		return
+	}
+	usageLog.RequestBytes = snapshot.RequestBytes
+	usageLog.ResponseBytes = snapshot.ResponseBytes
+	usageLog.UpstreamRequestBytes = snapshot.UpstreamRequestBytes
+	usageLog.UpstreamResponseBytes = snapshot.UpstreamResponseBytes
+	usageLog.TrafficEstimated = snapshot.Estimated
+	if source := strings.TrimSpace(snapshot.Source); source != "" {
+		usageLog.TrafficSource = &source
 	}
 }
 

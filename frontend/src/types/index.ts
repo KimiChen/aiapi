@@ -1427,6 +1427,10 @@ export interface UsageLog {
   total_cost: number
   actual_cost: number
   rate_multiplier: number
+  request_bytes?: number
+  response_bytes?: number
+  upstream_request_bytes?: number
+  upstream_response_bytes?: number
   long_context_billing_applied: boolean
   billing_type: number
 
@@ -1592,6 +1596,11 @@ export interface DashboardStats {
   total_cost: number // 累计标准计费
   total_actual_cost: number // 累计实际扣除
   total_account_cost: number // 累计账号成本
+  total_request_bytes: number
+  total_response_bytes: number
+  total_upstream_request_bytes: number
+  total_upstream_response_bytes: number
+  total_traffic_bytes: number
 
   // 今日 Token 使用统计
   today_requests: number
@@ -1603,6 +1612,11 @@ export interface DashboardStats {
   today_cost: number // 今日标准计费
   today_actual_cost: number // 今日实际扣除
   today_account_cost: number // 今日账号成本
+  today_request_bytes: number
+  today_response_bytes: number
+  today_upstream_request_bytes: number
+  today_upstream_response_bytes: number
+  today_traffic_bytes: number
 
   // 系统运行统计
   average_duration_ms: number // 平均响应时间
@@ -1643,6 +1657,11 @@ export interface TrendDataPoint {
   total_tokens: number
   cost: number // 标准计费
   actual_cost: number // 实际扣除
+  request_bytes: number
+  response_bytes: number
+  upstream_request_bytes: number
+  upstream_response_bytes: number
+  traffic_bytes: number
 }
 
 export interface ModelStat {
@@ -2144,3 +2163,6 @@ export type {
   PlatformQuotaWindow,
   PlatformQuotasResponse,
 } from '@/api/admin/users'
+
+// fork 自有类型（独立文件，避免与上游冲突），见 ./fork.ts
+export * from './fork'

@@ -203,6 +203,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 			COALESCE(SUM(total_cost), 0) as total_cost,
 			COALESCE(SUM(actual_cost), 0) as total_actual_cost,
 			COALESCE(SUM(account_cost), 0) as total_account_cost,
+			COALESCE(SUM(request_bytes + upstream_response_bytes), 0) as total_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes), 0) as total_response_bytes,
+			COALESCE(SUM(upstream_request_bytes), 0) as total_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes), 0) as total_upstream_response_bytes,
 			COALESCE(SUM(total_duration_ms), 0) as total_duration_ms
 		FROM usage_dashboard_daily
 	`
@@ -220,11 +224,16 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 		&stats.TotalCost,
 		&stats.TotalActualCost,
 		&stats.TotalAccountCost,
+		&stats.TotalRequestBytes,
+		&stats.TotalResponseBytes,
+		&stats.TotalUpstreamRequestBytes,
+		&stats.TotalUpstreamResponseBytes,
 		&totalDurationMs,
 	); err != nil {
 		return err
 	}
 	stats.TotalTokens = stats.TotalInputTokens + stats.TotalOutputTokens + stats.TotalCacheCreationTokens + stats.TotalCacheReadTokens
+	stats.TotalTrafficBytes = stats.TotalRequestBytes + stats.TotalResponseBytes
 	if stats.TotalRequests > 0 {
 		stats.AverageDurationMs = float64(totalDurationMs) / float64(stats.TotalRequests)
 	}
@@ -239,6 +248,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 			total_cost as today_cost,
 			actual_cost as today_actual_cost,
 			account_cost as today_account_cost,
+			(request_bytes + upstream_response_bytes) as today_request_bytes,
+			(response_bytes + upstream_request_bytes) as today_response_bytes,
+			upstream_request_bytes as today_upstream_request_bytes,
+			upstream_response_bytes as today_upstream_response_bytes,
 			active_users as active_users
 		FROM usage_dashboard_daily
 		WHERE bucket_date = $1::date
@@ -256,6 +269,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 		&stats.TodayCost,
 		&stats.TodayActualCost,
 		&stats.TodayAccountCost,
+		&stats.TodayRequestBytes,
+		&stats.TodayResponseBytes,
+		&stats.TodayUpstreamRequestBytes,
+		&stats.TodayUpstreamResponseBytes,
 		&stats.ActiveUsers,
 	); err != nil {
 		if err != sql.ErrNoRows {
@@ -263,6 +280,7 @@ func (r *usageLogRepository) fillDashboardUsageStatsAggregated(ctx context.Conte
 		}
 	}
 	stats.TodayTokens = stats.TodayInputTokens + stats.TodayOutputTokens + stats.TodayCacheCreationTokens + stats.TodayCacheReadTokens
+	stats.TodayTrafficBytes = stats.TodayRequestBytes + stats.TodayResponseBytes
 
 	hourlyActiveQuery := `
 		SELECT active_users
@@ -291,6 +309,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 				cache_read_tokens,
 				total_cost,
 				actual_cost,
+				request_bytes,
+				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
 				COALESCE(account_stats_cost, total_cost) * COALESCE(account_rate_multiplier, 1) AS account_cost,
 				COALESCE(duration_ms, 0) AS duration_ms
 			FROM usage_logs
@@ -306,6 +328,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 			COALESCE(SUM(total_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_cost,
 			COALESCE(SUM(actual_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_actual_cost,
 			COALESCE(SUM(account_cost) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_account_cost,
+			COALESCE(SUM(request_bytes + upstream_response_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_response_bytes,
+			COALESCE(SUM(upstream_request_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_upstream_response_bytes,
 			COALESCE(SUM(duration_ms) FILTER (WHERE created_at >= $1::timestamptz AND created_at < $2::timestamptz), 0) AS total_duration_ms,
 			COUNT(*) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz) AS today_requests,
 			COALESCE(SUM(input_tokens) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_input_tokens,
@@ -314,7 +340,11 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 			COALESCE(SUM(cache_read_tokens) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_cache_read_tokens,
 			COALESCE(SUM(total_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_cost,
 			COALESCE(SUM(actual_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_actual_cost,
-			COALESCE(SUM(account_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_account_cost
+			COALESCE(SUM(account_cost) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_account_cost,
+			COALESCE(SUM(request_bytes + upstream_response_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_request_bytes,
+			COALESCE(SUM(response_bytes + upstream_request_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_response_bytes,
+			COALESCE(SUM(upstream_request_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_upstream_request_bytes,
+			COALESCE(SUM(upstream_response_bytes) FILTER (WHERE created_at >= $3::timestamptz AND created_at < $4::timestamptz), 0) AS today_upstream_response_bytes
 		FROM scoped
 	`
 	var totalDurationMs int64
@@ -331,6 +361,10 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 		&stats.TotalCost,
 		&stats.TotalActualCost,
 		&stats.TotalAccountCost,
+		&stats.TotalRequestBytes,
+		&stats.TotalResponseBytes,
+		&stats.TotalUpstreamRequestBytes,
+		&stats.TotalUpstreamResponseBytes,
 		&totalDurationMs,
 		&stats.TodayRequests,
 		&stats.TodayInputTokens,
@@ -340,15 +374,21 @@ func (r *usageLogRepository) fillDashboardUsageStatsFromUsageLogs(ctx context.Co
 		&stats.TodayCost,
 		&stats.TodayActualCost,
 		&stats.TodayAccountCost,
+		&stats.TodayRequestBytes,
+		&stats.TodayResponseBytes,
+		&stats.TodayUpstreamRequestBytes,
+		&stats.TodayUpstreamResponseBytes,
 	); err != nil {
 		return err
 	}
 	stats.TotalTokens = stats.TotalInputTokens + stats.TotalOutputTokens + stats.TotalCacheCreationTokens + stats.TotalCacheReadTokens
+	stats.TotalTrafficBytes = stats.TotalRequestBytes + stats.TotalResponseBytes
 	if stats.TotalRequests > 0 {
 		stats.AverageDurationMs = float64(totalDurationMs) / float64(stats.TotalRequests)
 	}
 
 	stats.TodayTokens = stats.TodayInputTokens + stats.TodayOutputTokens + stats.TodayCacheCreationTokens + stats.TodayCacheReadTokens
+	stats.TodayTrafficBytes = stats.TodayRequestBytes + stats.TodayResponseBytes
 
 	hourStart := now.UTC().Truncate(time.Hour)
 	hourEnd := hourStart.Add(time.Hour)

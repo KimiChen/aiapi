@@ -28,6 +28,10 @@ func RegisterGatewayRoutes(
 	opsErrorLogger := handler.OpsErrorLoggerMiddleware(opsService)
 	endpointNorm := handler.InboundEndpointMiddleware()
 
+	// 流量统计：引擎级注册一次，中间件按路径自我筛选覆盖全部网关路由，
+	// 避免逐路由插入，降低与上游的冲突面（见 middleware.TrafficStatsGateway）。
+	r.Use(middleware.TrafficStatsGateway(cfg.Traffic))
+
 	// 未分组 Key 拦截中间件（按协议格式区分错误响应）
 	requireGroupAnthropic := middleware.RequireGroupAssignment(settingService, middleware.AnthropicErrorWriter)
 	requireGroupGoogle := middleware.RequireGroupAssignment(settingService, middleware.GoogleErrorWriter)

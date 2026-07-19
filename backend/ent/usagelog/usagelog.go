@@ -82,6 +82,18 @@ const (
 	FieldUserAgent = "user_agent"
 	// FieldIPAddress holds the string denoting the ip_address field in the database.
 	FieldIPAddress = "ip_address"
+	// FieldRequestBytes holds the string denoting the request_bytes field in the database.
+	FieldRequestBytes = "request_bytes"
+	// FieldResponseBytes holds the string denoting the response_bytes field in the database.
+	FieldResponseBytes = "response_bytes"
+	// FieldUpstreamRequestBytes holds the string denoting the upstream_request_bytes field in the database.
+	FieldUpstreamRequestBytes = "upstream_request_bytes"
+	// FieldUpstreamResponseBytes holds the string denoting the upstream_response_bytes field in the database.
+	FieldUpstreamResponseBytes = "upstream_response_bytes"
+	// FieldTrafficSource holds the string denoting the traffic_source field in the database.
+	FieldTrafficSource = "traffic_source"
+	// FieldTrafficEstimated holds the string denoting the traffic_estimated field in the database.
+	FieldTrafficEstimated = "traffic_estimated"
 	// FieldImageCount holds the string denoting the image_count field in the database.
 	FieldImageCount = "image_count"
 	// FieldImageSize holds the string denoting the image_size field in the database.
@@ -190,6 +202,12 @@ var Columns = []string{
 	FieldFirstTokenMs,
 	FieldUserAgent,
 	FieldIPAddress,
+	FieldRequestBytes,
+	FieldResponseBytes,
+	FieldUpstreamRequestBytes,
+	FieldUpstreamResponseBytes,
+	FieldTrafficSource,
+	FieldTrafficEstimated,
 	FieldImageCount,
 	FieldImageSize,
 	FieldImageInputSize,
@@ -264,6 +282,18 @@ var (
 	UserAgentValidator func(string) error
 	// IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
 	IPAddressValidator func(string) error
+	// DefaultRequestBytes holds the default value on creation for the "request_bytes" field.
+	DefaultRequestBytes int64
+	// DefaultResponseBytes holds the default value on creation for the "response_bytes" field.
+	DefaultResponseBytes int64
+	// DefaultUpstreamRequestBytes holds the default value on creation for the "upstream_request_bytes" field.
+	DefaultUpstreamRequestBytes int64
+	// DefaultUpstreamResponseBytes holds the default value on creation for the "upstream_response_bytes" field.
+	DefaultUpstreamResponseBytes int64
+	// TrafficSourceValidator is a validator for the "traffic_source" field. It is called by the builders before save.
+	TrafficSourceValidator func(string) error
+	// DefaultTrafficEstimated holds the default value on creation for the "traffic_estimated" field.
+	DefaultTrafficEstimated bool
 	// DefaultImageCount holds the default value on creation for the "image_count" field.
 	DefaultImageCount int
 	// ImageSizeValidator is a validator for the "image_size" field. It is called by the builders before save.
@@ -460,6 +490,36 @@ func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
 // ByIPAddress orders the results by the ip_address field.
 func ByIPAddress(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIPAddress, opts...).ToFunc()
+}
+
+// ByRequestBytes orders the results by the request_bytes field.
+func ByRequestBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRequestBytes, opts...).ToFunc()
+}
+
+// ByResponseBytes orders the results by the response_bytes field.
+func ByResponseBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResponseBytes, opts...).ToFunc()
+}
+
+// ByUpstreamRequestBytes orders the results by the upstream_request_bytes field.
+func ByUpstreamRequestBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpstreamRequestBytes, opts...).ToFunc()
+}
+
+// ByUpstreamResponseBytes orders the results by the upstream_response_bytes field.
+func ByUpstreamResponseBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpstreamResponseBytes, opts...).ToFunc()
+}
+
+// ByTrafficSource orders the results by the traffic_source field.
+func ByTrafficSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTrafficSource, opts...).ToFunc()
+}
+
+// ByTrafficEstimated orders the results by the traffic_estimated field.
+func ByTrafficEstimated(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTrafficEstimated, opts...).ToFunc()
 }
 
 // ByImageCount orders the results by the image_count field.

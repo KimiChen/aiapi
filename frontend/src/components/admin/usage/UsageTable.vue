@@ -196,6 +196,12 @@
           </div>
         </template>
 
+        <template #cell-traffic="{ row }">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ formatBytes(totalTrafficBytes(row)) }}
+          </span>
+        </template>
+
         <!-- 合并首字/总耗时的健康度列：左侧色条上端随首字档、下端随总耗时档，中段(40%-60%)短渐变过渡，便于纵向扫视整体健康状况 -->
         <template #cell-latency="{ row }">
           <div class="flex items-stretch gap-2">
@@ -612,6 +618,23 @@ const formatDuration = (ms: number | null | undefined): string => {
   const totalSec = Math.round(ms / 1000)
   if (totalSec < 3600) return `${Math.floor(totalSec / 60)}m ${totalSec % 60}s`
   return `${Math.floor(totalSec / 3600)}h ${Math.floor((totalSec % 3600) / 60)}m`
+}
+
+const formatBytes = (value: number | null | undefined): string => {
+  if (!value || value <= 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = value
+  let unit = 0
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024
+    unit += 1
+  }
+  const decimals = unit === 0 ? 0 : size >= 100 ? 1 : 2
+  return `${size.toFixed(decimals)} ${units[unit]}`
+}
+
+const totalTrafficBytes = (row: AdminUsageLog): number => {
+  return (row.request_bytes || 0) + (row.response_bytes || 0) + (row.upstream_request_bytes || 0) + (row.upstream_response_bytes || 0)
 }
 
 // Cost tooltip functions

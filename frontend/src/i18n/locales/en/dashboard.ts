@@ -307,6 +307,7 @@ export default {
     type: 'Type',
     tokens: 'Tokens',
     cost: 'Cost',
+    traffic: 'Traffic',
     firstToken: 'First Token',
     duration: 'Duration',
     latency: 'Latency',

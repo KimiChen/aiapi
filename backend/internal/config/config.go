@@ -86,6 +86,7 @@ type Config struct {
 	SubscriptionMaintenance SubscriptionMaintenanceConfig `mapstructure:"subscription_maintenance"`
 	Dashboard               DashboardCacheConfig          `mapstructure:"dashboard_cache"`
 	DashboardAgg            DashboardAggregationConfig    `mapstructure:"dashboard_aggregation"`
+	Traffic                 TrafficConfig                 `mapstructure:"traffic"`
 	UsageCleanup            UsageCleanupConfig            `mapstructure:"usage_cleanup"`
 	Concurrency             ConcurrencyConfig             `mapstructure:"concurrency"`
 	TokenRefresh            TokenRefreshConfig            `mapstructure:"token_refresh"`
@@ -1631,6 +1632,7 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 	cfg.Log.Environment = strings.TrimSpace(cfg.Log.Environment)
 	cfg.Log.StacktraceLevel = strings.ToLower(strings.TrimSpace(cfg.Log.StacktraceLevel))
 	cfg.Log.Output.FilePath = strings.TrimSpace(cfg.Log.Output.FilePath)
+	cfg.normalizeFork()
 	cfg.Gateway.ForcedCodexInstructionsTemplateFile = strings.TrimSpace(cfg.Gateway.ForcedCodexInstructionsTemplateFile)
 	if cfg.Gateway.ForcedCodexInstructionsTemplateFile != "" {
 		content, err := os.ReadFile(cfg.Gateway.ForcedCodexInstructionsTemplateFile)
@@ -2745,6 +2747,9 @@ func (c *Config) Validate() error {
 		if c.DashboardAgg.RecomputeDays < 0 {
 			return fmt.Errorf("dashboard_aggregation.recompute_days must be non-negative")
 		}
+	}
+	if err := c.validateFork(); err != nil {
+		return err
 	}
 	if c.UsageCleanup.Enabled {
 		if c.UsageCleanup.MaxRangeDays <= 0 {

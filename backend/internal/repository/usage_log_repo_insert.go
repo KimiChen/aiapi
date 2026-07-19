@@ -59,6 +59,12 @@ var usageLogInsertArgTypes = [...]string{
 	"integer",     // first_token_ms
 	"text",        // user_agent
 	"text",        // ip_address
+	"bigint",      // request_bytes
+	"bigint",      // response_bytes
+	"bigint",      // upstream_request_bytes
+	"bigint",      // upstream_response_bytes
+	"text",        // traffic_source
+	"boolean",     // traffic_estimated
 	"integer",     // image_count
 	"text",        // image_size
 	"text",        // image_input_size
@@ -254,6 +260,12 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -281,7 +293,10 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			$10, $11, $12, $13,
 			$14, $15, $16, $17,
 			$18, $19, $20, $21, $22, $23,
-			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56
+			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33,
+			$34, $35, $36, $37, $38, $39,
+			$40, $41, $42, $43, $44, $45, $46, $47, $48, $49,
+			$50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 		RETURNING id, created_at
@@ -708,6 +723,12 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -731,7 +752,7 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			created_at
 		) AS (VALUES `)
 
-	args := make([]any, 0, len(keys)*56)
+	args := make([]any, 0, len(keys)*(len(usageLogInsertArgTypes)+1))
 	argPos := 1
 	for idx, key := range keys {
 		if idx > 0 {
@@ -795,6 +816,12 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				first_token_ms,
 				user_agent,
 				ip_address,
+				request_bytes,
+				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
+				traffic_source,
+				traffic_estimated,
 				image_count,
 				image_size,
 				image_input_size,
@@ -853,6 +880,12 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				first_token_ms,
 				user_agent,
 				ip_address,
+				request_bytes,
+				response_bytes,
+				upstream_request_bytes,
+				upstream_response_bytes,
+				traffic_source,
+				traffic_estimated,
 				image_count,
 				image_size,
 				image_input_size,
@@ -951,6 +984,12 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -974,7 +1013,7 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			created_at
 		) AS (VALUES `)
 
-	args := make([]any, 0, len(preparedList)*56)
+	args := make([]any, 0, len(preparedList)*len(usageLogInsertArgTypes))
 	argPos := 1
 	for idx, prepared := range preparedList {
 		if idx > 0 {
@@ -1035,6 +1074,12 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -1093,6 +1138,12 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -1159,6 +1210,12 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			first_token_ms,
 			user_agent,
 			ip_address,
+			request_bytes,
+			response_bytes,
+			upstream_request_bytes,
+			upstream_response_bytes,
+			traffic_source,
+			traffic_estimated,
 			image_count,
 			image_size,
 			image_input_size,
@@ -1186,7 +1243,10 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			$10, $11, $12, $13,
 			$14, $15, $16, $17,
 			$18, $19, $20, $21, $22, $23,
-			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56
+			$24, $25, $26, $27, $28, $29, $30, $31, $32, $33,
+			$34, $35, $36, $37, $38, $39,
+			$40, $41, $42, $43, $44, $45, $46, $47, $48, $49,
+			$50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 	`, prepared.args...)
@@ -1279,6 +1339,12 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 			firstToken,
 			userAgent,
 			ipAddress,
+			log.RequestBytes,
+			log.ResponseBytes,
+			log.UpstreamRequestBytes,
+			log.UpstreamResponseBytes,
+			nullString(log.TrafficSource),
+			log.TrafficEstimated,
 			log.ImageCount,
 			imageSize,
 			imageInputSize,

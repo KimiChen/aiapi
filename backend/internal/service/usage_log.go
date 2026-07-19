@@ -166,6 +166,13 @@ type UsageLog struct {
 	UserAgent    *string
 	IPAddress    *string
 
+	RequestBytes          int64
+	ResponseBytes         int64
+	UpstreamRequestBytes  int64
+	UpstreamResponseBytes int64
+	TrafficSource         *string
+	TrafficEstimated      bool
+
 	// Cache TTL Override 标记（管理员强制替换了缓存 TTL 计费）
 	CacheTTLOverridden bool
 

@@ -91,6 +91,18 @@ type UsageLog struct {
 	UserAgent *string `json:"user_agent,omitempty"`
 	// IPAddress holds the value of the "ip_address" field.
 	IPAddress *string `json:"ip_address,omitempty"`
+	// RequestBytes holds the value of the "request_bytes" field.
+	RequestBytes int64 `json:"request_bytes,omitempty"`
+	// ResponseBytes holds the value of the "response_bytes" field.
+	ResponseBytes int64 `json:"response_bytes,omitempty"`
+	// UpstreamRequestBytes holds the value of the "upstream_request_bytes" field.
+	UpstreamRequestBytes int64 `json:"upstream_request_bytes,omitempty"`
+	// UpstreamResponseBytes holds the value of the "upstream_response_bytes" field.
+	UpstreamResponseBytes int64 `json:"upstream_response_bytes,omitempty"`
+	// TrafficSource holds the value of the "traffic_source" field.
+	TrafficSource *string `json:"traffic_source,omitempty"`
+	// TrafficEstimated holds the value of the "traffic_estimated" field.
+	TrafficEstimated bool `json:"traffic_estimated,omitempty"`
 	// ImageCount holds the value of the "image_count" field.
 	ImageCount int `json:"image_count,omitempty"`
 	// ImageSize holds the value of the "image_size" field.
@@ -198,13 +210,13 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usagelog.FieldImageSizeBreakdown:
 			values[i] = new([]byte)
-		case usagelog.FieldLongContextBillingApplied, usagelog.FieldStream, usagelog.FieldCacheTTLOverridden:
+		case usagelog.FieldLongContextBillingApplied, usagelog.FieldStream, usagelog.FieldTrafficEstimated, usagelog.FieldCacheTTLOverridden:
 			values[i] = new(sql.NullBool)
 		case usagelog.FieldInputCost, usagelog.FieldOutputCost, usagelog.FieldCacheCreationCost, usagelog.FieldCacheReadCost, usagelog.FieldTotalCost, usagelog.FieldActualCost, usagelog.FieldRateMultiplier, usagelog.FieldAccountRateMultiplier:
 			values[i] = new(sql.NullFloat64)
-		case usagelog.FieldID, usagelog.FieldUserID, usagelog.FieldAPIKeyID, usagelog.FieldAccountID, usagelog.FieldChannelID, usagelog.FieldGroupID, usagelog.FieldSubscriptionID, usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldCacheCreationTokens, usagelog.FieldCacheReadTokens, usagelog.FieldCacheCreation5mTokens, usagelog.FieldCacheCreation1hTokens, usagelog.FieldBillingType, usagelog.FieldDurationMs, usagelog.FieldFirstTokenMs, usagelog.FieldImageCount, usagelog.FieldVideoCount, usagelog.FieldVideoDurationSeconds:
+		case usagelog.FieldID, usagelog.FieldUserID, usagelog.FieldAPIKeyID, usagelog.FieldAccountID, usagelog.FieldChannelID, usagelog.FieldGroupID, usagelog.FieldSubscriptionID, usagelog.FieldInputTokens, usagelog.FieldOutputTokens, usagelog.FieldCacheCreationTokens, usagelog.FieldCacheReadTokens, usagelog.FieldCacheCreation5mTokens, usagelog.FieldCacheCreation1hTokens, usagelog.FieldBillingType, usagelog.FieldDurationMs, usagelog.FieldFirstTokenMs, usagelog.FieldRequestBytes, usagelog.FieldResponseBytes, usagelog.FieldUpstreamRequestBytes, usagelog.FieldUpstreamResponseBytes, usagelog.FieldImageCount, usagelog.FieldVideoCount, usagelog.FieldVideoDurationSeconds:
 			values[i] = new(sql.NullInt64)
-		case usagelog.FieldRequestID, usagelog.FieldModel, usagelog.FieldRequestedModel, usagelog.FieldUpstreamModel, usagelog.FieldModelMappingChain, usagelog.FieldBillingTier, usagelog.FieldBillingMode, usagelog.FieldUserAgent, usagelog.FieldIPAddress, usagelog.FieldImageSize, usagelog.FieldImageInputSize, usagelog.FieldImageOutputSize, usagelog.FieldImageSizeSource, usagelog.FieldVideoResolution:
+		case usagelog.FieldRequestID, usagelog.FieldModel, usagelog.FieldRequestedModel, usagelog.FieldUpstreamModel, usagelog.FieldModelMappingChain, usagelog.FieldBillingTier, usagelog.FieldBillingMode, usagelog.FieldUserAgent, usagelog.FieldIPAddress, usagelog.FieldTrafficSource, usagelog.FieldImageSize, usagelog.FieldImageInputSize, usagelog.FieldImageOutputSize, usagelog.FieldImageSizeSource, usagelog.FieldVideoResolution:
 			values[i] = new(sql.NullString)
 		case usagelog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -445,6 +457,43 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IPAddress = new(string)
 				*_m.IPAddress = value.String
+			}
+		case usagelog.FieldRequestBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field request_bytes", values[i])
+			} else if value.Valid {
+				_m.RequestBytes = value.Int64
+			}
+		case usagelog.FieldResponseBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field response_bytes", values[i])
+			} else if value.Valid {
+				_m.ResponseBytes = value.Int64
+			}
+		case usagelog.FieldUpstreamRequestBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field upstream_request_bytes", values[i])
+			} else if value.Valid {
+				_m.UpstreamRequestBytes = value.Int64
+			}
+		case usagelog.FieldUpstreamResponseBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field upstream_response_bytes", values[i])
+			} else if value.Valid {
+				_m.UpstreamResponseBytes = value.Int64
+			}
+		case usagelog.FieldTrafficSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field traffic_source", values[i])
+			} else if value.Valid {
+				_m.TrafficSource = new(string)
+				*_m.TrafficSource = value.String
+			}
+		case usagelog.FieldTrafficEstimated:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field traffic_estimated", values[i])
+			} else if value.Valid {
+				_m.TrafficEstimated = value.Bool
 			}
 		case usagelog.FieldImageCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -708,6 +757,26 @@ func (_m *UsageLog) String() string {
 		builder.WriteString("ip_address=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("request_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RequestBytes))
+	builder.WriteString(", ")
+	builder.WriteString("response_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ResponseBytes))
+	builder.WriteString(", ")
+	builder.WriteString("upstream_request_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpstreamRequestBytes))
+	builder.WriteString(", ")
+	builder.WriteString("upstream_response_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UpstreamResponseBytes))
+	builder.WriteString(", ")
+	if v := _m.TrafficSource; v != nil {
+		builder.WriteString("traffic_source=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("traffic_estimated=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TrafficEstimated))
 	builder.WriteString(", ")
 	builder.WriteString("image_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ImageCount))
