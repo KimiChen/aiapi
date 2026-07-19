@@ -120,3 +120,47 @@ func TestSettingHandler_GetPublicSettings_ExposesWeChatOAuthModeCapabilities(t *
 	require.True(t, resp.Data.WeChatOAuthOpenEnabled)
 	require.True(t, resp.Data.WeChatOAuthMPEnabled)
 }
+
+func TestSettingHandler_GetClientEndpointSettings_ReturnsEndpointConfig(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	h := NewSettingHandler(service.NewSettingService(&settingHandlerPublicRepoStub{
+		values: map[string]string{
+			service.SettingKeySiteName:            "企业数据中台",
+			service.SettingKeyAPIBaseURL:          "https://api-a.example.test;https://api-b.example.test",
+			service.SettingKeyCustomEndpoints:     `[{"name":"HK","endpoint":"https://hk.example.test","description":"Hong Kong"}]`,
+			service.SettingKeyHideCcsImportButton: "true",
+		},
+	}, &config.Config{}), "test-version")
+
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodGet, "/api/v1/settings/client-endpoints", nil)
+
+	h.GetClientEndpointSettings(c)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+
+	var resp struct {
+		Code int `json:"code"`
+		Data struct {
+			SiteName            string `json:"site_name"`
+			APIBaseURL          string `json:"api_base_url"`
+			HideCcsImportButton bool   `json:"hide_ccs_import_button"`
+			CustomEndpoints     []struct {
+				Name        string `json:"name"`
+				Endpoint    string `json:"endpoint"`
+				Description string `json:"description"`
+			} `json:"custom_endpoints"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &resp))
+	require.Equal(t, 0, resp.Code)
+	require.Equal(t, "企业数据中台", resp.Data.SiteName)
+	require.Equal(t, "https://api-a.example.test;https://api-b.example.test", resp.Data.APIBaseURL)
+	require.True(t, resp.Data.HideCcsImportButton)
+	require.Len(t, resp.Data.CustomEndpoints, 1)
+	require.Equal(t, "HK", resp.Data.CustomEndpoints[0].Name)
+	require.Equal(t, "https://hk.example.test", resp.Data.CustomEndpoints[0].Endpoint)
+	require.Equal(t, "Hong Kong", resp.Data.CustomEndpoints[0].Description)
+}

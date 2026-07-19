@@ -6,6 +6,7 @@ const copyToClipboard = vi.fn().mockResolvedValue(true)
 const messages: Record<string, string> = {
   'keys.endpoints.title': 'API 端点',
   'keys.endpoints.default': '默认',
+  'keys.endpoints.defaultIndexed': '默认 #2',
   'keys.endpoints.copied': '已复制',
   'keys.endpoints.copiedHint': '已复制到剪贴板',
   'keys.endpoints.clickToCopy': '点击可复制此端点',
@@ -65,5 +66,18 @@ describe('EndpointPopover', () => {
     expect(copyToClipboard).toHaveBeenCalledWith('https://default.example.com/v1', '已复制')
     expect(wrapper.text()).toContain('已复制到剪贴板')
     expect(wrapper.find('button[aria-label="已复制到剪贴板"]').exists()).toBe(true)
+  })
+
+  it('将分号分隔的默认 API 端点拆成多个可复制项', () => {
+    const wrapper = mount(EndpointPopover, {
+      props: {
+        apiBaseUrl: 'https://default.example.com/v1; https://backup-default.example.com/v1',
+        customEndpoints: [],
+      },
+    })
+
+    expect(wrapper.text()).toContain('https://default.example.com/v1')
+    expect(wrapper.text()).toContain('https://backup-default.example.com/v1')
+    expect(wrapper.text()).toContain('默认 #2')
   })
 })

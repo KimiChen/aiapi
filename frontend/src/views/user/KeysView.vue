@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap items-center gap-3">
@@ -22,12 +22,14 @@
               :options="statusFilterOptions"
               @update:model-value="onStatusFilterChange"
             />
+            <Select
+              v-if="ccsEndpointOptions.length > 1 && !publicSettings?.hide_ccs_import_button"
+              :model-value="selectedCcsBaseUrl"
+              class="w-40"
+              :options="ccsEndpointOptions"
+              @update:model-value="selectedCcsBaseUrl = String($event || '')"
+            />
           </div>
-          <EndpointPopover
-            v-if="publicSettings?.api_base_url || (publicSettings?.custom_endpoints?.length ?? 0) > 0"
-            :api-base-url="publicSettings?.api_base_url || ''"
-            :custom-endpoints="publicSettings?.custom_endpoints || []"
-          />
         </div>
       </template>
 
@@ -86,6 +88,7 @@
           :data="apiKeys"
           :loading="loading"
           :server-side-sort="true"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"
@@ -380,14 +383,18 @@
                 <span class="text-xs">{{ t('keys.useKey') }}</span>
               </button>
               <!-- Import to CC Switch Button -->
-              <button
+              <div
                 v-if="!publicSettings?.hide_ccs_import_button"
-                @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                class="flex items-center gap-1"
               >
-                <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
-              </button>
+                <button
+                  @click="importToCcswitch(row)"
+                  class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                >
+                  <Icon name="upload" size="sm" />
+                  <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                </button>
+              </div>
               <!-- Toggle Status Button -->
               <button
                 @click="toggleKeyStatus(row)"
@@ -992,7 +999,7 @@
     <UseKeyModal
       :show="showUseKeyModal"
       :api-key="selectedKey?.key || ''"
-      :base-url="publicSettings?.api_base_url || ''"
+      :base-url="selectedUseKeyBaseUrl"
       :platform="selectedKey?.group?.platform || null"
       :allow-messages-dispatch="selectedKey?.group?.allow_messages_dispatch || false"
       @close="closeUseKeyModal"
@@ -1117,7 +1124,7 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, reactive, computed, onMounted, onUnmounted, type ComponentPublicInstance } from 'vue'
+	import { ref, reactive, computed, onMounted, onUnmounted, watch, type ComponentPublicInstance } from 'vue'
 	import { useI18n } from 'vue-i18n'
 	import { useAppStore } from '@/stores/app'
 	import { useOnboardingStore } from '@/stores/onboarding'
@@ -1125,7 +1132,7 @@
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
-import { keysAPI, authAPI, usageAPI, userGroupsAPI } from '@/api'
+import { keysAPI, usageAPI, userGroupsAPI } from '@/api'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 	import DataTable from '@/components/common/DataTable.vue'
@@ -1137,10 +1144,10 @@ import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 	import SearchInput from '@/components/common/SearchInput.vue'
 	import Icon from '@/components/icons/Icon.vue'
 	import UseKeyModal from '@/components/keys/UseKeyModal.vue'
-	import EndpointPopover from '@/components/keys/EndpointPopover.vue'
 	import GroupBadge from '@/components/common/GroupBadge.vue'
 	import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
-	import type { ApiKey, Group, PublicSettings, SubscriptionType, GroupPlatform, UpdateApiKeyRequest } from '@/types'
+	import { settingsAPI } from '@/api/settings'
+	import type { ApiKey, ClientEndpointSettings, Group, SubscriptionType, GroupPlatform, UpdateApiKeyRequest } from '@/types'
 import type { Column } from '@/components/common/types'
 import type { BatchApiKeyUsageStats } from '@/api/usage'
 import { formatDateTime } from '@/utils/format'
@@ -1149,6 +1156,7 @@ import {
   buildCcSwitchImportDeeplink,
   type CcSwitchClientType
 } from '@/utils/ccswitchImport'
+import { formatApiBaseUrlLabel, getPrimaryApiBaseUrl, parseApiBaseUrls } from '@/utils/apiBaseUrl'
 
 // Helper to format date for datetime-local input
 const formatDateTimeLocal = (isoDate: string): string => {
@@ -1303,15 +1311,38 @@ const showUseKeyModal = ref(false)
 const showCcsClientSelect = ref(false)
 const showColumnDropdown = ref(false)
 const pendingCcsRow = ref<ApiKey | null>(null)
+const selectedCcsBaseUrl = ref('')
 const selectedKey = ref<ApiKey | null>(null)
 const copiedKeyId = ref<number | null>(null)
 const groupSelectorKeyId = ref<number | null>(null)
-const publicSettings = ref<PublicSettings | null>(null)
+const publicSettings = ref<ClientEndpointSettings | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const columnDropdownRef = ref<HTMLElement | null>(null)
 const dropdownPosition = ref<{ top?: number; bottom?: number; left: number } | null>(null)
 const groupButtonRefs = ref<Map<number, HTMLElement>>(new Map())
 let abortController: AbortController | null = null
+
+const apiBaseUrls = computed(() => parseApiBaseUrls(publicSettings.value?.api_base_url))
+const selectedUseKeyBaseUrl = computed(() =>
+  getPrimaryApiBaseUrl(publicSettings.value?.api_base_url, window.location.origin)
+)
+const ccsEndpointOptions = computed(() =>
+  apiBaseUrls.value.map((endpoint) => ({
+    value: endpoint,
+    label: formatApiBaseUrlLabel(endpoint),
+    endpoint,
+  }))
+)
+
+watch(apiBaseUrls, (urls) => {
+  if (urls.length === 0) {
+    selectedCcsBaseUrl.value = ''
+    return
+  }
+  if (!urls.includes(selectedCcsBaseUrl.value)) {
+    selectedCcsBaseUrl.value = urls[0]
+  }
+}, { immediate: true })
 
 // Get the currently selected key for group change
 const selectedKeyForGroup = computed(() => {
@@ -1523,9 +1554,19 @@ const loadUserGroupRates = async () => {
 
 const loadPublicSettings = async () => {
   try {
-    publicSettings.value = await authAPI.getPublicSettings()
+    const endpoints = await settingsAPI.getClientEndpoints()
+    publicSettings.value = endpoints
   } catch (error) {
-    console.error('Failed to load public settings:', error)
+    console.error('Failed to load client endpoint settings:', error)
+    const cached = appStore.cachedPublicSettings
+    if (cached) {
+      publicSettings.value = {
+        site_name: cached.site_name,
+        api_base_url: cached.api_base_url,
+        custom_endpoints: cached.custom_endpoints,
+        hide_ccs_import_button: cached.hide_ccs_import_button,
+      }
+    }
   }
 }
 
@@ -1881,7 +1922,7 @@ const importToCcswitch = (row: ApiKey) => {
 }
 
 const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
-  const baseUrl = publicSettings.value?.api_base_url || window.location.origin
+  const baseUrl = selectedCcsBaseUrl.value || selectedUseKeyBaseUrl.value
   const platform = row.group?.platform || 'anthropic'
 
   const usageScript = `({

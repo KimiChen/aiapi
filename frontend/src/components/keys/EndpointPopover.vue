@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClipboard } from '@/composables/useClipboard'
+import { parseApiBaseUrls } from '@/utils/apiBaseUrl'
 import type { CustomEndpoint } from '@/types'
 
 const props = defineProps<{
@@ -17,14 +18,16 @@ let copiedResetTimer: number | undefined
 
 const allEndpoints = computed(() => {
   const items: Array<{ name: string; endpoint: string; description: string; isDefault: boolean }> = []
-  if (props.apiBaseUrl) {
+  parseApiBaseUrls(props.apiBaseUrl).forEach((endpoint, index) => {
     items.push({
-      name: t('keys.endpoints.title'),
-      endpoint: props.apiBaseUrl,
+      name: index === 0
+        ? t('keys.endpoints.title')
+        : t('keys.endpoints.defaultIndexed', { n: index + 1 }),
+      endpoint,
       description: '',
       isDefault: true,
     })
-  }
+  })
   for (const ep of props.customEndpoints) {
     items.push({ ...ep, isDefault: false })
   }
