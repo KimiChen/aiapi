@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
@@ -44,6 +44,7 @@
           :data="codes"
           :loading="loading"
           :server-side-sort="true"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="created_at"
           default-sort-order="desc"
           @sort="handleSort"

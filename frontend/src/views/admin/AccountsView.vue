@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div class="flex flex-wrap-reverse items-start justify-between gap-3">
           <AccountTableFilters
@@ -184,9 +184,8 @@
           @select-page="selectPage"
           @toggle-schedulable="handleBulkToggleSchedulable"
         />
-        <div ref="accountTableRef" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div ref="accountTableRef" class="admin-natural-table-wrapper">
         <DataTable
-          ref="dataTableRef"
           :columns="cols"
           :data="accounts"
           :loading="loading"
@@ -198,7 +197,7 @@
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
           :estimate-row-height="156"
           :overscan="5"
-          :virtualize-threshold="50"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
         >
           <template #header-select>
             <input
@@ -471,7 +470,7 @@ import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { adminAPI } from '@/api/admin'
 import { useTableLoader } from '@/composables/useTableLoader'
-import { useSwipeSelect, type SwipeSelectVirtualContext } from '@/composables/useSwipeSelect'
+import { useSwipeSelect } from '@/composables/useSwipeSelect'
 import { useTableSelection } from '@/composables/useTableSelection'
 import { useStepUp, isStepUpBlocked, isStepUpCancelled, stepUpBlockReason } from '@/composables/useStepUp'
 import TotpStepUpDialog from '@/components/auth/TotpStepUpDialog.vue'
@@ -516,7 +515,6 @@ const authStore = useAuthStore()
 const proxies = ref<AccountProxy[]>([])
 const groups = ref<AdminGroup[]>([])
 const accountTableRef = ref<HTMLElement | null>(null)
-const dataTableRef = ref<InstanceType<typeof DataTable> | null>(null)
 type AccountBulkEditTarget =
   | {
       mode: 'selected'
@@ -912,18 +910,12 @@ const {
   getId: (account) => account.id
 })
 
-const swipeVirtualContext: SwipeSelectVirtualContext = {
-  getVirtualizer: () => dataTableRef.value?.virtualizer ?? null,
-  getSortedData: () => dataTableRef.value?.sortedData ?? accounts.value,
-  getRowId: (row: any) => row.id,
-}
-
 useSwipeSelect(accountTableRef, {
   isSelected,
   select,
   deselect,
   batchUpdate
-}, swipeVirtualContext)
+})
 
 const resetAutoRefreshCache = () => {
   autoRefreshETag.value = null

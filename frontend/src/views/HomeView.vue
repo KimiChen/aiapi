@@ -48,9 +48,6 @@
 
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
-          <!-- Language Switcher -->
-          <LocaleSwitcher />
-
           <!-- Doc Link -->
           <a
             v-if="docUrl"
@@ -390,14 +387,6 @@
           >
             {{ t('home.docs') }}
           </a>
-          <a
-            :href="githubUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-dark-400 dark:hover:text-white"
-          >
-            GitHub
-          </a>
         </div>
       </div>
     </footer>
@@ -408,7 +397,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
-import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeUrl } from '@/utils/url'
 
@@ -432,9 +420,6 @@ const isHomeContentUrl = computed(() => {
 
 // Theme
 const isDark = ref(document.documentElement.classList.contains('dark'))
-
-// GitHub URL
-const githubUrl = 'https://github.com/Wei-Shaw/sub2api'
 
 // Auth state
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -597,7 +582,7 @@ onMounted(() => {
   color: #a78bfa;
 }
 .code-url {
-  color: #14b8a6;
+  color: #6469eb;
 }
 .code-comment {
   color: #64748b;
@@ -638,8 +623,8 @@ onMounted(() => {
 :deep(.dark) .terminal-window {
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(20, 184, 166, 0.2),
-    0 0 40px rgba(20, 184, 166, 0.1),
+    0 0 0 1px rgba(100, 105, 235, 0.2),
+    0 0 40px rgba(100, 105, 235, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 </style>

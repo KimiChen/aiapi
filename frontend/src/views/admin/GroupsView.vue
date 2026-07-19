@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
+    <TablePageLayout natural-table-height>
       <template #filters>
         <div
           class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start"
@@ -118,6 +118,7 @@
           :data="groups"
           :loading="loading"
           :server-side-sort="true"
+          :virtualize-threshold="Number.MAX_SAFE_INTEGER"
           default-sort-key="sort_order"
           default-sort-order="asc"
           @sort="handleSort"
