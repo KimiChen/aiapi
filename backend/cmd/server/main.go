@@ -29,6 +29,9 @@ import (
 //go:embed VERSION
 var embeddedVersion string
 
+//go:embed SUB_VERSION
+var embeddedSubVersion string
+
 // Build-time variables (can be set by ldflags)
 var (
 	Version   = ""
@@ -38,16 +41,23 @@ var (
 )
 
 func init() {
-	// 如果 Version 已通过 ldflags 注入（例如 -X main.Version=...），则不要覆盖。
-	if strings.TrimSpace(Version) != "" {
-		return
+	Version = resolveVersion(Version, embeddedVersion, embeddedSubVersion)
+}
+
+func resolveVersion(injectedVersion, baseVersion, subVersion string) string {
+	version := strings.TrimSpace(injectedVersion)
+	if version == "" {
+		version = strings.TrimSpace(baseVersion)
+	}
+	if version == "" {
+		version = "0.0.0-dev"
 	}
 
-	// 默认从 embedded VERSION 文件读取版本号（编译期打包进二进制）。
-	Version = strings.TrimSpace(embeddedVersion)
-	if Version == "" {
-		Version = "0.0.0-dev"
+	subVersion = strings.TrimSpace(subVersion)
+	if subVersion == "" || strings.HasSuffix(version, subVersion) {
+		return version
 	}
+	return version + subVersion
 }
 
 // initLogger configures the default slog handler based on gin.Mode().
