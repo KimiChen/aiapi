@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAppStore } from '@/stores/app'
-import { getPublicSettings } from '@/api/auth'
+import { getPublicSettings } from '@/api/publicAuth'
 import type { PublicSettings } from '@/types'
+import { createDefaultPublicSettings } from '@/utils/publicSettings'
 
 function createDeferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -17,45 +18,11 @@ function createDeferred<T>() {
 
 function createPublicSettings(overrides: Partial<PublicSettings> = {}): PublicSettings {
   return {
-    registration_enabled: false,
-    email_verify_enabled: false,
-    force_email_on_third_party_signup: false,
-    registration_email_suffix_whitelist: [],
+    ...createDefaultPublicSettings(),
     promo_code_enabled: true,
-    password_reset_enabled: false,
-    invitation_code_enabled: false,
-    turnstile_enabled: false,
-    turnstile_site_key: '',
     site_name: 'Test Site',
-    site_logo: '',
-    site_subtitle: '',
-    api_base_url: '',
-    contact_info: '',
-    doc_url: '',
-    home_content: '',
-    hide_ccs_import_button: false,
-    payment_enabled: false,
-    risk_control_enabled: false,
-    table_default_page_size: 20,
-    table_page_size_options: [10, 20, 50, 100],
-    custom_menu_items: [],
-    custom_endpoints: [],
-    linuxdo_oauth_enabled: false,
-    wechat_oauth_enabled: false,
-    oidc_oauth_enabled: false,
-    oidc_oauth_provider_name: 'OIDC',
-    github_oauth_enabled: false,
-    google_oauth_enabled: false,
-    backend_mode_enabled: false,
     version: '1.0.0',
-    balance_low_notify_enabled: false,
-    account_quota_notify_enabled: false,
-    balance_low_notify_threshold: 0,
     channel_monitor_enabled: true,
-    channel_monitor_default_interval_seconds: 60,
-    available_channels_enabled: false,
-    service_quota_enabled: false,
-    affiliate_enabled: false,
     ...overrides,
   }
 }
@@ -65,7 +32,7 @@ vi.mock('@/api/admin/system', () => ({
   checkUpdates: vi.fn(),
 }))
 
-vi.mock('@/api/auth', () => ({
+vi.mock('@/api/publicAuth', () => ({
   getPublicSettings: vi.fn(),
 }))
 
@@ -75,7 +42,8 @@ describe('useAppStore', () => {
     vi.useFakeTimers()
     localStorage.clear()
     vi.mocked(getPublicSettings).mockReset()
-    // 清除 window.__APP_CONFIG__
+    // 清除 window 注入配置
+    delete (window as any).__STATIC_APP__
     delete (window as any).__APP_CONFIG__
   })
 
@@ -390,9 +358,9 @@ describe('useAppStore', () => {
       consoleError.mockRestore()
     })
 
-    it('从 window.__APP_CONFIG__ 初始化', () => {
+    it('从 window.__STATIC_APP__ 初始化', () => {
       const windowAny = window as any
-      windowAny.__APP_CONFIG__ = {
+      windowAny.__STATIC_APP__ = {
         site_name: 'TestSite',
         site_logo: '/logo.png',
         version: '1.0.0',
@@ -421,7 +389,7 @@ describe('useAppStore', () => {
 
     it('clearPublicSettingsCache 清除缓存', () => {
       const windowAny = window as any
-      windowAny.__APP_CONFIG__ = { site_name: 'Test' }
+      windowAny.__STATIC_APP__ = { site_name: 'Test' }
       const store = useAppStore()
       store.initFromInjectedConfig()
 
@@ -459,14 +427,26 @@ describe('useAppStore', () => {
         custom_endpoints: [],
         linuxdo_oauth_enabled: false,
         backend_mode_enabled: false,
+        payment_enabled: true,
+        channel_monitor_enabled: true,
+        available_channels_enabled: true,
+        affiliate_enabled: true,
+        risk_control_enabled: true,
         version: '1.0.0'
       })
 
       const store = useAppStore()
       await store.fetchPublicSettings(true)
 
-      expect((window as any).__APP_CONFIG__.table_default_page_size).toBe(1000)
-      expect((window as any).__APP_CONFIG__.table_page_size_options).toEqual([20, 100, 1000])
+      expect(store.cachedPublicSettings?.table_default_page_size).toBe(1000)
+      expect(store.cachedPublicSettings?.table_page_size_options).toEqual([20, 100, 1000])
+      expect((window as any).__STATIC_APP__.table_default_page_size).toBeUndefined()
+      expect((window as any).__STATIC_APP__.table_page_size_options).toBeUndefined()
+      expect((window as any).__STATIC_APP__.payment_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.channel_monitor_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.available_channels_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.affiliate_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.risk_control_enabled).toBe(true)
       expect(localStorage.getItem('table-page-size')).toBeNull()
       expect(localStorage.getItem('table-page-size-source')).toBeNull()
     })

@@ -5,6 +5,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -25,17 +26,17 @@ func init() {
 
 func TestInjectSiteTitle(t *testing.T) {
 	t.Run("replaces_title_with_site_name", func(t *testing.T) {
-		html := []byte(`<html><head><title>Sub2API - AI API Gateway</title></head><body></body></html>`)
+		html := []byte(`<html><head><title>Workspace Portal - Secure Portal</title></head><body></body></html>`)
 		settingsJSON := []byte(`{"site_name":"MyCustomSite"}`)
 
 		result := injectSiteTitle(html, settingsJSON)
 
-		assert.Contains(t, string(result), "<title>MyCustomSite - AI API Gateway</title>")
-		assert.NotContains(t, string(result), "Sub2API")
+		assert.Contains(t, string(result), "<title>MyCustomSite - Secure Portal</title>")
+		assert.NotContains(t, string(result), "Workspace Portal")
 	})
 
 	t.Run("returns_unchanged_when_site_name_empty", func(t *testing.T) {
-		html := []byte(`<html><head><title>Sub2API - AI API Gateway</title></head><body></body></html>`)
+		html := []byte(`<html><head><title>Workspace Portal - Secure Portal</title></head><body></body></html>`)
 		settingsJSON := []byte(`{"site_name":""}`)
 
 		result := injectSiteTitle(html, settingsJSON)
@@ -44,7 +45,7 @@ func TestInjectSiteTitle(t *testing.T) {
 	})
 
 	t.Run("returns_unchanged_when_site_name_missing", func(t *testing.T) {
-		html := []byte(`<html><head><title>Sub2API - AI API Gateway</title></head><body></body></html>`)
+		html := []byte(`<html><head><title>Workspace Portal - Secure Portal</title></head><body></body></html>`)
 		settingsJSON := []byte(`{"other_field":"value"}`)
 
 		result := injectSiteTitle(html, settingsJSON)
@@ -53,7 +54,7 @@ func TestInjectSiteTitle(t *testing.T) {
 	})
 
 	t.Run("returns_unchanged_when_invalid_json", func(t *testing.T) {
-		html := []byte(`<html><head><title>Sub2API - AI API Gateway</title></head><body></body></html>`)
+		html := []byte(`<html><head><title>Workspace Portal - Secure Portal</title></head><body></body></html>`)
 		settingsJSON := []byte(`{invalid json}`)
 
 		result := injectSiteTitle(html, settingsJSON)
@@ -98,7 +99,7 @@ func TestInjectSiteTitle(t *testing.T) {
 
 		result := injectSiteTitle(html, settingsJSON)
 
-		assert.Contains(t, string(result), "<title>A&amp;B - AI API Gateway</title>")
+		assert.Contains(t, string(result), "<title>A&amp;B - Secure Portal</title>")
 	})
 
 	t.Run("preserves_rest_of_html", func(t *testing.T) {
@@ -110,7 +111,7 @@ func TestInjectSiteTitle(t *testing.T) {
 		assert.Contains(t, string(result), `<meta charset="UTF-8">`)
 		assert.Contains(t, string(result), `<script src="app.js"></script>`)
 		assert.Contains(t, string(result), `<div id="app"></div>`)
-		assert.Contains(t, string(result), "<title>TestSite - AI API Gateway</title>")
+		assert.Contains(t, string(result), "<title>TestSite - Secure Portal</title>")
 	})
 }
 
@@ -230,7 +231,7 @@ func TestFrontendServer_InjectSettings(t *testing.T) {
 
 		// Should contain the script with nonce placeholder
 		assert.Contains(t, string(result), `<script nonce="__CSP_NONCE_VALUE__">`)
-		assert.Contains(t, string(result), `window.__APP_CONFIG__={"test":"data"};`)
+		assert.Contains(t, string(result), `window.__STATIC_APP__={"test":"data"};`)
 		assert.Contains(t, string(result), `</script></head>`)
 	})
 
@@ -267,7 +268,7 @@ func TestFrontendServer_InjectSettings(t *testing.T) {
 		settingsJSON := []byte(`{"nested":{"array":[1,2,3]},"special":"<>&"}`)
 		result := server.injectSettings(settingsJSON)
 
-		assert.Contains(t, string(result), `window.__APP_CONFIG__={"nested":{"array":[1,2,3]},"special":"<>&"};`)
+		assert.Contains(t, string(result), `window.__STATIC_APP__={"nested":{"array":[1,2,3]},"special":"<>&"};`)
 	})
 }
 
@@ -520,6 +521,7 @@ func TestFrontendServer_Middleware(t *testing.T) {
 
 		apiPaths := []string{
 			"/api/v1/users",
+			"/user/login",
 			"/models",
 			"/v1/models",
 			"/v1beta/chat",
@@ -527,6 +529,7 @@ func TestFrontendServer_Middleware(t *testing.T) {
 			"/backend-api/codex/responses/compact",
 			"/antigravity/test",
 			"/setup/init",
+			"/status",
 			"/health",
 			"/responses",
 			"/responses/compact",
@@ -657,13 +660,21 @@ func TestFrontendServer_Middleware(t *testing.T) {
 		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
 		assert.Empty(t, w.Header().Get("Cache-Control"))
 
-		entries, err := fs.ReadDir(server.distFS, "assets")
-		require.NoError(t, err)
 		fingerprintedPath := ""
-		for _, entry := range entries {
-			candidate := "assets/" + entry.Name()
-			if !entry.IsDir() && isFingerprintedEmbeddedAssetPath(candidate) {
-				fingerprintedPath = candidate
+		for _, assetDir := range []string{"assets", "res"} {
+			entries, readErr := fs.ReadDir(server.distFS, assetDir)
+			if errors.Is(readErr, fs.ErrNotExist) {
+				continue
+			}
+			require.NoError(t, readErr)
+			for _, entry := range entries {
+				candidate := assetDir + "/" + entry.Name()
+				if !entry.IsDir() && isFingerprintedEmbeddedAssetPath(candidate) {
+					fingerprintedPath = candidate
+					break
+				}
+			}
+			if fingerprintedPath != "" {
 				break
 			}
 		}
@@ -675,6 +686,25 @@ func TestFrontendServer_Middleware(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, assetWriter.Code)
 		assert.Equal(t, staticAssetsCacheControl, assetWriter.Header().Get("Cache-Control"))
+	})
+
+	t.Run("serves_static_app_prefixed_files", func(t *testing.T) {
+		provider := &mockSettingsProvider{
+			settings: map[string]string{"test": "value"},
+		}
+
+		server, err := NewFrontendServer(provider)
+		require.NoError(t, err)
+
+		router := gin.New()
+		router.Use(server.Middleware())
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/static/app/logo.png", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
 	})
 }
 
@@ -742,6 +772,20 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
 	})
 
+	t.Run("serves_static_app_prefixed_files", func(t *testing.T) {
+		middleware := ServeEmbeddedFrontend()
+
+		router := gin.New()
+		router.Use(middleware)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/static/app/logo.png", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
+	})
+
 	t.Run("serves_index_html_for_root", func(t *testing.T) {
 		middleware := ServeEmbeddedFrontend()
 
@@ -782,6 +826,7 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 
 		apiPaths := []string{
 			"/api/users",
+			"/user/login",
 			"/models",
 			"/v1/models",
 			"/v1beta/chat",
@@ -789,6 +834,7 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 			"/backend-api/codex/responses/compact",
 			"/antigravity/test",
 			"/setup/init",
+			"/status",
 			"/health",
 			"/responses",
 			"/responses/compact",
@@ -883,7 +929,7 @@ func TestHTMLCache(t *testing.T) {
 
 // Benchmark tests
 func BenchmarkReplaceNoncePlaceholder(b *testing.B) {
-	html := []byte(`<!DOCTYPE html><html><head><script nonce="__CSP_NONCE_VALUE__">window.__APP_CONFIG__={"test":"data"};</script></head><body></body></html>`)
+	html := []byte(`<!DOCTYPE html><html><head><script nonce="__CSP_NONCE_VALUE__">window.__STATIC_APP__={"test":"data"};</script></head><body></body></html>`)
 	nonce := "abcdefghijklmnop123456=="
 
 	b.ResetTimer()

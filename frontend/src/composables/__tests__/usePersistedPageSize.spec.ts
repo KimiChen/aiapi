@@ -5,11 +5,11 @@ import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 describe('usePersistedPageSize', () => {
   afterEach(() => {
     localStorage.clear()
-    delete window.__APP_CONFIG__
+    delete window.__STATIC_APP__
   })
 
   it('uses the system table default instead of stale localStorage state', () => {
-    window.__APP_CONFIG__ = {
+    window.__STATIC_APP__ = {
       table_default_page_size: 1000,
       table_page_size_options: [20, 50, 1000]
     } as any

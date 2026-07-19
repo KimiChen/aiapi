@@ -1,11 +1,12 @@
 import { createI18n } from 'vue-i18n'
+import { publicMessages } from './publicMessages'
 
 type LocaleCode = 'en' | 'zh'
 
 type LocaleMessages = Record<string, any>
 
-const LOCALE_KEY = 'sub2api_locale'
-const DEFAULT_LOCALE: LocaleCode = 'en'
+const LOCALE_KEY = 'portal_locale'
+const DEFAULT_LOCALE: LocaleCode = 'zh'
 
 const localeLoaders: Record<LocaleCode, () => Promise<{ default: LocaleMessages }>> = {
   en: () => import('./locales/en'),
@@ -17,16 +18,6 @@ function isLocaleCode(value: string): value is LocaleCode {
 }
 
 function getDefaultLocale(): LocaleCode {
-  const saved = localStorage.getItem(LOCALE_KEY)
-  if (saved && isLocaleCode(saved)) {
-    return saved
-  }
-
-  const browserLang = navigator.language.toLowerCase()
-  if (browserLang.startsWith('zh')) {
-    return 'zh'
-  }
-
   return DEFAULT_LOCALE
 }
 
@@ -56,6 +47,12 @@ export async function loadLocaleMessages(locale: LocaleCode): Promise<void> {
 export async function initI18n(): Promise<void> {
   const current = getLocale()
   await loadLocaleMessages(current)
+  document.documentElement.setAttribute('lang', current)
+}
+
+export async function initPublicI18n(): Promise<void> {
+  const current = getLocale()
+  i18n.global.setLocaleMessage(current, publicMessages[current])
   document.documentElement.setAttribute('lang', current)
 }
 

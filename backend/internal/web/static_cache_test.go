@@ -22,8 +22,12 @@ func TestIsFingerprintedEmbeddedAssetPath(t *testing.T) {
 		{name: "fingerprinted_url_safe_hash", path: "assets/app-aB1-2_Cd.css", want: true},
 		{name: "nested_fingerprinted_asset", path: "assets/vendor/chunk-AbCd1234.js", want: true},
 		{name: "leading_slash_fingerprinted_asset", path: "/assets/index-AbCd1234.js", want: true},
+		{name: "fork_fingerprinted_js", path: "res/AbCd1234.js", want: true},
+		{name: "fork_fingerprinted_css", path: "/res/aB1-2_Cd.css", want: true},
 		{name: "unhashed_asset", path: "assets/index.js", want: false},
 		{name: "short_suffix", path: "assets/index-abc123.js", want: false},
+		{name: "short_fork_hash", path: "res/abc123.js", want: false},
+		{name: "named_fork_asset", path: "res/index-AbCd1234.js", want: false},
 		{name: "logo", path: "logo.png", want: false},
 		{name: "favicon", path: "favicon.ico", want: false},
 		{name: "fingerprint_outside_assets", path: "downloads/index-AbCd1234.js", want: false},
@@ -31,6 +35,8 @@ func TestIsFingerprintedEmbeddedAssetPath(t *testing.T) {
 		{name: "spa_route", path: "dashboard", want: false},
 		{name: "assets_prefix_only", path: "assets", want: false},
 		{name: "similar_name", path: "assets-backup/x.js", want: false},
+		{name: "res_prefix_only", path: "res", want: false},
+		{name: "similar_res_name", path: "res-backup/x.js", want: false},
 		{name: "empty", path: "", want: false},
 	}
 
@@ -52,7 +58,14 @@ func TestApplyStaticAssetCacheHeaders(t *testing.T) {
 		assert.Equal(t, staticAssetsCacheControl, header.Get("Cache-Control"))
 	})
 
-	for _, path := range []string{"assets/index.js", "logo.png", "favicon.ico", "index.html"} {
+	t.Run("sets_immutable_cache_for_fork_assets", func(t *testing.T) {
+		t.Parallel()
+		header := make(http.Header)
+		applyStaticAssetCacheHeaders(header, "res/AbCd1234.js")
+		assert.Equal(t, staticAssetsCacheControl, header.Get("Cache-Control"))
+	})
+
+	for _, path := range []string{"assets/index.js", "res/index.js", "logo.png", "favicon.ico", "index.html"} {
 		path := path
 		t.Run("skips_"+path, func(t *testing.T) {
 			t.Parallel()

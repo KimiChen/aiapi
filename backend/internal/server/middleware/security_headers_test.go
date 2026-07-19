@@ -26,8 +26,8 @@ func TestGenerateNonce(t *testing.T) {
 		decoded, err := base64.StdEncoding.DecodeString(nonce)
 		require.NoError(t, err)
 
-		// Should decode to 16 bytes
-		assert.Len(t, decoded, 16)
+		// Should decode to 39 bytes
+		assert.Len(t, decoded, 39)
 	})
 
 	t.Run("generates_unique_nonces", func(t *testing.T) {
@@ -43,8 +43,8 @@ func TestGenerateNonce(t *testing.T) {
 	t.Run("nonce_has_expected_length", func(t *testing.T) {
 		nonce, err := GenerateNonce()
 		require.NoError(t, err)
-		// 16 bytes -> 24 chars in base64 (with padding)
-		assert.Len(t, nonce, 24)
+		// 39 bytes -> 52 chars in base64 (without padding)
+		assert.Len(t, nonce, 52)
 	})
 }
 

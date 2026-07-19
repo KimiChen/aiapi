@@ -53,6 +53,13 @@ vi.mock('@/stores', () => ({
   })
 }))
 
+vi.mock('@/stores/app', () => ({
+  useAppStore: () => ({
+    showSuccess,
+    showError
+  })
+}))
+
 vi.mock('@/api/client', () => ({
   apiClient: {
     post: (...args: any[]) => apiClientPost(...args)

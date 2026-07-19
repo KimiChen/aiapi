@@ -92,7 +92,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
 import { getPublicSettings, sendPendingOAuthVerifyCode } from '@/api/auth'
-import { useAppStore } from '@/stores'
+import { useAppStore } from '@/stores/app'
 
 export type PendingOAuthCreateAccountPayload = {
   email: string

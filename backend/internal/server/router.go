@@ -67,6 +67,12 @@ func SetupRouter(
 		return nil
 	}))
 	r.Use(middleware2.ServerTiming(cfg.Server.EnableServerTiming))
+	publicRouteBlocklist, err := middleware2.LoadPublicRouteBlocklist()
+	if err != nil {
+		log.Fatalf("Failed to load public route blocklist: %v", err)
+	}
+	middleware2.LogPublicRouteBlocklist(publicRouteBlocklist)
+	r.Use(middleware2.PublicRouteBlocklistMiddleware(publicRouteBlocklist))
 
 	// Serve embedded frontend with settings injection if available
 	if web.HasEmbeddedFrontend() {
@@ -111,6 +117,7 @@ func registerRoutes(
 ) {
 	// 通用路由（健康检查、状态等）
 	routes.RegisterCommonRoutes(r)
+	routes.RegisterUserAuthRoutes(r, h, redisClient, settingService)
 
 	// API v1
 	v1 := r.Group("/api/v1")

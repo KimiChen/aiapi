@@ -129,6 +129,15 @@ vi.mock('@/stores', () => ({
   }),
 }))
 
+vi.mock('@/stores/app', () => ({
+  useAppStore: () => ({
+    ...appStoreState,
+    showSuccess: showSuccessMock,
+    showError: showErrorMock,
+    fetchPublicSettings: fetchPublicSettingsMock,
+  }),
+}))
+
 vi.mock('@/api/client', () => ({
   apiClient: {
     post: (...args: any[]) => apiClientPostMock(...args),

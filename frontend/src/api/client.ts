@@ -17,6 +17,8 @@ export { buildApiUrl, buildGatewayUrl } from './url'
 
 // ==================== Axios Instance Configuration ====================
 
+export const PUBLIC_AUTH_BASE_URL = ''
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: getAPIBaseURL(),
   withCredentials: true,
@@ -25,6 +27,66 @@ export const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json'
   }
 })
+
+export const publicAuthClient: AxiosInstance = axios.create({
+  baseURL: PUBLIC_AUTH_BASE_URL,
+  withCredentials: true,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+publicAuthClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (config.headers) {
+    config.headers['Accept-Language'] = getLocale()
+  }
+  return config
+})
+
+publicAuthClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const apiResponse = response.data as ApiResponse<unknown>
+    if (apiResponse && typeof apiResponse === 'object' && 'code' in apiResponse) {
+      if (apiResponse.code === 0) {
+        response.data = apiResponse.data
+      } else {
+        const resp = apiResponse as unknown as Record<string, unknown>
+        return Promise.reject({
+          status: response.status,
+          code: apiResponse.code,
+          message: apiResponse.message || 'Unknown error',
+          reason: resp.reason,
+          metadata: resp.metadata,
+        })
+      }
+    }
+    return response
+  },
+  (error: AxiosError<ApiResponse<unknown>>) => {
+    if (error.code === 'ERR_CANCELED' || axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
+
+    if (error.response) {
+      const { status, data } = error.response
+      const apiData = (typeof data === 'object' && data !== null ? data : {}) as Record<string, any>
+      return Promise.reject({
+        status,
+        code: apiData.code,
+        reason: apiData.reason,
+        error: apiData.error,
+        message: apiData.message || apiData.detail || error.message,
+        metadata: apiData.metadata,
+      })
+    }
+
+    return Promise.reject({
+      status: 0,
+      message: 'Network error. Please check your connection.'
+    })
+  }
+)
 
 // ==================== Token Refresh State ====================
 
@@ -186,7 +248,7 @@ apiClient.interceptors.response.use(
       if (status === 401 && !originalRequest._retry) {
         const refreshToken = localStorage.getItem('refresh_token')
         const isAuthEndpoint =
-          url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')
+          url.includes('/user/login') || url.includes('/user/register') || url.includes('/user/refresh')
 
         // If we have a refresh token and this is not an auth endpoint, try to refresh
         if (refreshToken && !isAuthEndpoint) {
@@ -219,7 +281,7 @@ apiClient.interceptors.response.use(
           try {
             // Call refresh endpoint directly to avoid circular dependency
             const refreshResponse = await axios.post(
-              `${getAPIBaseURL()}/auth/refresh`,
+              '/user/refresh',
               { refresh_token: refreshToken },
               // 显式设置超时：裸 axios 默认无限等待，若刷新请求挂起会导致 isRefreshing
               // 永远为 true，所有排队的 401 重试请求永久卡死，页面 loading 无法恢复。

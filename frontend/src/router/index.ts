@@ -1,5 +1,5 @@
 /**
- * Vue Router configuration for Sub2API frontend
+ * Vue Router configuration for the frontend
  * Defines all application routes with lazy loading and navigation guards
  */
 
@@ -13,6 +13,7 @@ import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
+import { isBackendModePublicRouteAllowed } from './backendMode'
 
 /**
  * Route definitions with lazy loading
@@ -31,31 +32,76 @@ const routes: RouteRecordRaw[] = [
 
   // ==================== Public Routes ====================
   {
-    path: '/home',
+    path: '/',
     name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    alias: '/home',
+    component: () => import('@/views/guest/HomeView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Home'
+      title: '数据中台'
+    }
+  },
+  {
+    path: '/catalog',
+    name: 'GuestCatalog',
+    component: () => import('@/views/guest/CatalogView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '数据目录'
+    }
+  },
+  {
+    path: '/governance',
+    name: 'GuestGovernance',
+    component: () => import('@/views/guest/GovernanceView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '数据治理'
+    }
+  },
+  {
+    path: '/exchange',
+    name: 'GuestExchange',
+    component: () => import('@/views/guest/ExchangeView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '交换任务'
+    }
+  },
+  {
+    path: '/orchestration',
+    name: 'GuestOrchestration',
+    component: () => import('@/views/guest/OrchestrationView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '服务编排'
+    }
+  },
+  {
+    path: '/docs',
+    name: 'GuestDocs',
+    component: () => import('@/views/guest/DocsView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: '接入规范'
     }
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    component: () => import('@/views/guest/LoginView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Login',
-      titleKey: 'home.login'
+      title: '数据中台登录'
     }
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/auth/RegisterView.vue'),
+    component: () => import('@/views/guest/RegisterView.vue'),
     meta: {
       requiresAuth: false,
-      title: 'Register',
+      title: '账号申请',
       titleKey: 'auth.createAccount'
     }
   },
@@ -177,10 +223,6 @@ const routes: RouteRecordRaw[] = [
   },
 
   // ==================== User Routes ====================
-  {
-    path: '/',
-    redirect: '/home'
-  },
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -707,7 +749,7 @@ const routes: RouteRecordRaw[] = [
  * Create router instance
  */
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory('/'),
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     // Scroll to saved position when using browser back/forward
@@ -728,33 +770,6 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal']
-const BACKEND_MODE_CALLBACK_PATHS = [
-  '/auth/callback',
-  '/auth/linuxdo/callback',
-  '/auth/dingtalk/callback',
-  '/auth/dingtalk/email-completion',
-  '/auth/oidc/callback',
-  '/auth/wechat/callback',
-  '/auth/wechat/payment/callback',
-]
-const BACKEND_MODE_PENDING_AUTH_PATHS = ['/register', '/email-verify']
-
-function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: boolean): boolean {
-  if (BACKEND_MODE_ALLOWED_PATHS.some((allowedPath) => path === allowedPath || path.startsWith(allowedPath))) {
-    return true
-  }
-
-  if (BACKEND_MODE_CALLBACK_PATHS.some((callbackPath) => path === callbackPath)) {
-    return true
-  }
-
-  if (hasPendingAuthSession && BACKEND_MODE_PENDING_AUTH_PATHS.some((allowedPath) => path === allowedPath)) {
-    return true
-  }
-
-  return false
-}
 
 router.beforeEach(async (to, _from, next) => {
   // 开始导航加载状态

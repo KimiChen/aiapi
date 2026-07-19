@@ -157,7 +157,7 @@ func (h *AuthHandler) isBackendModeEnabled(ctx context.Context) bool {
 }
 
 // Register handles user registration
-// POST /api/v1/auth/register
+// POST /user/register
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -216,7 +216,7 @@ func (h *AuthHandler) SendVerifyCode(c *gin.Context) {
 }
 
 // Login handles user login
-// POST /api/v1/auth/login
+// POST /user/login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -278,7 +278,7 @@ type Login2FARequest struct {
 }
 
 // Login2FA completes the login with 2FA verification
-// POST /api/v1/auth/login/2fa
+// POST /user/login/2fa
 func (h *AuthHandler) Login2FA(c *gin.Context) {
 	var req Login2FARequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -660,7 +660,7 @@ type RefreshTokenResponse struct {
 }
 
 // RefreshToken 刷新Token
-// POST /api/v1/auth/refresh
+// POST /user/refresh
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -699,7 +699,7 @@ type LogoutResponse struct {
 }
 
 // Logout 用户登出
-// POST /api/v1/auth/logout
+// POST /user/logout
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req LogoutRequest
 	// 允许空请求体（向后兼容）

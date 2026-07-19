@@ -4,6 +4,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
@@ -46,6 +47,118 @@ func (s *settingPublicRepoStub) GetAll(ctx context.Context) (map[string]string, 
 
 func (s *settingPublicRepoStub) Delete(ctx context.Context, key string) error {
 	panic("unexpected Delete call")
+}
+
+func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFields(t *testing.T) {
+	svc := NewSettingService(&settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeySiteName:                             "企业数据中台",
+			SettingKeySiteSubtitle:                         "统一数据目录、治理与服务编排入口",
+			SettingKeyRegistrationEnabled:                  "false",
+			SettingKeyPromoCodeEnabled:                     "true",
+			SettingKeyGoogleOAuthEnabled:                   "false",
+			SettingKeyBackendModeEnabled:                   "false",
+			SettingKeyAPIBaseURL:                           "https://api-a.example.test;https://api-b.example.test",
+			SettingKeyTableDefaultPageSize:                 "20",
+			SettingKeyTablePageSizeOptions:                 "[10,20,50,100]",
+			SettingKeyCustomMenuItems:                      "[]",
+			SettingKeyCustomEndpoints:                      `[{"name":"HK","endpoint":"https://hk.example.test","description":"Hong Kong"}]`,
+			SettingKeyChannelMonitorEnabled:                "false",
+			SettingKeyChannelMonitorDefaultIntervalSeconds: "60",
+			SettingKeyAvailableChannelsEnabled:             "false",
+			SettingKeyAffiliateEnabled:                     "false",
+			SettingKeyRiskControlEnabled:                   "false",
+			SettingKeyAllowUserViewErrorRequests:           "false",
+		},
+	}, &config.Config{})
+
+	payload, err := svc.GetPublicSettingsForInjection(context.Background())
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	var out map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(raw, &out))
+
+	require.JSONEq(t, `"企业数据中台"`, string(out["site_name"]))
+	require.JSONEq(t, `"统一数据目录、治理与服务编排入口"`, string(out["site_subtitle"]))
+	require.Contains(t, out, "server_timezone")
+	require.Contains(t, out, "server_utc_offset")
+	require.NotContains(t, out, "registration_enabled")
+	require.NotContains(t, out, "promo_code_enabled")
+	require.NotContains(t, out, "google_oauth_enabled")
+	require.NotContains(t, out, "backend_mode_enabled")
+	require.NotContains(t, out, "api_base_url")
+	require.NotContains(t, out, "table_default_page_size")
+	require.NotContains(t, out, "table_page_size_options")
+	require.NotContains(t, out, "custom_menu_items")
+	require.NotContains(t, out, "custom_endpoints")
+	require.NotContains(t, out, "channel_monitor_enabled")
+	require.NotContains(t, out, "available_channels_enabled")
+	require.NotContains(t, out, "affiliate_enabled")
+	require.NotContains(t, out, "risk_control_enabled")
+	require.NotContains(t, out, "allow_user_view_error_requests")
+}
+
+func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationFeatureFlags(t *testing.T) {
+	svc := NewSettingService(&settingPublicRepoStub{
+		values: map[string]string{
+			SettingPaymentEnabled:              "true",
+			SettingKeyChannelMonitorEnabled:    "true",
+			SettingKeyAvailableChannelsEnabled: "true",
+			SettingKeyAffiliateEnabled:         "true",
+			SettingKeyRiskControlEnabled:       "true",
+		},
+	}, &config.Config{})
+
+	payload, err := svc.GetPublicSettingsForInjection(context.Background())
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	var out map[string]any
+	require.NoError(t, json.Unmarshal(raw, &out))
+	require.Equal(t, true, out["payment_enabled"])
+	require.Equal(t, true, out["channel_monitor_enabled"])
+	require.Equal(t, true, out["available_channels_enabled"])
+	require.Equal(t, true, out["affiliate_enabled"])
+	require.Equal(t, true, out["risk_control_enabled"])
+}
+
+func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatures(t *testing.T) {
+	svc := NewSettingService(&settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeyRegistrationEnabled:              "true",
+			SettingKeyEmailVerifyEnabled:               "true",
+			SettingKeyRegistrationEmailSuffixWhitelist: `["@example.com"]`,
+			SettingKeyPromoCodeEnabled:                 "true",
+			SettingKeyInvitationCodeEnabled:            "true",
+			SettingKeyTurnstileEnabled:                 "true",
+			SettingKeyTurnstileSiteKey:                 "site-key",
+			SettingKeyOIDCConnectEnabled:               "true",
+			SettingKeyOIDCConnectProviderName:          "CorpID",
+		},
+	}, &config.Config{})
+
+	payload, err := svc.GetPublicSettingsForInjection(context.Background())
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	var out map[string]any
+	require.NoError(t, json.Unmarshal(raw, &out))
+	require.Equal(t, true, out["registration_enabled"])
+	require.Equal(t, true, out["email_verify_enabled"])
+	require.Equal(t, []any{"@example.com"}, out["registration_email_suffix_whitelist"])
+	require.Equal(t, true, out["promo_code_enabled"])
+	require.Equal(t, true, out["invitation_code_enabled"])
+	require.Equal(t, true, out["turnstile_enabled"])
+	require.Equal(t, "site-key", out["turnstile_site_key"])
+	require.NotContains(t, out, "oidc_oauth_enabled")
+	require.NotContains(t, out, "oidc_oauth_provider_name")
 }
 
 func TestSettingService_GetPublicSettings_ExposesRegistrationEmailSuffixWhitelist(t *testing.T) {
