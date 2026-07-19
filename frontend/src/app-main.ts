@@ -6,6 +6,7 @@ import router from './router'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
 import { markFullAppActive } from '@/public/fullAppBridge'
+import { updateFavicon } from '@/utils/branding'
 import './style.css'
 import './style-fork.css'
 
@@ -37,6 +38,7 @@ export async function mountFullApp(selector = '#app'): Promise<VueApp<Element>> 
   if (appStore.siteName) {
     document.title = `${appStore.siteName} - Secure Portal`
   }
+  updateFavicon(appStore.siteLogo)
 
   await initI18n()
 
