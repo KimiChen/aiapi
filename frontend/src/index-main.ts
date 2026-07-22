@@ -6,10 +6,25 @@ import publicRouter, {
   isGuestPublicPath,
 } from './router/guest'
 import { enterFullApp, setPublicApp } from '@/public/fullAppBridge'
+import { isIOSDevice } from '@/utils/device'
 import './style.css'
 import './style-fork.css'
 
 const GUEST_SITE_NAME = '企业数据中台'
+
+function initIOSViewportZoomFix() {
+  // iOS Safari 会在聚焦字号小于 16px 的输入框时自动放大页面，失焦后也不会自动恢复。
+  // 仅在 iOS 设备追加 maximum-scale，避免改变 Android Chrome 等浏览器的手动缩放行为。
+  // 此入口同时负责访客门户和完整应用，因此在路由分流前执行一次即可覆盖两种界面。
+  if (!isIOSDevice()) return
+
+  const viewport = document.querySelector('meta[name="viewport"]')
+  if (!viewport) return
+
+  const content = viewport.getAttribute('content') || ''
+  if (/maximum-scale/i.test(content)) return
+  viewport.setAttribute('content', `${content}, maximum-scale=1.0`)
+}
 
 function initThemeClass() {
   const savedTheme = localStorage.getItem('theme')
@@ -62,6 +77,8 @@ async function mountPublicApp(): Promise<VueApp<Element>> {
 }
 
 async function bootstrap() {
+  initIOSViewportZoomFix()
+
   const pathname = window.location.pathname
 
   if (!isGuestPublicPath(pathname)) {
