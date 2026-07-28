@@ -36,7 +36,14 @@ func backendModeAllowsAuthPath(path string) bool {
 		return false
 	}
 
-	for _, suffix := range []string{"/auth/login", "/auth/login/2fa", "/auth/logout", "/auth/refresh"} {
+	for _, suffix := range []string{
+		"/auth/login",
+		"/auth/login/2fa",
+		"/auth/passkey/login/begin",
+		"/auth/passkey/login/finish",
+		"/auth/logout",
+		"/auth/refresh",
+	} {
 		if strings.HasSuffix(path, suffix) {
 			return true
 		}

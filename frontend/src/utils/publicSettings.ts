@@ -31,6 +31,7 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   login_agreement_revision: '',
   login_agreement_documents: [],
   turnstile_enabled: false,
+  passkey_enabled: false,
   turnstile_site_key: '',
   site_name: DEFAULT_PUBLIC_SITE_NAME,
   site_logo: '',
@@ -64,6 +65,8 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   channel_monitor_enabled: false,
   channel_monitor_default_interval_seconds: 60,
   available_channels_enabled: false,
+  model_plaza_enabled: false,
+  model_plaza_require_auth: false,
   service_quota_enabled: false,
   affiliate_enabled: false,
   allow_user_view_error_requests: false,
@@ -151,6 +154,7 @@ export const compactPublicSettingsConfig = (
     out.turnstile_enabled = true
     addStringSetting(out, 'turnstile_site_key', normalized.turnstile_site_key)
   }
+  addTrueSetting(out, 'passkey_enabled', normalized.passkey_enabled)
 
   addTrueSetting(out, 'linuxdo_oauth_enabled', normalized.linuxdo_oauth_enabled)
   addTrueSetting(out, 'dingtalk_oauth_enabled', normalized.dingtalk_oauth_enabled)
@@ -168,6 +172,10 @@ export const compactPublicSettingsConfig = (
   addTrueSetting(out, 'payment_enabled', normalized.payment_enabled)
   addTrueSetting(out, 'channel_monitor_enabled', normalized.channel_monitor_enabled)
   addTrueSetting(out, 'available_channels_enabled', normalized.available_channels_enabled)
+  if (normalized.model_plaza_enabled) {
+    out.model_plaza_enabled = true
+    addTrueSetting(out, 'model_plaza_require_auth', normalized.model_plaza_require_auth)
+  }
   addTrueSetting(out, 'affiliate_enabled', normalized.affiliate_enabled)
   addTrueSetting(out, 'risk_control_enabled', normalized.risk_control_enabled)
 

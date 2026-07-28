@@ -430,6 +430,9 @@ describe('useAppStore', () => {
         payment_enabled: true,
         channel_monitor_enabled: true,
         available_channels_enabled: true,
+        model_plaza_enabled: true,
+        model_plaza_require_auth: true,
+        passkey_enabled: true,
         affiliate_enabled: true,
         risk_control_enabled: true,
         version: '1.0.0'
@@ -445,6 +448,9 @@ describe('useAppStore', () => {
       expect((window as any).__STATIC_APP__.payment_enabled).toBe(true)
       expect((window as any).__STATIC_APP__.channel_monitor_enabled).toBe(true)
       expect((window as any).__STATIC_APP__.available_channels_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.model_plaza_enabled).toBe(true)
+      expect((window as any).__STATIC_APP__.model_plaza_require_auth).toBe(true)
+      expect((window as any).__STATIC_APP__.passkey_enabled).toBe(true)
       expect((window as any).__STATIC_APP__.affiliate_enabled).toBe(true)
       expect((window as any).__STATIC_APP__.risk_control_enabled).toBe(true)
       expect(localStorage.getItem('table-page-size')).toBeNull()

@@ -33,6 +33,7 @@ func newAuthRoutesTestRouter(redisClient *redis.Client) *gin.Engine {
 		}),
 		redisClient,
 		nil,
+		nil,
 	)
 	RegisterUserAuthRoutes(
 		router,
@@ -63,6 +64,8 @@ func TestAuthRoutesRateLimitFailCloseWhenRedisUnavailable(t *testing.T) {
 		"/user/login",
 		"/user/login/2fa",
 		"/user/refresh",
+		"/api/v1/auth/passkey/login/begin",
+		"/api/v1/auth/passkey/login/finish",
 		"/api/v1/auth/send-verify-code",
 		"/api/v1/auth/oauth/pending/send-verify-code",
 	}

@@ -8,8 +8,9 @@ import (
 )
 
 // 本文件集中存放 fork 定制的配置项，避免在上游 config.go 中插入大段区域。
-// 上游 config.go 中仅保留三处单行引用：
+// 上游 config.go 中仅保留四处单行引用：
 //   - Config 结构体中的 Traffic 字段
+//   - setDefaults() 中的 setForkDefaults() 调用
 //   - load() 中的 cfg.normalizeFork() 调用
 //   - Validate() 中的 c.validateFork() 调用
 
@@ -29,9 +30,10 @@ type TrafficConfig struct {
 	TCPPayloadBytes int `mapstructure:"tcp_payload_bytes"`
 }
 
-// init 注册 fork 配置项的默认值（viper 全局单例，在 load 之前生效，
-// 与上游 setDefaults() 中的注册等价）。
-func init() {
+// setForkDefaults registers fork-only defaults from setDefaults. Keeping this
+// explicit is important because tests and embedders may call viper.Reset(),
+// which clears defaults registered from package init functions.
+func setForkDefaults() {
 	// Traffic byte estimation
 	viper.SetDefault("traffic.enabled", true)
 	viper.SetDefault("traffic.source", "app_estimate")

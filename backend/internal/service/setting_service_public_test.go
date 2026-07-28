@@ -107,6 +107,8 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 			SettingPaymentEnabled:              "true",
 			SettingKeyChannelMonitorEnabled:    "true",
 			SettingKeyAvailableChannelsEnabled: "true",
+			SettingKeyModelPlazaEnabled:        "true",
+			SettingKeyModelPlazaRequireAuth:    "true",
 			SettingKeyAffiliateEnabled:         "true",
 			SettingKeyRiskControlEnabled:       "true",
 		},
@@ -123,6 +125,8 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 	require.Equal(t, true, out["payment_enabled"])
 	require.Equal(t, true, out["channel_monitor_enabled"])
 	require.Equal(t, true, out["available_channels_enabled"])
+	require.Equal(t, true, out["model_plaza_enabled"])
+	require.Equal(t, true, out["model_plaza_require_auth"])
 	require.Equal(t, true, out["affiliate_enabled"])
 	require.Equal(t, true, out["risk_control_enabled"])
 }
@@ -137,10 +141,11 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatur
 			SettingKeyInvitationCodeEnabled:            "true",
 			SettingKeyTurnstileEnabled:                 "true",
 			SettingKeyTurnstileSiteKey:                 "site-key",
+			SettingKeyPasskeyEnabled:                   "true",
 			SettingKeyOIDCConnectEnabled:               "true",
 			SettingKeyOIDCConnectProviderName:          "CorpID",
 		},
-	}, &config.Config{})
+	}, &config.Config{WebAuthn: config.WebAuthnConfig{Enabled: true}})
 
 	payload, err := svc.GetPublicSettingsForInjection(context.Background())
 	require.NoError(t, err)
@@ -157,6 +162,7 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatur
 	require.Equal(t, true, out["invitation_code_enabled"])
 	require.Equal(t, true, out["turnstile_enabled"])
 	require.Equal(t, "site-key", out["turnstile_site_key"])
+	require.Equal(t, true, out["passkey_enabled"])
 	require.NotContains(t, out, "oidc_oauth_enabled")
 	require.NotContains(t, out, "oidc_oauth_provider_name")
 }
