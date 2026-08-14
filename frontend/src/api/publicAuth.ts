@@ -192,6 +192,8 @@ export async function validateInvitationCode(code: string): Promise<ValidateInvi
 export interface ForgotPasswordRequest {
   email: string
   turnstile_token?: string
+  tencent_captcha_ticket?: string
+  tencent_captcha_randstr?: string
 }
 
 export interface ForgotPasswordResponse {

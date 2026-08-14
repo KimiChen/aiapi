@@ -13,6 +13,7 @@ import (
 
 type settingPublicRepoStub struct {
 	values map[string]string
+	err    error
 }
 
 func (s *settingPublicRepoStub) Get(ctx context.Context, key string) (*Setting, error) {
@@ -28,6 +29,9 @@ func (s *settingPublicRepoStub) Set(ctx context.Context, key, value string) erro
 }
 
 func (s *settingPublicRepoStub) GetMultiple(ctx context.Context, keys []string) (map[string]string, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
 	out := make(map[string]string, len(keys))
 	for _, key := range keys {
 		if value, ok := s.values[key]; ok {
@@ -104,13 +108,17 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesClientEndpointFiel
 func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationFeatureFlags(t *testing.T) {
 	svc := NewSettingService(&settingPublicRepoStub{
 		values: map[string]string{
-			SettingPaymentEnabled:              "true",
-			SettingKeyChannelMonitorEnabled:    "true",
-			SettingKeyAvailableChannelsEnabled: "true",
-			SettingKeyModelPlazaEnabled:        "true",
-			SettingKeyModelPlazaRequireAuth:    "true",
-			SettingKeyAffiliateEnabled:         "true",
-			SettingKeyRiskControlEnabled:       "true",
+			SettingPaymentEnabled:                          "true",
+			SettingKeyCompactHomeEnabled:                   "true",
+			SettingKeyChannelMonitorEnabled:                "true",
+			SettingKeyChannelMonitorMode:                   ChannelMonitorModeV2,
+			SettingKeyChannelMonitorDefaultIntervalSeconds: "120",
+			SettingKeyChannelMonitorHideThroughput:         "true",
+			SettingKeyAvailableChannelsEnabled:             "true",
+			SettingKeyModelPlazaEnabled:                    "true",
+			SettingKeyModelPlazaRequireAuth:                "true",
+			SettingKeyAffiliateEnabled:                     "true",
+			SettingKeyRiskControlEnabled:                   "true",
 		},
 	}, &config.Config{})
 
@@ -123,7 +131,11 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 	var out map[string]any
 	require.NoError(t, json.Unmarshal(raw, &out))
 	require.Equal(t, true, out["payment_enabled"])
+	require.Equal(t, true, out["compact_home_enabled"])
 	require.Equal(t, true, out["channel_monitor_enabled"])
+	require.Equal(t, ChannelMonitorModeV2, out["channel_monitor_mode"])
+	require.Equal(t, float64(120), out["channel_monitor_default_interval_seconds"])
+	require.Equal(t, true, out["channel_monitor_hide_throughput"])
 	require.Equal(t, true, out["available_channels_enabled"])
 	require.Equal(t, true, out["model_plaza_enabled"])
 	require.Equal(t, true, out["model_plaza_require_auth"])
@@ -134,16 +146,24 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatures(t *testing.T) {
 	svc := NewSettingService(&settingPublicRepoStub{
 		values: map[string]string{
-			SettingKeyRegistrationEnabled:              "true",
-			SettingKeyEmailVerifyEnabled:               "true",
-			SettingKeyRegistrationEmailSuffixWhitelist: `["@example.com"]`,
-			SettingKeyPromoCodeEnabled:                 "true",
-			SettingKeyInvitationCodeEnabled:            "true",
-			SettingKeyTurnstileEnabled:                 "true",
-			SettingKeyTurnstileSiteKey:                 "site-key",
-			SettingKeyPasskeyEnabled:                   "true",
-			SettingKeyOIDCConnectEnabled:               "true",
-			SettingKeyOIDCConnectProviderName:          "CorpID",
+			SettingKeyRegistrationEnabled:                 "true",
+			SettingKeyEmailVerifyEnabled:                  "true",
+			SettingKeyRegistrationEmailDomainQuotaEnabled: "true",
+			SettingKeyRegistrationEmailSuffixWhitelist:    `["@example.com"]`,
+			SettingKeyPromoCodeEnabled:                    "true",
+			SettingKeyInvitationCodeEnabled:               "true",
+			SettingKeyTurnstileEnabled:                    "true",
+			SettingKeyTurnstileSiteKey:                    "site-key",
+			SettingKeyTencentCaptchaEnabled:               "true",
+			SettingKeyTencentCaptchaAppID:                 "tencent-app",
+			SettingKeyTencentCaptchaRegion:                TencentCaptchaRegionINTL,
+			SettingKeyAliyunCaptchaEnabled:                "true",
+			SettingKeyAliyunCaptchaSceneID:                "aliyun-scene",
+			SettingKeyAliyunCaptchaPrefix:                 "aliyun-prefix",
+			SettingKeyAliyunCaptchaRegion:                 AliyunCaptchaRegionSGP,
+			SettingKeyPasskeyEnabled:                      "true",
+			SettingKeyOIDCConnectEnabled:                  "true",
+			SettingKeyOIDCConnectProviderName:             "CorpID",
 		},
 	}, &config.Config{WebAuthn: config.WebAuthnConfig{Enabled: true}})
 
@@ -158,10 +178,18 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledLoginFeatur
 	require.Equal(t, true, out["registration_enabled"])
 	require.Equal(t, true, out["email_verify_enabled"])
 	require.Equal(t, []any{"@example.com"}, out["registration_email_suffix_whitelist"])
+	require.Equal(t, true, out["registration_email_domain_quota_enabled"])
 	require.Equal(t, true, out["promo_code_enabled"])
 	require.Equal(t, true, out["invitation_code_enabled"])
 	require.Equal(t, true, out["turnstile_enabled"])
 	require.Equal(t, "site-key", out["turnstile_site_key"])
+	require.Equal(t, true, out["tencent_captcha_enabled"])
+	require.Equal(t, "tencent-app", out["tencent_captcha_app_id"])
+	require.Equal(t, TencentCaptchaRegionINTL, out["tencent_captcha_region"])
+	require.Equal(t, true, out["aliyun_captcha_enabled"])
+	require.Equal(t, "aliyun-scene", out["aliyun_captcha_scene_id"])
+	require.Equal(t, "aliyun-prefix", out["aliyun_captcha_prefix"])
+	require.Equal(t, AliyunCaptchaRegionSGP, out["aliyun_captcha_region"])
 	require.Equal(t, true, out["passkey_enabled"])
 	require.NotContains(t, out, "oidc_oauth_enabled")
 	require.NotContains(t, out, "oidc_oauth_provider_name")
@@ -195,6 +223,40 @@ func TestSettingService_GetPublicSettings_ExposesTablePreferences(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, 50, settings.TableDefaultPageSize)
 	require.Equal(t, []int{20, 50, 100}, settings.TablePageSizeOptions)
+}
+
+func TestSettingService_GetPublicSettings_ExposesCompactHomeEnabled(t *testing.T) {
+	repo := &settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeyCompactHomeEnabled: "true",
+		},
+	}
+	svc := NewSettingService(repo, &config.Config{})
+
+	settings, err := svc.GetPublicSettings(context.Background())
+
+	require.NoError(t, err)
+	require.True(t, settings.CompactHomeEnabled)
+
+	missingSettings, err := NewSettingService(&settingPublicRepoStub{values: map[string]string{}}, &config.Config{}).
+		GetPublicSettings(context.Background())
+	require.NoError(t, err)
+	require.False(t, missingSettings.CompactHomeEnabled)
+}
+
+func TestSettingService_ChannelMonitorHideThroughputDefaultsToPrivate(t *testing.T) {
+	missing := NewSettingService(&settingPublicRepoStub{values: map[string]string{}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
+	require.True(t, missing.HideThroughput)
+	public, err := NewSettingService(&settingPublicRepoStub{values: map[string]string{}}, &config.Config{}).GetPublicSettings(context.Background())
+	require.NoError(t, err)
+	require.True(t, public.ChannelMonitorHideThroughput)
+
+	for _, value := range []string{"false", "0", "off", "disabled"} {
+		runtime := NewSettingService(&settingPublicRepoStub{values: map[string]string{
+			SettingKeyChannelMonitorHideThroughput: value,
+		}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
+		require.False(t, runtime.HideThroughput, "value=%q", value)
+	}
 }
 
 func TestSettingService_GetPublicSettings_ExposesForceEmailOnThirdPartySignup(t *testing.T) {

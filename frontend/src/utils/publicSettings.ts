@@ -22,6 +22,7 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   email_verify_enabled: false,
   force_email_on_third_party_signup: false,
   registration_email_suffix_whitelist: [],
+  registration_email_domain_quota_enabled: false,
   promo_code_enabled: false,
   password_reset_enabled: false,
   invitation_code_enabled: false,
@@ -31,8 +32,15 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   login_agreement_revision: '',
   login_agreement_documents: [],
   turnstile_enabled: false,
+  tencent_captcha_enabled: false,
+  tencent_captcha_app_id: '',
+  tencent_captcha_region: 'cn',
   passkey_enabled: false,
   turnstile_site_key: '',
+  aliyun_captcha_enabled: false,
+  aliyun_captcha_scene_id: '',
+  aliyun_captcha_prefix: '',
+  aliyun_captcha_region: 'cn',
   site_name: DEFAULT_PUBLIC_SITE_NAME,
   site_logo: '',
   site_subtitle: DEFAULT_PUBLIC_SITE_SUBTITLE,
@@ -40,6 +48,7 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   contact_info: '',
   doc_url: '',
   home_content: '',
+  compact_home_enabled: false,
   hide_ccs_import_button: false,
   payment_enabled: false,
   risk_control_enabled: false,
@@ -63,7 +72,9 @@ export const createDefaultPublicSettings = (): PublicSettings => ({
   account_quota_notify_enabled: false,
   balance_low_notify_threshold: 0,
   channel_monitor_enabled: false,
+  channel_monitor_mode: 'v1',
   channel_monitor_default_interval_seconds: 60,
+  channel_monitor_hide_throughput: true,
   available_channels_enabled: false,
   model_plaza_enabled: false,
   model_plaza_require_auth: false,
@@ -134,6 +145,11 @@ export const compactPublicSettingsConfig = (
     if (normalized.registration_email_suffix_whitelist.length > 0) {
       out.registration_email_suffix_whitelist = normalized.registration_email_suffix_whitelist
     }
+    addTrueSetting(
+      out,
+      'registration_email_domain_quota_enabled',
+      normalized.registration_email_domain_quota_enabled,
+    )
     addTrueSetting(out, 'promo_code_enabled', normalized.promo_code_enabled)
     addTrueSetting(out, 'invitation_code_enabled', normalized.invitation_code_enabled)
   }
@@ -154,6 +170,17 @@ export const compactPublicSettingsConfig = (
     out.turnstile_enabled = true
     addStringSetting(out, 'turnstile_site_key', normalized.turnstile_site_key)
   }
+  if (normalized.tencent_captcha_enabled) {
+    out.tencent_captcha_enabled = true
+    addStringSetting(out, 'tencent_captcha_app_id', normalized.tencent_captcha_app_id)
+    addStringSetting(out, 'tencent_captcha_region', normalized.tencent_captcha_region)
+  }
+  if (normalized.aliyun_captcha_enabled) {
+    out.aliyun_captcha_enabled = true
+    addStringSetting(out, 'aliyun_captcha_scene_id', normalized.aliyun_captcha_scene_id)
+    addStringSetting(out, 'aliyun_captcha_prefix', normalized.aliyun_captcha_prefix)
+    addStringSetting(out, 'aliyun_captcha_region', normalized.aliyun_captcha_region)
+  }
   addTrueSetting(out, 'passkey_enabled', normalized.passkey_enabled)
 
   addTrueSetting(out, 'linuxdo_oauth_enabled', normalized.linuxdo_oauth_enabled)
@@ -170,7 +197,21 @@ export const compactPublicSettingsConfig = (
   addTrueSetting(out, 'google_oauth_enabled', normalized.google_oauth_enabled)
   addTrueSetting(out, 'backend_mode_enabled', normalized.backend_mode_enabled)
   addTrueSetting(out, 'payment_enabled', normalized.payment_enabled)
-  addTrueSetting(out, 'channel_monitor_enabled', normalized.channel_monitor_enabled)
+  addTrueSetting(out, 'compact_home_enabled', normalized.compact_home_enabled)
+  if (normalized.channel_monitor_enabled) {
+    out.channel_monitor_enabled = true
+    if (normalized.channel_monitor_mode === 'v2') {
+      out.channel_monitor_mode = 'v2'
+    }
+    if (normalized.channel_monitor_default_interval_seconds !== 60) {
+      out.channel_monitor_default_interval_seconds = normalized.channel_monitor_default_interval_seconds
+    }
+    addTrueSetting(
+      out,
+      'channel_monitor_hide_throughput',
+      normalized.channel_monitor_hide_throughput,
+    )
+  }
   addTrueSetting(out, 'available_channels_enabled', normalized.available_channels_enabled)
   if (normalized.model_plaza_enabled) {
     out.model_plaza_enabled = true

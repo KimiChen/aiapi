@@ -12,7 +12,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-vi.mock('@/stores', () => ({
+vi.mock('@/stores/app', () => ({
   useAppStore: () => ({
     showError: (...args: any[]) => showErrorMock(...args),
   }),

@@ -160,6 +160,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyEmailVerifyEnabled,
 		SettingKeyForceEmailOnThirdPartySignup,
 		SettingKeyRegistrationEmailSuffixWhitelist,
+		SettingKeyRegistrationEmailDomainQuotaEnabled,
 		SettingKeyPromoCodeEnabled,
 		SettingKeyPasswordResetEnabled,
 		SettingKeyInvitationCodeEnabled,
@@ -171,6 +172,13 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyLoginAgreementDocuments,
 		SettingKeyTurnstileEnabled,
 		SettingKeyTurnstileSiteKey,
+		SettingKeyTencentCaptchaEnabled,
+		SettingKeyTencentCaptchaAppID,
+		SettingKeyTencentCaptchaRegion,
+		SettingKeyAliyunCaptchaEnabled,
+		SettingKeyAliyunCaptchaSceneID,
+		SettingKeyAliyunCaptchaPrefix,
+		SettingKeyAliyunCaptchaRegion,
 		SettingKeyAPIKeyACLTrustForwardedIP,
 		SettingKeySiteName,
 		SettingKeySiteLogo,
@@ -179,6 +187,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyContactInfo,
 		SettingKeyDocURL,
 		SettingKeyHomeContent,
+		SettingKeyCompactHomeEnabled,
 		SettingKeyHideCcsImportButton,
 		SettingKeyPurchaseSubscriptionEnabled,
 		SettingKeyPurchaseSubscriptionURL,
@@ -219,7 +228,9 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyBalanceLowNotifyRechargeURL,
 		SettingKeyAccountQuotaNotifyEnabled,
 		SettingKeyChannelMonitorEnabled,
+		SettingKeyChannelMonitorMode,
 		SettingKeyChannelMonitorDefaultIntervalSeconds,
+		SettingKeyChannelMonitorHideThroughput,
 		SettingKeyAvailableChannelsEnabled,
 		SettingKeyModelPlazaEnabled,
 		SettingKeyModelPlazaRequireAuth,
@@ -284,55 +295,66 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 	}
 
 	return &PublicSettings{
-		RegistrationEnabled:              settings[SettingKeyRegistrationEnabled] == "true",
-		EmailVerifyEnabled:               emailVerifyEnabled,
-		ForceEmailOnThirdPartySignup:     settings[SettingKeyForceEmailOnThirdPartySignup] == "true",
-		RegistrationEmailSuffixWhitelist: registrationEmailSuffixWhitelist,
-		PromoCodeEnabled:                 settings[SettingKeyPromoCodeEnabled] != "false", // 默认启用
-		PasswordResetEnabled:             passwordResetEnabled,
-		InvitationCodeEnabled:            settings[SettingKeyInvitationCodeEnabled] == "true",
-		TotpEnabled:                      settings[SettingKeyTotpEnabled] == "true",
-		PasskeyEnabled:                   s.passkeyConfigured() && s.passkeySettingEnabled(settings),
-		LoginAgreementEnabled:            settings[SettingKeyLoginAgreementEnabled] == "true" && len(loginAgreementDocuments) > 0,
-		LoginAgreementMode:               normalizeLoginAgreementMode(settings[SettingKeyLoginAgreementMode]),
-		LoginAgreementUpdatedAt:          loginAgreementUpdatedAt,
-		LoginAgreementRevision:           buildLoginAgreementRevision(loginAgreementUpdatedAt, loginAgreementDocuments),
-		LoginAgreementDocuments:          loginAgreementDocuments,
-		TurnstileEnabled:                 settings[SettingKeyTurnstileEnabled] == "true",
-		TurnstileSiteKey:                 settings[SettingKeyTurnstileSiteKey],
-		SiteName:                         s.getStringOrDefault(settings, SettingKeySiteName, "Sub2API"),
-		SiteLogo:                         settings[SettingKeySiteLogo],
-		SiteSubtitle:                     s.getStringOrDefault(settings, SettingKeySiteSubtitle, "Subscription to API Conversion Platform"),
-		APIBaseURL:                       settings[SettingKeyAPIBaseURL],
-		ContactInfo:                      settings[SettingKeyContactInfo],
-		DocURL:                           settings[SettingKeyDocURL],
-		HomeContent:                      settings[SettingKeyHomeContent],
-		HideCcsImportButton:              settings[SettingKeyHideCcsImportButton] == "true",
-		PurchaseSubscriptionEnabled:      settings[SettingKeyPurchaseSubscriptionEnabled] == "true",
-		PurchaseSubscriptionURL:          strings.TrimSpace(settings[SettingKeyPurchaseSubscriptionURL]),
-		TableDefaultPageSize:             tableDefaultPageSize,
-		TablePageSizeOptions:             tablePageSizeOptions,
-		CustomMenuItems:                  settings[SettingKeyCustomMenuItems],
-		CustomEndpoints:                  settings[SettingKeyCustomEndpoints],
-		LinuxDoOAuthEnabled:              linuxDoEnabled,
-		DingTalkOAuthEnabled:             dingTalkEnabled,
-		WeChatOAuthEnabled:               weChatEnabled,
-		WeChatOAuthOpenEnabled:           weChatOpenEnabled,
-		WeChatOAuthMPEnabled:             weChatMPEnabled,
-		WeChatOAuthMobileEnabled:         weChatMobileEnabled,
-		BackendModeEnabled:               settings[SettingKeyBackendModeEnabled] == "true",
-		PaymentEnabled:                   settings[SettingPaymentEnabled] == "true",
-		OIDCOAuthEnabled:                 oidcEnabled,
-		OIDCOAuthProviderName:            oidcProviderName,
-		GitHubOAuthEnabled:               gitHubEnabled,
-		GoogleOAuthEnabled:               googleEnabled,
-		BalanceLowNotifyEnabled:          settings[SettingKeyBalanceLowNotifyEnabled] == "true",
-		AccountQuotaNotifyEnabled:        settings[SettingKeyAccountQuotaNotifyEnabled] == "true",
-		BalanceLowNotifyThreshold:        balanceLowNotifyThreshold,
-		BalanceLowNotifyRechargeURL:      settings[SettingKeyBalanceLowNotifyRechargeURL],
+		RegistrationEnabled:                 settings[SettingKeyRegistrationEnabled] == "true",
+		EmailVerifyEnabled:                  emailVerifyEnabled,
+		ForceEmailOnThirdPartySignup:        settings[SettingKeyForceEmailOnThirdPartySignup] == "true",
+		RegistrationEmailSuffixWhitelist:    registrationEmailSuffixWhitelist,
+		RegistrationEmailDomainQuotaEnabled: settings[SettingKeyRegistrationEmailDomainQuotaEnabled] == "true",
+		PromoCodeEnabled:                    settings[SettingKeyPromoCodeEnabled] != "false", // 默认启用
+		PasswordResetEnabled:                passwordResetEnabled,
+		InvitationCodeEnabled:               settings[SettingKeyInvitationCodeEnabled] == "true",
+		TotpEnabled:                         settings[SettingKeyTotpEnabled] == "true",
+		PasskeyEnabled:                      s.passkeyConfigured() && s.passkeySettingEnabled(settings),
+		LoginAgreementEnabled:               settings[SettingKeyLoginAgreementEnabled] == "true" && len(loginAgreementDocuments) > 0,
+		LoginAgreementMode:                  normalizeLoginAgreementMode(settings[SettingKeyLoginAgreementMode]),
+		LoginAgreementUpdatedAt:             loginAgreementUpdatedAt,
+		LoginAgreementRevision:              buildLoginAgreementRevision(loginAgreementUpdatedAt, loginAgreementDocuments),
+		LoginAgreementDocuments:             loginAgreementDocuments,
+		TurnstileEnabled:                    settings[SettingKeyTurnstileEnabled] == "true",
+		TurnstileSiteKey:                    settings[SettingKeyTurnstileSiteKey],
+		TencentCaptchaEnabled:               settings[SettingKeyTencentCaptchaEnabled] == "true",
+		TencentCaptchaAppID:                 settings[SettingKeyTencentCaptchaAppID],
+		TencentCaptchaRegion:                normalizeTencentCaptchaRegion(settings[SettingKeyTencentCaptchaRegion]),
+		AliyunCaptchaEnabled:                settings[SettingKeyAliyunCaptchaEnabled] == "true",
+		AliyunCaptchaSceneID:                settings[SettingKeyAliyunCaptchaSceneID],
+		AliyunCaptchaPrefix:                 settings[SettingKeyAliyunCaptchaPrefix],
+		AliyunCaptchaRegion:                 normalizeAliyunCaptchaRegion(settings[SettingKeyAliyunCaptchaRegion]),
+		SiteName:                            s.getStringOrDefault(settings, SettingKeySiteName, "Sub2API"),
+		SiteLogo:                            settings[SettingKeySiteLogo],
+		SiteSubtitle:                        s.getStringOrDefault(settings, SettingKeySiteSubtitle, "Subscription to API Conversion Platform"),
+		APIBaseURL:                          settings[SettingKeyAPIBaseURL],
+		ContactInfo:                         settings[SettingKeyContactInfo],
+		DocURL:                              settings[SettingKeyDocURL],
+		HomeContent:                         settings[SettingKeyHomeContent],
+		CompactHomeEnabled:                  settings[SettingKeyCompactHomeEnabled] == "true",
+		HideCcsImportButton:                 settings[SettingKeyHideCcsImportButton] == "true",
+		PurchaseSubscriptionEnabled:         settings[SettingKeyPurchaseSubscriptionEnabled] == "true",
+		PurchaseSubscriptionURL:             strings.TrimSpace(settings[SettingKeyPurchaseSubscriptionURL]),
+		TableDefaultPageSize:                tableDefaultPageSize,
+		TablePageSizeOptions:                tablePageSizeOptions,
+		CustomMenuItems:                     settings[SettingKeyCustomMenuItems],
+		CustomEndpoints:                     settings[SettingKeyCustomEndpoints],
+		LinuxDoOAuthEnabled:                 linuxDoEnabled,
+		DingTalkOAuthEnabled:                dingTalkEnabled,
+		WeChatOAuthEnabled:                  weChatEnabled,
+		WeChatOAuthOpenEnabled:              weChatOpenEnabled,
+		WeChatOAuthMPEnabled:                weChatMPEnabled,
+		WeChatOAuthMobileEnabled:            weChatMobileEnabled,
+		BackendModeEnabled:                  settings[SettingKeyBackendModeEnabled] == "true",
+		PaymentEnabled:                      settings[SettingPaymentEnabled] == "true",
+		OIDCOAuthEnabled:                    oidcEnabled,
+		OIDCOAuthProviderName:               oidcProviderName,
+		GitHubOAuthEnabled:                  gitHubEnabled,
+		GoogleOAuthEnabled:                  googleEnabled,
+		BalanceLowNotifyEnabled:             settings[SettingKeyBalanceLowNotifyEnabled] == "true",
+		AccountQuotaNotifyEnabled:           settings[SettingKeyAccountQuotaNotifyEnabled] == "true",
+		BalanceLowNotifyThreshold:           balanceLowNotifyThreshold,
+		BalanceLowNotifyRechargeURL:         settings[SettingKeyBalanceLowNotifyRechargeURL],
 
 		ChannelMonitorEnabled:                !isFalseSettingValue(settings[SettingKeyChannelMonitorEnabled]),
+		ChannelMonitorMode:                   normalizeChannelMonitorMode(settings[SettingKeyChannelMonitorMode]),
 		ChannelMonitorDefaultIntervalSeconds: parseChannelMonitorInterval(settings[SettingKeyChannelMonitorDefaultIntervalSeconds]),
+		ChannelMonitorHideThroughput:         !isFalseSettingValue(settings[SettingKeyChannelMonitorHideThroughput]),
 
 		AvailableChannelsEnabled: settings[SettingKeyAvailableChannelsEnabled] == "true",
 
@@ -353,7 +375,20 @@ const (
 	channelMonitorIntervalMin      = 15
 	channelMonitorIntervalMax      = 3600
 	channelMonitorIntervalFallback = 60
+	defaultChannelMonitorMode      = ChannelMonitorModeV1
 )
+
+// normalizeChannelMonitorMode accepts only v1/v2; empty/invalid → v1 (safe default).
+func normalizeChannelMonitorMode(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case ChannelMonitorModeV1, "":
+		return ChannelMonitorModeV1
+	case ChannelMonitorModeV2:
+		return ChannelMonitorModeV2
+	default:
+		return defaultChannelMonitorMode
+	}
+}
 
 // parseChannelMonitorInterval parses the stored string and clamps to [15, 3600].
 // Empty / invalid input falls back to channelMonitorIntervalFallback.
@@ -380,25 +415,55 @@ func clampChannelMonitorInterval(v int) int {
 }
 
 // ChannelMonitorRuntime is the lightweight view of the channel monitor feature
-// consumed by the runner and user-facing handlers.
+// consumed by the runner, V2 aggregator, and user-facing handlers.
 type ChannelMonitorRuntime struct {
 	Enabled                bool
+	Mode                   string // ChannelMonitorModeV1 or ChannelMonitorModeV2
 	DefaultIntervalSeconds int
+	// HideThroughput: when true, user-facing V2 APIs omit RPM/TPM scale signals.
+	HideThroughput bool
+}
+
+// ActiveProbesAllowed reports whether V1 active provider probes may run.
+func (r ChannelMonitorRuntime) ActiveProbesAllowed() bool {
+	return r.Enabled && r.Mode == ChannelMonitorModeV1
+}
+
+// PassiveAggregationAllowed reports whether V2 passive aggregation may run.
+func (r ChannelMonitorRuntime) PassiveAggregationAllowed() bool {
+	return r.Enabled && r.Mode == ChannelMonitorModeV2
 }
 
 // GetChannelMonitorRuntime reads the channel monitor feature flags directly from
-// the settings store. Fail-open: on error returns Enabled=true with the default interval.
+// the settings store. Fail-open: on error returns Enabled=true, Mode=v1, default interval.
 func (s *SettingService) GetChannelMonitorRuntime(ctx context.Context) ChannelMonitorRuntime {
+	if s == nil || s.settingRepo == nil {
+		return ChannelMonitorRuntime{
+			Enabled:                true,
+			Mode:                   defaultChannelMonitorMode,
+			DefaultIntervalSeconds: channelMonitorIntervalFallback,
+			HideThroughput:         true,
+		}
+	}
 	vals, err := s.settingRepo.GetMultiple(ctx, []string{
 		SettingKeyChannelMonitorEnabled,
+		SettingKeyChannelMonitorMode,
 		SettingKeyChannelMonitorDefaultIntervalSeconds,
+		SettingKeyChannelMonitorHideThroughput,
 	})
 	if err != nil {
-		return ChannelMonitorRuntime{Enabled: true, DefaultIntervalSeconds: channelMonitorIntervalFallback}
+		return ChannelMonitorRuntime{
+			Enabled:                true,
+			Mode:                   defaultChannelMonitorMode,
+			DefaultIntervalSeconds: channelMonitorIntervalFallback,
+			HideThroughput:         true,
+		}
 	}
 	return ChannelMonitorRuntime{
 		Enabled:                !isFalseSettingValue(vals[SettingKeyChannelMonitorEnabled]),
+		Mode:                   normalizeChannelMonitorMode(vals[SettingKeyChannelMonitorMode]),
 		DefaultIntervalSeconds: parseChannelMonitorInterval(vals[SettingKeyChannelMonitorDefaultIntervalSeconds]),
+		HideThroughput:         !isFalseSettingValue(vals[SettingKeyChannelMonitorHideThroughput]),
 	}
 }
 
@@ -487,6 +552,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 	if settings.RegistrationEnabled {
 		addTrueSetting(payload, "email_verify_enabled", settings.EmailVerifyEnabled)
 		addNonEmptyStringSliceSetting(payload, "registration_email_suffix_whitelist", settings.RegistrationEmailSuffixWhitelist)
+		addTrueSetting(payload, "registration_email_domain_quota_enabled", settings.RegistrationEmailDomainQuotaEnabled)
 		addTrueSetting(payload, "promo_code_enabled", settings.PromoCodeEnabled)
 		addTrueSetting(payload, "invitation_code_enabled", settings.InvitationCodeEnabled)
 	}
@@ -503,10 +569,27 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		payload["turnstile_enabled"] = true
 		addStringSetting(payload, "turnstile_site_key", settings.TurnstileSiteKey)
 	}
+	if settings.TencentCaptchaEnabled {
+		payload["tencent_captcha_enabled"] = true
+		addStringSetting(payload, "tencent_captcha_app_id", settings.TencentCaptchaAppID)
+		addStringSetting(payload, "tencent_captcha_region", settings.TencentCaptchaRegion)
+	}
+	if settings.AliyunCaptchaEnabled {
+		payload["aliyun_captcha_enabled"] = true
+		addStringSetting(payload, "aliyun_captcha_scene_id", settings.AliyunCaptchaSceneID)
+		addStringSetting(payload, "aliyun_captcha_prefix", settings.AliyunCaptchaPrefix)
+		addStringSetting(payload, "aliyun_captcha_region", settings.AliyunCaptchaRegion)
+	}
 
 	addTrueSetting(payload, "backend_mode_enabled", settings.BackendModeEnabled)
 	addTrueSetting(payload, "payment_enabled", settings.PaymentEnabled)
-	addTrueSetting(payload, "channel_monitor_enabled", settings.ChannelMonitorEnabled)
+	addTrueSetting(payload, "compact_home_enabled", settings.CompactHomeEnabled)
+	if settings.ChannelMonitorEnabled {
+		payload["channel_monitor_enabled"] = true
+		addStringSettingUnless(payload, "channel_monitor_mode", settings.ChannelMonitorMode, defaultChannelMonitorMode)
+		addIntSettingUnless(payload, "channel_monitor_default_interval_seconds", settings.ChannelMonitorDefaultIntervalSeconds, channelMonitorIntervalFallback)
+		addTrueSetting(payload, "channel_monitor_hide_throughput", settings.ChannelMonitorHideThroughput)
+	}
 	addTrueSetting(payload, "available_channels_enabled", settings.AvailableChannelsEnabled)
 	if settings.ModelPlazaEnabled {
 		payload["model_plaza_enabled"] = true
@@ -548,6 +631,17 @@ func addStringSettingUnless(payload PublicSettingsInjectionPayload, key, value s
 func addNonEmptyStringSliceSetting(payload PublicSettingsInjectionPayload, key string, values []string) {
 	if len(values) > 0 {
 		payload[key] = values
+	}
+}
+
+func addIntSettingUnless(payload PublicSettingsInjectionPayload, key string, value int, omittedValues ...int) {
+	for _, omitted := range omittedValues {
+		if value == omitted {
+			return
+		}
+	}
+	if value != 0 {
+		payload[key] = value
 	}
 }
 
