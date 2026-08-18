@@ -114,6 +114,7 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 			SettingKeyChannelMonitorMode:                   ChannelMonitorModeV2,
 			SettingKeyChannelMonitorDefaultIntervalSeconds: "120",
 			SettingKeyChannelMonitorHideThroughput:         "true",
+			SettingKeyChannelMonitorShowQuota:              "true",
 			SettingKeyAvailableChannelsEnabled:             "true",
 			SettingKeyModelPlazaEnabled:                    "true",
 			SettingKeyModelPlazaRequireAuth:                "true",
@@ -136,6 +137,7 @@ func TestSettingService_GetPublicSettingsForInjection_IncludesEnabledNavigationF
 	require.Equal(t, ChannelMonitorModeV2, out["channel_monitor_mode"])
 	require.Equal(t, float64(120), out["channel_monitor_default_interval_seconds"])
 	require.Equal(t, true, out["channel_monitor_hide_throughput"])
+	require.Equal(t, true, out["channel_monitor_show_quota"])
 	require.Equal(t, true, out["available_channels_enabled"])
 	require.Equal(t, true, out["model_plaza_enabled"])
 	require.Equal(t, true, out["model_plaza_require_auth"])
@@ -256,6 +258,29 @@ func TestSettingService_ChannelMonitorHideThroughputDefaultsToPrivate(t *testing
 			SettingKeyChannelMonitorHideThroughput: value,
 		}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
 		require.False(t, runtime.HideThroughput, "value=%q", value)
+	}
+}
+
+func TestSettingService_ChannelMonitorShowQuotaFailsClosed(t *testing.T) {
+	// 缺省（迁移插入 'false' / 老库无行）一律不展示。
+	missingRuntime := NewSettingService(&settingPublicRepoStub{values: map[string]string{}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
+	require.False(t, missingRuntime.ShowQuota)
+	missingPublic, err := NewSettingService(&settingPublicRepoStub{values: map[string]string{}}, &config.Config{}).
+		GetPublicSettings(context.Background())
+	require.NoError(t, err)
+	require.False(t, missingPublic.ChannelMonitorShowQuota)
+
+	// 仅字面 "true" 视为开启；其余值（含异常值）fail-closed。
+	runtime := NewSettingService(&settingPublicRepoStub{values: map[string]string{
+		SettingKeyChannelMonitorShowQuota: "true",
+	}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
+	require.True(t, runtime.ShowQuota)
+
+	for _, value := range []string{"false", "TRUE", "1", "yes", "on", "garbage"} {
+		rt := NewSettingService(&settingPublicRepoStub{values: map[string]string{
+			SettingKeyChannelMonitorShowQuota: value,
+		}}, &config.Config{}).GetChannelMonitorRuntime(context.Background())
+		require.False(t, rt.ShowQuota, "value=%q", value)
 	}
 }
 
